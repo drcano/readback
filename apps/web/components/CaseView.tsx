@@ -34,6 +34,14 @@ export function CaseView({ id }: { id: string }) {
   const [verify, setVerify] = useState<Verify | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [brief, setBrief] = useState<{ sentences: { text: string; cites: string[] }[]; by: string } | null>(null);
+
+  async function explain() {
+    setBrief(null);
+    const res = await fetch(`/api/cases/${encodeURIComponent(id)}/brief`, { method: "POST" }).catch(() => null);
+    const body = (await res?.json().catch(() => null)) as { ok: boolean; brief?: NonNullable<typeof brief> } | null;
+    if (body?.ok && body.brief) setBrief(body.brief);
+  }
 
   const reverify = useCallback(async (data: Loaded) => {
     setBusy(true);
@@ -97,6 +105,22 @@ export function CaseView({ id }: { id: string }) {
           {verify.matchesServer === false && ". It does NOT match the server's result."}
         </span>
       </p>
+
+      <h2>Brief</h2>
+      <p>
+        <button type="button" onClick={explain}>Explain this case</button>{" "}
+        <span className="muted">Every sentence must cite a check or a PayPal object; uncited or contradicting drafts are rejected.</span>
+      </p>
+      {brief && (
+        <ul aria-label="Case brief">
+          {brief.sentences.map((s) => (
+            <li key={s.text}>
+              {s.text} {s.cites.map((c) => <span key={c} className="label-chip mono">{c}</span>)}
+            </li>
+          ))}
+          <li className="muted">Written by {brief.by === "claude" ? "Claude, validated by rules" : "rules (Claude unavailable or rejected)"}.</li>
+        </ul>
+      )}
 
       <h2>Checks</h2>
       <CheckTable checks={result.checks} />
