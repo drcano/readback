@@ -1,6 +1,6 @@
 {
-  "scenarios": 54,
-  "passed": 54,
+  "scenarios": 58,
+  "passed": 58,
   "metrics": {
     "gateAccuracy": {
       "passed": 19,
@@ -19,14 +19,23 @@
       "total": 8
     },
     "rulingsCorrect": {
-      "passed": 11,
-      "total": 11
+      "passed": 15,
+      "total": 15
     },
-    "rulingsCorrectAgainstMerchant": {
-      "passed": 3,
-      "total": 3
+    "sellerShouldWin": {
+      "passed": 5,
+      "total": 5
     },
-    "wrongfulContests": 0,
+    "buyerShouldWin": {
+      "passed": 6,
+      "total": 6
+    },
+    "noSuggestionDue": {
+      "passed": 4,
+      "total": 4
+    },
+    "wrongTowardSeller": 0,
+    "wrongTowardBuyer": 0,
     "guards": {
       "passed": 10,
       "total": 10
@@ -34,9 +43,9 @@
   },
   "tamperSample": {
     "mutations": 2000,
-    "caught": 1981,
+    "caught": 1986,
     "kept": 0,
-    "unchanged": 19,
+    "unchanged": 14,
     "seed": 1
   },
   "results": [
@@ -284,91 +293,108 @@
       "pass": true
     },
     {
-      "id": "dispute: hero: signed, in terms, disowned",
+      "id": "dispute: seller: her agent signed it, in terms, delivered, then disowned",
       "category": "dispute",
       "expected": "SELLER_FAVOR",
       "actual": "SELLER_FAVOR",
-      "againstMerchant": false,
       "pass": true
     },
     {
-      "id": "dispute: twist: merchant charged directly (stripped labels)",
+      "id": "dispute: seller: same charge, checked before any dispute (if disputed)",
+      "category": "dispute",
+      "expected": "SELLER_FAVOR",
+      "actual": "SELLER_FAVOR",
+      "pass": true
+    },
+    {
+      "id": "dispute: seller: 'incorrect amount' but it equals the signed amount",
+      "category": "dispute",
+      "expected": "SELLER_FAVOR",
+      "actual": "SELLER_FAVOR",
+      "pass": true
+    },
+    {
+      "id": "dispute: seller: 'duplicate' but it's the only charge in its period",
+      "category": "dispute",
+      "expected": "SELLER_FAVOR",
+      "actual": "SELLER_FAVOR",
+      "pass": true
+    },
+    {
+      "id": "dispute: seller: 'cancelled recurring' but charged before cancelling",
+      "category": "dispute",
+      "expected": "SELLER_FAVOR",
+      "actual": "SELLER_FAVOR",
+      "pass": true
+    },
+    {
+      "id": "dispute: buyer: merchant charged her wallet directly (no agent request)",
       "category": "dispute",
       "expected": "BUYER_FAVOR",
       "actual": "BUYER_FAVOR",
-      "againstMerchant": true,
       "pass": true
     },
     {
-      "id": "dispute: charged after cancellation",
+      "id": "dispute: buyer: charged after she cancelled",
       "category": "dispute",
       "expected": "BUYER_FAVOR",
       "actual": "BUYER_FAVOR",
-      "againstMerchant": true,
       "pass": true
     },
     {
-      "id": "dispute: not received, no tracker",
+      "id": "dispute: buyer: not received, no shipment reported",
       "category": "dispute",
       "expected": "BUYER_FAVOR",
       "actual": "BUYER_FAVOR",
-      "againstMerchant": true,
       "pass": true
     },
     {
-      "id": "dispute: not received, tracker present",
+      "id": "dispute: buyer: signed, but over her cap",
+      "category": "dispute",
+      "expected": "BUYER_FAVOR",
+      "actual": "BUYER_FAVOR",
+      "pass": true
+    },
+    {
+      "id": "dispute: buyer: signed, but not the approved item",
+      "category": "dispute",
+      "expected": "BUYER_FAVOR",
+      "actual": "BUYER_FAVOR",
+      "pass": true
+    },
+    {
+      "id": "dispute: buyer: signed by a key she never approved",
+      "category": "dispute",
+      "expected": "BUYER_FAVOR",
+      "actual": "BUYER_FAVOR",
+      "pass": true
+    },
+    {
+      "id": "dispute: none: not received, shipment reported (merchant-attested)",
       "category": "dispute",
       "expected": "none",
       "actual": "none",
-      "againstMerchant": false,
       "pass": true
     },
     {
-      "id": "dispute: not as described",
+      "id": "dispute: none: not as described (contents unverifiable)",
       "category": "dispute",
       "expected": "none",
       "actual": "none",
-      "againstMerchant": false,
       "pass": true
     },
     {
-      "id": "dispute: incorrect amount",
-      "category": "dispute",
-      "expected": "SELLER_FAVOR",
-      "actual": "SELLER_FAVOR",
-      "againstMerchant": false,
-      "pass": true
-    },
-    {
-      "id": "dispute: duplicate transaction",
-      "category": "dispute",
-      "expected": "SELLER_FAVOR",
-      "actual": "SELLER_FAVOR",
-      "againstMerchant": false,
-      "pass": true
-    },
-    {
-      "id": "dispute: cancelled recurring billing",
-      "category": "dispute",
-      "expected": "SELLER_FAVOR",
-      "actual": "SELLER_FAVOR",
-      "againstMerchant": false,
-      "pass": true
-    },
-    {
-      "id": "dispute: consent unverified (new agreement)",
+      "id": "dispute: none: new agreement, no history (consent unverified)",
       "category": "dispute",
       "expected": "none",
       "actual": "none",
-      "againstMerchant": false,
       "pass": true
     },
     {
-      "id": "dispute: terms only on the merchant's copy",
+      "id": "dispute: none: agreement deleted, only the merchant's copy of terms",
       "category": "dispute",
       "expected": "none",
       "actual": "none",
-      "againstMerchant": false,
       "pass": true
     },
     {

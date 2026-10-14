@@ -6,7 +6,7 @@
 
 Maya tells her AI once what it may buy. PayPal holds that promise, her agent signs every purchase, and when anyone says "my AI bought that," the truth takes one click.
 
-**Same claim, two verdicts.** A signed, in-terms purchase that Maya disowns → the evidence supports the **seller**. A charge the merchant made itself, with no request from her agent → the evidence supports the **buyer**, against the merchant running Readback.
+**Same claim, two verdicts.** A signed, in-terms purchase that Maya disowns → the evidence supports the **seller**. A charge the merchant made itself, with no request from her agent → the evidence supports the **buyer**. One standard for both sides, whoever runs it ([neutrality principles](docs/decisions/0004-neutrality.md)).
 
 ## How it works
 
@@ -32,7 +32,7 @@ Maya's assistant ──asks──▶ agent runtime ──signs (ES256)──▶ 
 | `packages/readback-core`: terms grammar, ES256 mandates with header hygiene, fingerprints, labels, gate decision, eleven checks, classification | Built; 130 tests, ~98% coverage, 10,000-mutation tamper fuzz, runs in headless Chromium |
 | `apps/agent`: MCP agent runtime (stateless, two secret paths) | Built; tested over the MCP protocol |
 | `apps/web`: shopper flow, judge mode, investigator queue + case view, checkout gate, agreements, webhooks | Built; tested against an in-memory PayPal fake and end to end in Chromium |
-| `evals/`: 54 labeled scenarios | 54/54 as labeled ([results](evals/results/latest.json)) |
+| `evals/`: 58 labeled scenarios, also runnable in your browser at `/judge` | 58/58 as labeled; dispute suggestions 5/5 seller-side, 6/6 buyer-side, 4/4 no suggestion; 0 wrong in either direction ([results](evals/results/latest.json)) |
 | Sandbox spike (does PayPal behave as the design assumes?) | *Pending*: step 9 (crypto) passed; steps 1–8 need sandbox credentials |
 
 ## Run it locally

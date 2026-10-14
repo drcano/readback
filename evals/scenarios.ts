@@ -31,7 +31,7 @@ import { paypalClient } from "../apps/web/lib/paypal/client.ts";
 import { fakePayPal } from "../apps/web/lib/paypal/fake.ts";
 import { verifyWebhook } from "../apps/web/lib/webhooks.ts";
 
-export type Outcome = { id: string; category: string; layer?: string; expected: string; actual: string; pass: boolean; againstMerchant?: boolean };
+export type Outcome = { id: string; category: string; layer?: string; expected: string; actual: string; pass: boolean };
 const results: Outcome[] = [];
 // A tiny scenario runner, so the same scenario code runs under vitest (CI) and in a browser.
 // `describe` groups steps, `it` registers one, `expect` throws on a mismatch; runScenarios() runs
@@ -268,23 +268,42 @@ describe("disputes across the classification table", async () => {
   const hero = await heroCase();
   const fx = Object.fromEntries((await fixtureCases()).map((f) => [f.id, f.bundle]));
   const withReason = (b: CaseBundle, reason: DisputeReason): CaseBundle => ({ ...structuredClone(b), dispute: { ...b.dispute!, reason } });
-  const cases: [string, CaseBundle, string, boolean][] = [
-    ["hero: signed, in terms, disowned", hero.bundle, "SELLER_FAVOR", false],
-    ["twist: merchant charged directly (stripped labels)", fx["PP-D-TWIST"]!, "BUYER_FAVOR", true],
-    ["charged after cancellation", fx["PP-D-FX-REVOKED"]!, "BUYER_FAVOR", true],
-    ["not received, no tracker", fx["PP-D-FX-NOTRECEIVED"]!, "BUYER_FAVOR", true],
-    ["not received, tracker present", withReason(hero.bundle, "MERCHANDISE_OR_SERVICE_NOT_RECEIVED"), "none", false],
-    ["not as described", withReason(hero.bundle, "MERCHANDISE_OR_SERVICE_NOT_AS_DESCRIBED"), "none", false],
-    ["incorrect amount", withReason(hero.bundle, "INCORRECT_AMOUNT"), "SELLER_FAVOR", false],
-    ["duplicate transaction", withReason(hero.bundle, "DUPLICATE_TRANSACTION"), "SELLER_FAVOR", false],
-    ["cancelled recurring billing", withReason(hero.bundle, "CANCELED_RECURRING_BILLING"), "SELLER_FAVOR", false],
-    ["consent unverified (new agreement)", fx["PP-D-FX-NEWAGREEMENT"]!, "none", false],
-    ["terms only on the merchant's copy", fx["PP-D-FX-DELETED"]!, "none", false],
+  // Variants of the hero where the AGENT side breaks (the shopper should win), built like the hero.
+  const signedVariant = async (over: { unit?: string; sku?: string; signer?: AgentKey }) => {
+    const v = await heroCase({ agent: hero.agent, signer: over.signer, mandate: over.unit ? { unit: over.unit, amt: over.unit } : over.sku ? { sku: over.sku } : {} });
+    const pu = v.bundle.order.purchase_units[0]!;
+    if (over.unit) {
+      pu.amount = { currency_code: "USD", value: over.unit, breakdown: { item_total: { currency_code: "USD", value: over.unit } } };
+      pu.items![0]!.unit_amount.value = over.unit;
+      v.bundle.capture.amount.value = over.unit;
+    }
+    if (over.sku) pu.items![0]!.sku = over.sku;
+    return v.bundle;
+  };
+  // Balanced on purpose: 5 cases the seller should win, 6 the buyer should win, 4 with no
+  // suggestion. Readback is only useful to PayPal if it's right for both sides (ADR 0004).
+  const cases: [string, CaseBundle, "SELLER_FAVOR" | "BUYER_FAVOR" | "none"][] = [
+    ["seller: her agent signed it, in terms, delivered, then disowned", hero.bundle, "SELLER_FAVOR"],
+    ["seller: same charge, checked before any dispute (if disputed)", { ...structuredClone(hero.bundle), dispute: null }, "SELLER_FAVOR"],
+    ["seller: 'incorrect amount' but it equals the signed amount", withReason(hero.bundle, "INCORRECT_AMOUNT"), "SELLER_FAVOR"],
+    ["seller: 'duplicate' but it's the only charge in its period", withReason(hero.bundle, "DUPLICATE_TRANSACTION"), "SELLER_FAVOR"],
+    ["seller: 'cancelled recurring' but charged before cancelling", withReason(hero.bundle, "CANCELED_RECURRING_BILLING"), "SELLER_FAVOR"],
+    ["buyer: merchant charged her wallet directly (no agent request)", fx["PP-D-TWIST"]!, "BUYER_FAVOR"],
+    ["buyer: charged after she cancelled", fx["PP-D-FX-REVOKED"]!, "BUYER_FAVOR"],
+    ["buyer: not received, no shipment reported", fx["PP-D-FX-NOTRECEIVED"]!, "BUYER_FAVOR"],
+    ["buyer: signed, but over her cap", await signedVariant({ unit: "70.00" }), "BUYER_FAVOR"],
+    ["buyer: signed, but not the approved item", await signedVariant({ sku: "GBP-PREMIUM" }), "BUYER_FAVOR"],
+    ["buyer: signed by a key she never approved", await signedVariant({ signer: stranger }), "BUYER_FAVOR"],
+    ["none: not received, shipment reported (merchant-attested)", withReason(hero.bundle, "MERCHANDISE_OR_SERVICE_NOT_RECEIVED"), "none"],
+    ["none: not as described (contents unverifiable)", withReason(hero.bundle, "MERCHANDISE_OR_SERVICE_NOT_AS_DESCRIBED"), "none"],
+    ["none: new agreement, no history (consent unverified)", fx["PP-D-FX-NEWAGREEMENT"]!, "none"],
+    ["none: agreement deleted, only the merchant's copy of terms", fx["PP-D-FX-DELETED"]!, "none"],
   ];
-  for (const [name, bundle, expected, againstMerchant] of cases) {
+
+  for (const [name, bundle, expected] of cases) {
     it(name, async () => {
       const c = (await evaluateCase(bundle)).classification;
-      expect(record({ id: `dispute: ${name}`, category: "dispute", expected, actual: c.suggestion ?? "none", againstMerchant }).pass).toBe(true);
+      expect(record({ id: `dispute: ${name}`, category: "dispute", expected, actual: c.suggestion ?? "none" }).pass).toBe(true);
     });
   }
 });
@@ -342,8 +361,12 @@ export function summarize(results: Outcome[]) {
       attacksBlockedAtGate: by((o) => o.category === "attack" && o.layer === "gate"),
       signatureAttacksCaught: by((o) => o.category === "signature"),
       rulingsCorrect: by((o) => o.category === "dispute"),
-      rulingsCorrectAgainstMerchant: by((o) => o.category === "dispute" && o.againstMerchant === true),
-      wrongfulContests: results.filter((o) => o.category === "dispute" && o.actual === "SELLER_FAVOR" && o.expected !== "SELLER_FAVOR").length,
+      // Neutrality (ADR 0004): accuracy reported per side, and wrong suggestions in BOTH directions.
+      sellerShouldWin: by((o) => o.category === "dispute" && o.expected === "SELLER_FAVOR"),
+      buyerShouldWin: by((o) => o.category === "dispute" && o.expected === "BUYER_FAVOR"),
+      noSuggestionDue: by((o) => o.category === "dispute" && o.expected === "none"),
+      wrongTowardSeller: results.filter((o) => o.category === "dispute" && o.actual === "SELLER_FAVOR" && o.expected !== "SELLER_FAVOR").length,
+      wrongTowardBuyer: results.filter((o) => o.category === "dispute" && o.actual === "BUYER_FAVOR" && o.expected !== "BUYER_FAVOR").length,
       guards: by((o) => o.category === "guard"),
     },
   };

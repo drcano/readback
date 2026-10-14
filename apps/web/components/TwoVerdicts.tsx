@@ -61,7 +61,7 @@ export function TwoVerdicts() {
           </div>
           <p className="muted small">
             Both cases were just re-verified in your browser in {ms} ms: signatures, terms and all eleven checks. Fixture data, labeled; the live
-            versions run against the PayPal sandbox. The second verdict goes against the merchant running Readback.
+            versions run against the PayPal sandbox. The rules are the same for both sides: a signed request inside her approved terms protects the seller; a charge her agent never asked for protects the buyer.
           </p>
         </>
       )}

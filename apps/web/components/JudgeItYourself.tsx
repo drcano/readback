@@ -13,8 +13,10 @@ const ROWS: [keyof ReturnType<typeof summarize>["metrics"], string][] = [
   ["attacksBlockedAtRuntime", "Attack pages blocked at the agent runtime"],
   ["attacksBlockedAtGate", "Attack pages blocked at the gate"],
   ["signatureAttacksCaught", "Signature attacks caught"],
-  ["rulingsCorrect", "Dispute rulings correct"],
-  ["rulingsCorrectAgainstMerchant", "…including against the merchant"],
+  ["rulingsCorrect", "Dispute suggestions correct"],
+  ["sellerShouldWin", "…where the evidence supports the seller"],
+  ["buyerShouldWin", "…where the evidence supports the buyer"],
+  ["noSuggestionDue", "…where the evidence supports neither (no suggestion)"],
   ["guards", "Guards (proofs, demo fencing, webhooks, formats)"],
 ];
 
@@ -51,7 +53,8 @@ export function JudgeItYourself() {
                   const v = board.summary.metrics[k] as { passed: number; total: number };
                   return <tr key={k}><td>{label}</td><td className="mono">{v.passed}/{v.total}</td></tr>;
                 })}
-                <tr><td>Wrongful contests (seller's favor where the buyer should win)</td><td className="mono">{board.summary.metrics.wrongfulContests}</td></tr>
+                <tr><td>Wrong suggestions toward the seller</td><td className="mono">{board.summary.metrics.wrongTowardSeller}</td></tr>
+                <tr><td>Wrong suggestions toward the buyer</td><td className="mono">{board.summary.metrics.wrongTowardBuyer}</td></tr>
                 <tr>
                   <td>Tamper sample: random single-field mutations of the hero case still earning seller's favor (seed {board.tamper.seed})</td>
                   <td className="mono">{board.tamper.kept}/{board.tamper.mutations - board.tamper.unchanged}</td>

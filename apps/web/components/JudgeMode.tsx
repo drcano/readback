@@ -99,7 +99,7 @@ export function JudgeMode() {
           <h2>5. Be a dishonest merchant</h2>
           <p>Charge your own agreement directly, every term respected, but with no request from your agent.</p>
           <button type="button" onClick={beDishonest} disabled={!tokenId || Boolean(dishonest)}>Charge my wallet without my agent</button>
-          {dishonest && <p><a href={`/investigator/${dishonest}`}>Check this charge</a>: the Agent light is red and the suggestion is buyer's favor, against the merchant running Readback.</p>}
+          {dishonest && <p><a href={`/investigator/${dishonest}`}>Check this charge</a>: every term was respected, but the Agent light is red and the evidence supports the buyer. Readback follows the evidence, whoever runs it.</p>}
         </li>
       </ol>
       <p role="status" aria-live="polite">{status}</p>
