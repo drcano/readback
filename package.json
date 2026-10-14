@@ -21,7 +21,8 @@
     "spike:crypto": "node scripts/spike/09-crypto.ts",
     "seed:charge": "node --env-file=.env scripts/seed-charge.ts",
     "agreement:create": "node --env-file=.env scripts/create-agreement.ts",
-    "doctor": "node scripts/doctor.ts"
+    "doctor": "node scripts/doctor.ts",
+    "eval": "pnpm --filter @readback/evals eval"
   },
   "devDependencies": {
     "@readback/core": "workspace:*",

@@ -1,0 +1,440 @@
+{
+  "generatedAt": "2026-10-14T12:41:55.570Z",
+  "scenarios": 54,
+  "passed": 54,
+  "metrics": {
+    "gateAccuracy": {
+      "passed": 19,
+      "total": 19
+    },
+    "attacksBlockedAtRuntime": {
+      "passed": 6,
+      "total": 6
+    },
+    "attacksBlockedAtGate": {
+      "passed": 6,
+      "total": 6
+    },
+    "signatureAttacksCaught": {
+      "passed": 8,
+      "total": 8
+    },
+    "rulingsCorrect": {
+      "passed": 11,
+      "total": 11
+    },
+    "rulingsCorrectAgainstMerchant": {
+      "passed": 3,
+      "total": 3
+    },
+    "wrongfulContests": 0,
+    "guards": {
+      "passed": 10,
+      "total": 10
+    },
+    "tamperFuzz": "10,000 mutations per CI run in packages/readback-core/src/fuzz.test.ts; a mutated case keeping SELLER_FAVOR fails the build"
+  },
+  "results": [
+    {
+      "id": "legit: mid-period",
+      "category": "legitimate",
+      "expected": "ALLOW",
+      "actual": "ALLOW",
+      "pass": true
+    },
+    {
+      "id": "legit: first second of the agreement",
+      "category": "legitimate",
+      "expected": "ALLOW",
+      "actual": "ALLOW",
+      "pass": true
+    },
+    {
+      "id": "legit: signed 23:59:58, charged 00:00:01 (period of signing)",
+      "category": "legitimate",
+      "expected": "ALLOW",
+      "actual": "ALLOW",
+      "pass": true
+    },
+    {
+      "id": "legit: last minute before expiry",
+      "category": "legitimate",
+      "expected": "ALLOW",
+      "actual": "ALLOW",
+      "pass": true
+    },
+    {
+      "id": "legit: 30-day cadence, third period",
+      "category": "legitimate",
+      "expected": "ALLOW",
+      "actual": "ALLOW",
+      "pass": true
+    },
+    {
+      "id": "legit: price exactly at the cap",
+      "category": "legitimate",
+      "expected": "ALLOW",
+      "actual": "ALLOW",
+      "pass": true
+    },
+    {
+      "id": "legit: quantity at the limit",
+      "category": "legitimate",
+      "expected": "ALLOW",
+      "actual": "ALLOW",
+      "pass": true
+    },
+    {
+      "id": "legit: next day after a charge (new period)",
+      "category": "legitimate",
+      "expected": "ALLOW",
+      "actual": "ALLOW",
+      "pass": true
+    },
+    {
+      "id": "runtime: hidden instructions (premium bundle x3)",
+      "category": "attack",
+      "layer": "runtime",
+      "expected": "REFUSED",
+      "actual": "REFUSED",
+      "pass": true
+    },
+    {
+      "id": "runtime: fake system text (quantity 5)",
+      "category": "attack",
+      "layer": "runtime",
+      "expected": "REFUSED",
+      "actual": "REFUSED",
+      "pass": true
+    },
+    {
+      "id": "runtime: price swap (page says $6.99)",
+      "category": "attack",
+      "layer": "runtime",
+      "expected": "REFUSED",
+      "actual": "REFUSED",
+      "pass": true
+    },
+    {
+      "id": "runtime: SKU swap (12 lb bag)",
+      "category": "attack",
+      "layer": "runtime",
+      "expected": "REFUSED",
+      "actual": "REFUSED",
+      "pass": true
+    },
+    {
+      "id": "runtime: merchant redirect (PetMegaMart)",
+      "category": "attack",
+      "layer": "runtime",
+      "expected": "REFUSED",
+      "actual": "REFUSED",
+      "pass": true
+    },
+    {
+      "id": "runtime: quantity bump (2 bags)",
+      "category": "attack",
+      "layer": "runtime",
+      "expected": "REFUSED",
+      "actual": "REFUSED",
+      "pass": true
+    },
+    {
+      "id": "gate: hidden instructions (premium bundle x3)",
+      "category": "attack",
+      "layer": "gate",
+      "expected": "DENY",
+      "actual": "DENY",
+      "pass": true
+    },
+    {
+      "id": "gate: fake system text (quantity 5)",
+      "category": "attack",
+      "layer": "gate",
+      "expected": "DENY",
+      "actual": "DENY",
+      "pass": true
+    },
+    {
+      "id": "gate: price swap (page says $6.99)",
+      "category": "attack",
+      "layer": "gate",
+      "expected": "DENY",
+      "actual": "DENY",
+      "pass": true
+    },
+    {
+      "id": "gate: SKU swap (12 lb bag)",
+      "category": "attack",
+      "layer": "gate",
+      "expected": "DENY",
+      "actual": "DENY",
+      "pass": true
+    },
+    {
+      "id": "gate: merchant redirect (PetMegaMart)",
+      "category": "attack",
+      "layer": "gate",
+      "expected": "DENY",
+      "actual": "DENY",
+      "pass": true
+    },
+    {
+      "id": "gate: quantity bump (2 bags)",
+      "category": "attack",
+      "layer": "gate",
+      "expected": "DENY",
+      "actual": "DENY",
+      "pass": true
+    },
+    {
+      "id": "violation: revoked",
+      "category": "gate-violation",
+      "expected": "DENY",
+      "actual": "DENY",
+      "pass": true
+    },
+    {
+      "id": "violation: over cap",
+      "category": "gate-violation",
+      "expected": "DENY",
+      "actual": "DENY",
+      "pass": true
+    },
+    {
+      "id": "violation: wrong SKU",
+      "category": "gate-violation",
+      "expected": "DENY",
+      "actual": "DENY",
+      "pass": true
+    },
+    {
+      "id": "violation: second charge in period",
+      "category": "gate-violation",
+      "expected": "DENY",
+      "actual": "DENY",
+      "pass": true
+    },
+    {
+      "id": "violation: after end",
+      "category": "gate-violation",
+      "expected": "DENY",
+      "actual": "DENY",
+      "pass": true
+    },
+    {
+      "id": "signature: forged",
+      "category": "signature",
+      "expected": "DENY",
+      "actual": "DENY",
+      "pass": true
+    },
+    {
+      "id": "signature: unapproved key",
+      "category": "signature",
+      "expected": "DENY",
+      "actual": "DENY",
+      "pass": true
+    },
+    {
+      "id": "signature: extra header member",
+      "category": "signature",
+      "expected": "DENY",
+      "actual": "DENY",
+      "pass": true
+    },
+    {
+      "id": "signature: jku header",
+      "category": "signature",
+      "expected": "DENY",
+      "actual": "DENY",
+      "pass": true
+    },
+    {
+      "id": "signature: payload mismatch",
+      "category": "signature",
+      "expected": "DENY",
+      "actual": "DENY",
+      "pass": true
+    },
+    {
+      "id": "signature: expired",
+      "category": "signature",
+      "expected": "DENY",
+      "actual": "DENY",
+      "pass": true
+    },
+    {
+      "id": "signature: past period",
+      "category": "signature",
+      "expected": "DENY",
+      "actual": "DENY",
+      "pass": true
+    },
+    {
+      "id": "signature: resubmitted into a second order",
+      "category": "signature",
+      "expected": "1 order",
+      "actual": "1 order",
+      "pass": true
+    },
+    {
+      "id": "dispute: hero: signed, in terms, disowned",
+      "category": "dispute",
+      "expected": "SELLER_FAVOR",
+      "actual": "SELLER_FAVOR",
+      "againstMerchant": false,
+      "pass": true
+    },
+    {
+      "id": "dispute: twist: merchant charged directly (stripped labels)",
+      "category": "dispute",
+      "expected": "BUYER_FAVOR",
+      "actual": "BUYER_FAVOR",
+      "againstMerchant": true,
+      "pass": true
+    },
+    {
+      "id": "dispute: charged after cancellation",
+      "category": "dispute",
+      "expected": "BUYER_FAVOR",
+      "actual": "BUYER_FAVOR",
+      "againstMerchant": true,
+      "pass": true
+    },
+    {
+      "id": "dispute: not received, no tracker",
+      "category": "dispute",
+      "expected": "BUYER_FAVOR",
+      "actual": "BUYER_FAVOR",
+      "againstMerchant": true,
+      "pass": true
+    },
+    {
+      "id": "dispute: not received, tracker present",
+      "category": "dispute",
+      "expected": "none",
+      "actual": "none",
+      "againstMerchant": false,
+      "pass": true
+    },
+    {
+      "id": "dispute: not as described",
+      "category": "dispute",
+      "expected": "none",
+      "actual": "none",
+      "againstMerchant": false,
+      "pass": true
+    },
+    {
+      "id": "dispute: incorrect amount",
+      "category": "dispute",
+      "expected": "SELLER_FAVOR",
+      "actual": "SELLER_FAVOR",
+      "againstMerchant": false,
+      "pass": true
+    },
+    {
+      "id": "dispute: duplicate transaction",
+      "category": "dispute",
+      "expected": "SELLER_FAVOR",
+      "actual": "SELLER_FAVOR",
+      "againstMerchant": false,
+      "pass": true
+    },
+    {
+      "id": "dispute: cancelled recurring billing",
+      "category": "dispute",
+      "expected": "SELLER_FAVOR",
+      "actual": "SELLER_FAVOR",
+      "againstMerchant": false,
+      "pass": true
+    },
+    {
+      "id": "dispute: consent unverified (new agreement)",
+      "category": "dispute",
+      "expected": "none",
+      "actual": "none",
+      "againstMerchant": false,
+      "pass": true
+    },
+    {
+      "id": "dispute: terms only on the merchant's copy",
+      "category": "dispute",
+      "expected": "none",
+      "actual": "none",
+      "againstMerchant": false,
+      "pass": true
+    },
+    {
+      "id": "proof: wrong key",
+      "category": "guard",
+      "expected": "DENY",
+      "actual": "DENY",
+      "pass": true
+    },
+    {
+      "id": "proof: wrong purpose",
+      "category": "guard",
+      "expected": "DENY",
+      "actual": "DENY",
+      "pass": true
+    },
+    {
+      "id": "proof: stale",
+      "category": "guard",
+      "expected": "DENY",
+      "actual": "DENY",
+      "pass": true
+    },
+    {
+      "id": "proof: mandate as proof",
+      "category": "guard",
+      "expected": "DENY",
+      "actual": "DENY",
+      "pass": true
+    },
+    {
+      "id": "guard: DEMO_MODE off",
+      "category": "guard",
+      "expected": "off",
+      "actual": "off",
+      "pass": true
+    },
+    {
+      "id": "guard: live PayPal base URL",
+      "category": "guard",
+      "expected": "off",
+      "actual": "off",
+      "pass": true
+    },
+    {
+      "id": "guard: spoofed webhook",
+      "category": "guard",
+      "expected": "DROP",
+      "actual": "DROP",
+      "pass": true
+    },
+    {
+      "id": "guard: amount format variant",
+      "category": "guard",
+      "expected": "REFUSED",
+      "actual": "REFUSED",
+      "pass": true
+    },
+    {
+      "id": "guard: runtime refuses foreign fingerprint",
+      "category": "guard",
+      "expected": "REFUSED",
+      "actual": "REFUSED",
+      "pass": true
+    },
+    {
+      "id": "guard: merchant action without admin token",
+      "category": "guard",
+      "expected": "DENY",
+      "actual": "DENY",
+      "pass": true
+    }
+  ]
+}
