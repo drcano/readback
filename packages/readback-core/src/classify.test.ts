@@ -237,3 +237,18 @@ it("hero fixture is internally consistent", () => {
   expect(hero.bundle.capture.create_time).toBe(HERO_CAPTURE_TIME);
   expect(hero.jws.length).toBeLessThan(700);
 });
+
+describe("fixture set", () => {
+  it("covers distinct rows and labels each one", async () => {
+    const { fixtureCases } = await import("./fixtures.ts");
+    const rows = await Promise.all((await fixtureCases()).map(async (f) => [f.id, (await evaluateCase(f.bundle)).classification] as const));
+    expect(Object.fromEntries(rows.map(([id, c]) => [id, `${c.row}:${c.suggestion}`]))).toEqual({
+      "PP-D-HERO1": "13:SELLER_FAVOR",
+      "PP-D-TWIST": "3:BUYER_FAVOR",
+      "PP-D-FX-REVOKED": "2:BUYER_FAVOR",
+      "PP-D-FX-NOTRECEIVED": "5:BUYER_FAVOR",
+      "PP-D-FX-NEWAGREEMENT": "12:null",
+      "PP-D-FX-DELETED": "13:null",
+    });
+  });
+});

@@ -1,7 +1,7 @@
 // Builds realistic case bundles, shaped like PayPal's responses, for tests and evals.
 // Every variant starts from one valid "hero" case and breaks exactly one thing, so each test
 // shows which single fact flips the outcome. Replaced by recorded sandbox JSON once the spike runs.
-import type { CaseBundle } from "./case.ts";
+import type { CaseBundle, DisputeReason } from "./case.ts";
 import { sha256Hex } from "./hash.ts";
 import { customId, invoiceId } from "./ids.ts";
 import { buildMandate, type MandatePayload, signMandate } from "./mandate.ts";
@@ -126,4 +126,38 @@ export function directCharge(hero: HeroCase): CaseBundle {
   delete b.capture.custom_id;
   b.dispute = { ...b.dispute!, dispute_id: "PP-D-TWIST", disputed_transactions: [{ seller_transaction_id: "CAP-DIRECT", invoice_number: pu.invoice_id }] };
   return b;
+}
+
+export type FixtureCase = { id: string; label: string; bundle: CaseBundle };
+
+// A small labeled set across the classification table, for the queue's "Fixture" rows and evals.
+// Every bundle is derived from one hero case, so each differs from it by one stated fact.
+export async function fixtureCases(): Promise<FixtureCase[]> {
+  const hero = await heroCase();
+  const clone = (): CaseBundle => structuredClone(hero.bundle);
+  const withId = (b: CaseBundle, id: string, reason: DisputeReason = "UNAUTHORISED"): CaseBundle => {
+    b.dispute = { ...b.dispute!, dispute_id: id, reason };
+    return b;
+  };
+
+  const revoked = withId(clone(), "PP-D-FX-REVOKED");
+  revoked.tokenDeletedAt = "2026-11-08T14:00:00Z";
+
+  const notShipped = withId(clone(), "PP-D-FX-NOTRECEIVED", "MERCHANDISE_OR_SERVICE_NOT_RECEIVED");
+  notShipped.order.purchase_units[0]!.shipping = { ...notShipped.order.purchase_units[0]!.shipping, trackers: [] };
+
+  const noHistory = withId(clone(), "PP-D-FX-NEWAGREEMENT");
+  noHistory.history = noHistory.history.filter((h) => h.captureId === "CAP-HERO");
+
+  const deleted = withId(clone(), "PP-D-FX-DELETED");
+  deleted.token = null;
+
+  return [
+    { id: "PP-D-HERO1", label: "Signed, in terms, disowned (hero)", bundle: hero.bundle },
+    { id: "PP-D-TWIST", label: "Merchant charged directly (twist)", bundle: directCharge(hero) },
+    { id: "PP-D-FX-REVOKED", label: "Charged after cancellation", bundle: revoked },
+    { id: "PP-D-FX-NOTRECEIVED", label: "Not received, no tracker", bundle: notShipped },
+    { id: "PP-D-FX-NEWAGREEMENT", label: "New agreement, no history", bundle: noHistory },
+    { id: "PP-D-FX-DELETED", label: "Agreement deleted (secondary terms)", bundle: deleted },
+  ];
 }
