@@ -48,7 +48,7 @@ readback/
 ├── LICENSE                    # Apache-2.0
 ├── docs/
 │   ├── SPEC.md                # product spec, demo script, milestones
-│   ├── LEARNING.md            # Python→TypeScript glossary + concept notes for Dante
+│   ├── LEARNING.md            # local only (git-ignored): Python→TypeScript notes for Dante
 │   ├── ARCHITECTURE.md        # diagrams + data flow (written in week 3)
 │   └── decisions/             # short ADRs, one per real decision
 ├── packages/
@@ -90,7 +90,7 @@ Dante is learning TypeScript through this build. While working:
 
 1. **First time a concept appears, explain it** in plain language before or right after the code: what it does, line by line, and the closest Python equivalent. Concepts to watch for: `async`/`await` and Promises, type annotations vs. inference, `interface` vs. `type`, generics, union types and narrowing, zod schemas, ES modules and imports, `package.json`/`tsconfig.json`, React components and hooks, Next.js route handlers, server vs. client components.
 2. **Start simple, then deepen.** Beginner-level explanation first; add precise terminology as Dante shows he's got it. Don't re-explain things he's demonstrated he understands.
-3. **Keep `docs/LEARNING.md` current:** a Python→TypeScript glossary table plus a short note per concept with a pointer to where it's used in this repo.
+3. **Keep `docs/LEARNING.md` current (local only, git-ignored; never commit it):** a Python→TypeScript glossary table plus a short note per concept with a pointer to where it's used in this repo.
 4. **End of each milestone:** write a 5–10 line plain-English walkthrough of what was built and how data flows, suitable for Dante to say out loud in the video or an interview.
 5. Prefer clear code over clever code. If a pattern would be hard to explain, choose a simpler one.
 
