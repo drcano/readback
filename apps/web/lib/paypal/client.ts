@@ -9,13 +9,6 @@ export type PayPalOk<T> = { ok: true; status: number; data: T; debugId: string |
 export type PayPalErr = { ok: false; status: number; issues: string[]; debugId: string | null };
 export type PayPalResult<T> = PayPalOk<T> | PayPalErr;
 
-export class PayPalShapeError extends Error {
-  constructor(path: string, debugId: string | null) {
-    super(`PayPal returned an unexpected shape for ${path} (debug_id ${debugId})`);
-    this.name = "PayPalShapeError";
-  }
-}
-
 type Env = Record<string, string | undefined>;
 
 export function paypalClient(env: Env = process.env, fetchImpl: typeof fetch = fetch) {
@@ -72,7 +65,11 @@ export function paypalClient(env: Env = process.env, fetchImpl: typeof fetch = f
       return { ok: false, status: res.status, issues, debugId };
     }
     const parsed = schema.safeParse(json);
-    if (!parsed.success) throw new PayPalShapeError(path, debugId);
+    // An unexpected shape is a failure like any other: callers deny (fail closed), nothing throws.
+    if (!parsed.success) {
+      console.warn(`paypal ${method} ${path.split("?")[0]} unexpected response shape ${debugId ?? ""}`);
+      return { ok: false, status: 502, issues: ["UNEXPECTED_RESPONSE_SHAPE"], debugId };
+    }
     return { ok: true, status: res.status, data: parsed.data, debugId };
   }
 

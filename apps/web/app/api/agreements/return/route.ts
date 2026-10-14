@@ -22,6 +22,7 @@ export async function GET(req: Request): Promise<Response> {
   }
   const res = Response.redirect(`${url.origin}/shopper?agreement=${encodeURIComponent(ex.tokenId)}`, 303);
   const headers = new Headers(res.headers);
-  headers.append("set-cookie", `rb_agreement=${encodeURIComponent(ex.tokenId)}; Path=/; SameSite=Lax; Secure; Max-Age=31536000`);
+  const secure = url.protocol === "https:" ? "; Secure" : ""; // browsers drop Secure cookies on http://localhost
+  headers.append("set-cookie", `rb_agreement=${encodeURIComponent(ex.tokenId)}; Path=/; SameSite=Lax${secure}; Max-Age=31536000`);
   return new Response(null, { status: 303, headers });
 }

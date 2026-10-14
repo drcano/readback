@@ -65,3 +65,14 @@ describe("checkout gate", () => {
     expect(pp.posts).toEqual([]);
   });
 });
+
+describe("PayPal response shapes", () => {
+  it("an unexpected shape from PayPal is a denial, not a crash", async () => {
+    const weird = (async (input: RequestInfo | URL) => {
+      if (String(input).endsWith("/v1/oauth2/token")) return Response.json({ access_token: "t" });
+      return Response.json({ surprise: true }); // token GET returns something unrecognizable
+    }) as typeof fetch;
+    const r = await checkout(await mandate(), paypalClient(ENV, weird), NOW);
+    expect(r.ok).toBe(false);
+  });
+});
