@@ -43,11 +43,11 @@ Where only merchant-attested data is available, the result is labeled. A `SELLER
 ### T2. A buggy or compromised agent tries to buy repeatedly
 
 **Mitigation:**
-- The runtime and the gate allow at most one order (of up to the agreed quantity) per period.
-- Independently, every charge's canonical `invoice_id` encodes its period (`RB-<token>-P003`). PayPal rejects a second charge with the same invoice ID (`DUPLICATE_INVOICE_ID`) while "block accidental payments" is on. That is the default, and the spike verifies it.
+- The runtime and the gate cap each order at the agreed quantity and amount, and bind it to the period it was signed in. Both are stateless, so neither counts orders itself (corrected after the Oct 15 audit, ADR 0005).
+- One order per period is enforced by PayPal: every charge's canonical `invoice_id` encodes its period (`RB-<token>-P003`). PayPal rejects a second charge with the same invoice ID (`DUPLICATE_INVOICE_ID`) while "block accidental payments" is on. That is the default, and the spike verifies it.
 - `PayPal-Request-Id` is derived from the mandate hash. A retried or double-submitted mandate returns the original order instead of creating a new one.
 
-**Not stopped:** if the merchant turns off duplicate-invoice blocking, protection falls back to the gate. Check 7's fallback rule still flags any non-earliest charge in a period.
+**Not stopped:** if the merchant turns off duplicate-invoice blocking, a second charge in a period isn't refused at charge time. Check 7's fallback rule still flags any non-earliest charge in a period, so the dispute favors the buyer.
 
 ### T3. The merchant charges without a valid request, or outside the terms
 *Example:* Sam's code is buggy, or Sam is dishonest. He calls Orders with the saved wallet directly and skips the gate. He may leave `custom_id` and `invoice_id` empty, or garble them, to hide the charge.

@@ -96,6 +96,16 @@ describe("authorizeCharge", () => {
     expect(await codes(await input({ token: none }))).toEqual(["TERMS_UNREADABLE"]);
   });
 
+  it("audit finding 4: no charge in the last minute of the agreement, or before it starts", async () => {
+    const last = sec("2027-03-31T23:59:58Z");
+    const jws = await signed({ at: last });
+    expect(await codes(await input({ jws, nowSec: last + 3 }))).toEqual(["OUTSIDE_DATES"]);
+    const early = await signed({ at: sec("2026-10-21T00:00:30Z") });
+    expect(await codes(await input({ jws: early, nowSec: sec("2026-10-20T23:59:50Z") }))).toEqual(["OUTSIDE_DATES"]);
+    const ok = await signed({ at: sec("2027-03-31T23:58:00Z") });
+    expect(await codes(await input({ jws: ok, nowSec: sec("2027-03-31T23:58:05Z") }))).toBe("ALLOW");
+  });
+
   it("denies a request signed in a previous period (replay next period)", async () => {
     const yesterday = await signed({ at: NOW - 86_400 });
     expect(await codes(await input({ jws: yesterday }))).toEqual(["EXPIRED"]);

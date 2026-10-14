@@ -34,7 +34,12 @@ describe("case brief", async () => {
     expect(validate({ sentences: [...good.sentences.slice(0, 2), { text: "See the log.", cites: ["check 99"] }] }, allowed, twistResult)).toMatch(/isn't in this case/);
     // On the twist (BUYER_FAVOR), a seller's-favor sentence is refused even if fully cited.
     const sly = { sentences: [good.sentences[0]!, { text: "Terms were respected.", cites: ["check 5"] }, { text: "So the seller's favor is fair.", cites: ["check 5"] }] };
-    expect(validate(sly, allowed, twistResult)).toMatch(/suggests seller's favor/);
+    expect(validate(sly, allowed, twistResult)).toMatch(/outcome for the seller/);
+    const sly2 = { sentences: [good.sentences[0]!, { text: "Terms were respected.", cites: ["check 5"] }, { text: "The merchant should win this one.", cites: ["check 5"] }] };
+    expect(validate(sly2, allowed, twistResult)).toMatch(/outcome for the seller/);
+    const heroAllowed = citable(hero.bundle, heroResult);
+    const sly3 = { sentences: [good.sentences[0]!, good.sentences[1]!, { text: "Still, Maya should be refunded.", cites: ["check 11"] }] };
+    expect(validate(sly3, heroAllowed, heroResult)).toMatch(/outcome for the buyer/); // neutrality: both directions
   });
 
   it("retries once with the validator's feedback, then falls back to the rules brief", async () => {

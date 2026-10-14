@@ -1,10 +1,10 @@
 {
-  "scenarios": 58,
-  "passed": 58,
+  "scenarios": 59,
+  "passed": 59,
   "metrics": {
     "gateAccuracy": {
-      "passed": 19,
-      "total": 19
+      "passed": 20,
+      "total": 20
     },
     "attacksBlockedAtRuntime": {
       "passed": 6,
@@ -43,9 +43,9 @@
   },
   "tamperSample": {
     "mutations": 2000,
-    "caught": 1986,
+    "caught": 1984,
     "kept": 0,
-    "unchanged": 14,
+    "unchanged": 16,
     "seed": 1
   },
   "results": [
@@ -71,7 +71,7 @@
       "pass": true
     },
     {
-      "id": "legit: last minute before expiry",
+      "id": "legit: two minutes before expiry",
       "category": "legitimate",
       "expected": "ALLOW",
       "actual": "ALLOW",
@@ -224,6 +224,13 @@
     },
     {
       "id": "violation: second charge in period",
+      "category": "gate-violation",
+      "expected": "DENY",
+      "actual": "DENY",
+      "pass": true
+    },
+    {
+      "id": "violation: charge would land after the end",
       "category": "gate-violation",
       "expected": "DENY",
       "actual": "DENY",

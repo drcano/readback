@@ -143,6 +143,10 @@ export const HistoryEntrySchema = z.object({
   captureTime: z.string(),
   customId: z.string().optional(),
   disputed: z.boolean(),
+  // PayPal-verified: this capture's order was paid with THIS agreement's saved wallet (vault echo),
+  // by the same payer, and completed. Labels alone are merchant-written, so only verified entries
+  // can count as history (audit finding 2).
+  verified: z.boolean(),
 });
 export type HistoryEntry = z.infer<typeof HistoryEntrySchema>;
 
@@ -153,6 +157,7 @@ export const CaseBundleSchema = z.object({
   token: PaymentTokenSchema.nullable(), // null = GET returned 404 (agreement deleted)
   tokenDeletedAt: z.string().nullable(), // from VAULT.PAYMENT-TOKEN.DELETED, if retrievable
   history: z.array(HistoryEntrySchema),
+  historyComplete: z.boolean(), // false if Transaction Search failed or was cut short
   now: z.string(), // when the bundle was fetched
 });
 export type CaseBundle = z.infer<typeof CaseBundleSchema>;

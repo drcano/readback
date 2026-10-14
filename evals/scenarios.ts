@@ -126,7 +126,7 @@ describe("legitimate purchases (gate allows)", () => {
     ["mid-period", {}, "2026-11-08T15:00:00Z", "2026-11-08T15:00:05Z"],
     ["first second of the agreement", {}, "2026-10-21T00:00:00Z", "2026-10-21T00:00:03Z"],
     ["signed 23:59:58, charged 00:00:01 (period of signing)", {}, "2026-11-09T23:59:58Z", "2026-11-10T00:00:01Z"],
-    ["last minute before expiry", {}, "2027-03-31T23:59:00Z", "2027-03-31T23:59:10Z"],
+    ["two minutes before expiry", {}, "2027-03-31T23:58:00Z", "2027-03-31T23:58:05Z"],
     ["30-day cadence, third period", { periodDays: 30 }, "2026-12-25T12:00:00Z", "2026-12-25T12:00:02Z"],
     ["price exactly at the cap", { capCents: 6499 }, "2026-11-08T15:00:00Z", "2026-11-08T15:00:05Z"],
     ["quantity at the limit", { qty: 2, capCents: 13_000 }, "2026-11-08T15:00:00Z", "2026-11-08T15:00:05Z"],
@@ -209,6 +209,10 @@ describe("gate violations", () => {
     const second = await checkout(await sign(t, { at: "2026-11-08T15:00:00Z", jti: "second-001" }), client(), sec("2026-11-08T15:00:05Z"));
     expect(first.ok).toBe(true);
     expect(record({ id: "violation: second charge in period", category: "gate-violation", expected: "DENY", actual: second.ok ? "ALLOW" : "DENY" }).pass).toBe(true);
+  });
+  it("signed 23:59:58 on the last day, charged after midnight (audit finding 4)", async () => {
+    const t = baseTerms();
+    expect((await run("charge would land after the end", t, await sign(t, { at: "2027-03-31T23:59:58Z" }), "2027-04-01T00:00:01Z")).pass).toBe(true);
   });
   it("after the end date", async () => {
     const t = baseTerms();

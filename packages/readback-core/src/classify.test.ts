@@ -81,7 +81,7 @@ describe("classification rows", () => {
 
   it("row 3: the same signed request reused for a second charge", async () => {
     const b = clone();
-    b.history.push({ captureId: "CAP-REUSE", captureTime: "2026-11-08T15:01:00Z", customId: pu(b).custom_id, disputed: false });
+    b.history.push({ captureId: "CAP-REUSE", captureTime: "2026-11-08T15:01:00Z", customId: pu(b).custom_id, disputed: false, verified: false }); // unverified labels still count AGAINST the merchant
     const r = await outcome(b);
     expect(r).toMatchObject({ row: 3, suggestion: "BUYER_FAVOR" });
   });
@@ -141,7 +141,7 @@ describe("classification rows", () => {
 
   it("row 4: a second charge in the same period (if duplicate blocking were off)", async () => {
     const b = withReason(clone(), "DUPLICATE_TRANSACTION");
-    b.history.push({ captureId: "CAP-EARLIER", captureTime: "2026-11-08T09:00:00Z", customId: customId(HERO_TOKEN_ID, hero.termsHash, hero.mandate.p, "9".repeat(64)), disputed: false });
+    b.history.push({ captureId: "CAP-EARLIER", captureTime: "2026-11-08T09:00:00Z", customId: customId(HERO_TOKEN_ID, hero.termsHash, hero.mandate.p, "9".repeat(64)), disputed: false, verified: false });
     expect(await outcome(b)).toMatchObject({ row: 4, suggestion: "BUYER_FAVOR", failed: ["7"] });
   });
 
@@ -182,6 +182,33 @@ describe("classification rows", () => {
     b.history[0]!.captureTime = "2026-11-03T15:00:00Z";
     b.history[1]!.captureTime = "2026-11-05T15:00:00Z";
     expect((await outcome(b)).row).toBe(12);
+  });
+});
+
+describe("audit regressions (independent review, Oct 15)", () => {
+  it("finding 1: token present but without terms; merchant-written terms on the order don't count", async () => {
+    const attacker = await generateAgentKey(true);
+    const forged = await heroCase({ agent: attacker }); // order terms + mandate carry the MERCHANT's key
+    const b = forged.bundle;
+    b.token = { id: b.token!.id, payment_source: { paypal: { payer_id: "FAKEPAYER0001" } } }; // an ordinary saved wallet: no description
+    for (const reason of ["UNAUTHORISED", "INCORRECT_AMOUNT", "DUPLICATE_TRANSACTION"] as const) {
+      expect(await outcome(withReason(b, reason))).toMatchObject({ row: 1, suggestion: null });
+    }
+  });
+
+  it("finding 2: labeled history the merchant padded (unverified) can't lift a case to seller's favor", async () => {
+    const b = clone();
+    b.history = b.history.map((h) => (h.captureId === "CAP-HERO" ? h : { ...h, verified: false }));
+    expect(await outcome(b)).toMatchObject({ row: 12, suggestion: null });
+  });
+
+  it("finding 3: an incomplete history search makes the case provisional (no seller-favor suggestion)", async () => {
+    const b = { ...clone(), historyComplete: false };
+    const r = await outcome(b);
+    expect(r.suggestion).toBeNull();
+    expect(r.notes.join(" ")).toMatch(/Provisional/);
+    // Buyer-favor results are unaffected by missing history.
+    expect((await outcome({ ...directCharge(hero), historyComplete: false })).suggestion).toBe("BUYER_FAVOR");
   });
 });
 

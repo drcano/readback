@@ -4,9 +4,9 @@
 import type { PaymentToken } from "./case.ts";
 import { sha256Hex } from "./hash.ts";
 import { customId, invoiceId, requestIds } from "./ids.ts";
-import { checkAgainstTerms, checkFreshness, type MandatePayload, verifyMandate } from "./mandate.ts";
+import { CLOCK_SKEW_SEC, checkAgainstTerms, checkFreshness, type MandatePayload, verifyMandate } from "./mandate.ts";
 import type { Failure } from "./result.ts";
-import { parseTerms, type Terms } from "./terms.ts";
+import { endExclusiveSec, parseTerms, startSec, type Terms } from "./terms.ts";
 
 export type GateInput = {
   jws: string; // the agent-signed closed mandate
@@ -77,6 +77,12 @@ export async function authorizeCharge(input: GateInput): Promise<GateDecision> {
   if (!parsed || !parsed.ok) return deny([{ code: "TERMS_UNREADABLE", message: "The approved terms on PayPal can't be read." }]);
 
   // 3–4. Signed by the approved key, for these terms, inside every limit.
+  // Audit finding 4: the charge happens "now", so it must also land inside the dates (with the
+  // T27 clock tolerance). Otherwise a request signed at 23:59:58 on the last day could be charged
+  // after midnight, and the investigator's check 8 would then rule against an approved charge.
+  if (input.nowSec + CLOCK_SKEW_SEC >= endExclusiveSec(parsed.value) || input.nowSec < startSec(parsed.value)) {
+    return deny([{ code: "OUTSIDE_DATES", message: `Your agreement runs ${parsed.value.start} to ${parsed.value.end}; it's too close to (or outside) those dates to charge now.` }]);
+  }
   const termsHash = await sha256Hex(termsText!);
   const failures = checkAgainstTerms(m, fingerprint, { tokenId: input.token.id, terms: parsed.value, termsHash, merchant: input.merchant });
   if (failures.length > 0) return deny(failures);

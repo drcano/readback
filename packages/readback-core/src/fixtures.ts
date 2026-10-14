@@ -100,10 +100,11 @@ export async function heroCase(opts: HeroOptions = {}): Promise<HeroCase> {
     },
     tokenDeletedAt: null,
     history: [
-      { captureId: "CAP-PRIOR-1", captureTime: "2026-10-21T15:00:00Z", customId: customId(HERO_TOKEN_ID, termsHash, 1, "1".repeat(64)), disputed: false },
-      { captureId: "CAP-PRIOR-2", captureTime: "2026-10-28T15:00:00Z", customId: customId(HERO_TOKEN_ID, termsHash, 8, "2".repeat(64)), disputed: false },
-      { captureId: "CAP-HERO", captureTime: HERO_CAPTURE_TIME, customId: cid, disputed: true },
+      { captureId: "CAP-PRIOR-1", captureTime: "2026-10-21T15:00:00Z", customId: customId(HERO_TOKEN_ID, termsHash, 1, "1".repeat(64)), disputed: false, verified: true },
+      { captureId: "CAP-PRIOR-2", captureTime: "2026-10-28T15:00:00Z", customId: customId(HERO_TOKEN_ID, termsHash, 8, "2".repeat(64)), disputed: false, verified: true },
+      { captureId: "CAP-HERO", captureTime: HERO_CAPTURE_TIME, customId: cid, disputed: true, verified: true },
     ],
+    historyComplete: true,
     now: "2026-11-09T15:00:00Z",
   };
   return { bundle, agent, terms, termsText, termsHash, mandate, jws, mandateHash };

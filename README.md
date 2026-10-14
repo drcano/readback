@@ -71,7 +71,7 @@ Tests: `pnpm test` · browser: `pnpm test:browser` · evals: `pnpm eval` · end 
 
 ## Limitations
 
-See `docs/WHY-PAYPAL.md` §8. In short: sandbox only; the investigator view is a proposed workflow whose results are re-derivable from PayPal, not independent of the merchant's deployment; judge mode holds a demo key in the browser tab; a key swap at setup is stopped only by the shopper comparing fingerprints (THREAT-MODEL T21).
+See `docs/WHY-PAYPAL.md` §8. Also: until spike step 5 shows whether PayPal's deletion events are retrievable, "charged after cancellation" is detected only through PayPal refusing charges on a cancelled agreement, not from the deletion time. In short: sandbox only; the investigator view is a proposed workflow whose results are re-derivable from PayPal, not independent of the merchant's deployment; judge mode holds a demo key in the browser tab; a key swap at setup is stopped only by the shopper comparing fingerprints (THREAT-MODEL T21).
 
 ## License
 

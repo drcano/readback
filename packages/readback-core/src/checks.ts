@@ -49,9 +49,10 @@ export type CaseFacts = {
 export async function deriveFacts(b: CaseBundle): Promise<CaseFacts> {
   const pu = b.order.purchase_units[0]!;
   const tokenId = b.order.payment_source?.paypal?.attributes?.vault?.id ?? null;
-  // Primary terms come from PayPal's token. If it was deleted, fall back to the copy the merchant
-  // wrote onto the charge, and say so (THREAT-MODEL T10).
-  const termsText = b.token?.payment_source.paypal.description ?? pu.description ?? null;
+  // Primary terms come from PayPal's token. Only if the token is GONE (deleted) do we fall back to
+  // the copy the merchant wrote onto the charge, labeled secondary (THREAT-MODEL T10). A token that
+  // exists but carries no terms is "no terms": the merchant's copy must never stand in for PayPal's.
+  const termsText = b.token ? (b.token.payment_source.paypal.description ?? null) : (pu.description ?? null);
   const parsed = termsText === null ? null : parseTerms(termsText);
   const jws = pu.items?.[0]?.description;
   const verified = jws ? await verifyMandate(jws) : null;
@@ -65,7 +66,8 @@ export async function deriveFacts(b: CaseBundle): Promise<CaseFacts> {
     mandate: verified?.ok ? verified.value : null,
     mandateFailure: verified === null ? { code: "NO_MANDATE", message: "The charge carries no signed request from an agent." } : verified.ok ? null : verified.error,
     captureSec,
-    provisional: toSec(b.now) - captureSec < SEARCH_LAG_SEC,
+    // Provisional if history may be lagging (capture under 3 hours old) or the search was incomplete.
+    provisional: toSec(b.now) - captureSec < SEARCH_LAG_SEC || !b.historyComplete,
   };
 }
 
@@ -220,7 +222,8 @@ export async function runChecks(b: CaseBundle): Promise<{ facts: CaseFacts; chec
     }],
 
     ["11", "Delivery", "History", () => {
-      const prior = otherCaptures.filter((h) => toSec(h.captureTime) < facts.captureSec && !h.disputed);
+      // Only PayPal-verified captures under this agreement count; labeled-but-unverified ones don't.
+      const prior = otherCaptures.filter((h) => h.verified && toSec(h.captureTime) < facts.captureSec && !h.disputed);
       const earliest = Math.min(...prior.map((h) => toSec(h.captureTime)));
       const ok = prior.length >= HISTORY_MIN_PRIOR && facts.captureSec - earliest >= HISTORY_MIN_AGE_SEC;
       return {

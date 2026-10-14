@@ -83,7 +83,7 @@ export async function readAgreement(paypal: PayPalClient, tokenId: string, now: 
   const terms = res.ok ? (res.data.payment_source.paypal.description ?? null) : null;
   const parsed = terms ? parseTerms(terms) : null;
   const charges = parsed?.ok && withCharges
-    ? (await findHistory(paypal, tokenId, new Date(`${parsed.value.start}T00:00:00Z`), now, false)).map((h) => ({
+    ? (await findHistory(paypal, tokenId, new Date(`${parsed.value.start}T00:00:00Z`), now, { checkDisputes: false })).entries.map((h) => ({
         captureId: h.captureId,
         time: h.captureTime,
         period: h.customId ? (parseCustomId(h.customId)?.period ?? null) : null,

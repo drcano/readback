@@ -36,8 +36,10 @@ export function validate(draft: { sentences: Sentence[] }, allowed: Set<string>,
     if (bad) return `sentence ${i + 1} cites "${bad}", which isn't in this case`;
     const t = sentence.text.toLowerCase();
     // No sentence may suggest an outcome the deterministic classification didn't make.
-    if (/seller'?s favou?r|in favou?r of the (seller|merchant)/.test(t) && s !== "SELLER_FAVOR") return `sentence ${i + 1} suggests seller's favor`;
-    if (/buyer'?s favou?r|in favou?r of the (buyer|shopper)|should be refunded/.test(t) && s !== "BUYER_FAVOR") return `sentence ${i + 1} suggests buyer's favor`;
+    const SELLER = /seller'?s favou?r|in favou?r of the (seller|merchant)|(seller|merchant) (should|would|deserves to|ought to) (win|prevail)|deny the (claim|buyer)/;
+    const BUYER = /buyer'?s favou?r|in favou?r of the (buyer|shopper|customer)|(buyer|shopper|customer|maya) (should|would|deserves to|ought to) (win|prevail|be refunded)|should be refunded|refund (her|the buyer|the shopper)/;
+    if (SELLER.test(t) && s !== "SELLER_FAVOR") return `sentence ${i + 1} suggests an outcome for the seller`;
+    if (BUYER.test(t) && s !== "BUYER_FAVOR") return `sentence ${i + 1} suggests an outcome for the buyer`;
   }
   return null;
 }

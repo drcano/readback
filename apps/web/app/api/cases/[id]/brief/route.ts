@@ -3,7 +3,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { evaluateCase } from "@readback/core";
 import { fixtureCases } from "@readback/core/fixtures";
-import { allow } from "@/lib/budget";
+import { allow, clientIp } from "@/lib/budget";
 import { writeBrief } from "@/lib/brief";
 import { buildCaseBundle } from "@/lib/cases";
 import { paypalClient } from "@/lib/paypal/client";
@@ -21,6 +21,6 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   }
   if (!bundle) return Response.json({ ok: false, message: "Case not found." }, { status: 404 });
   const result = await evaluateCase(bundle);
-  const useClaude = Boolean(process.env["ANTHROPIC_API_KEY"]) && allow(req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "local").ok;
+  const useClaude = Boolean(process.env["ANTHROPIC_API_KEY"]) && allow(clientIp(req)).ok;
   return Response.json({ ok: true, brief: await writeBrief(bundle, result, useClaude ? new Anthropic() : null) });
 }
