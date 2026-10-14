@@ -11,6 +11,7 @@ export type FakePayPal = {
   disputes: Map<string, Json>;
   posts: { path: string; requestId: string | null; body: unknown }[];
   clock: { now: string }; // capture create_time = this, so tests control history dates
+  approve: (setupTokenId: string) => void; // stands in for Maya clicking Agree on PayPal
   openDispute: (captureId: string, reason: string) => string;
 };
 
@@ -20,6 +21,8 @@ export function fakePayPal(): FakePayPal {
   const byRequestId = new Map<string, Json>();
   const invoices = new Set<string>();
   const disputes = new Map<string, Json>();
+  const setupTokens = new Map<string, Json>();
+  const approved = new Set<string>();
   const posts: FakePayPal["posts"] = [];
   const clock = { now: new Date().toISOString() };
   const captureToOrder = new Map<string, string>();
@@ -51,6 +54,20 @@ export function fakePayPal(): FakePayPal {
         return json(201, res);
       };
 
+      if (path === "/v3/vault/setup-tokens") {
+        const id = `SETUP${++n}`;
+        setupTokens.set(id, body as Json);
+        return remember({ id, status: "PAYER_ACTION_REQUIRED", links: [{ rel: "approve", href: `https://www.sandbox.paypal.com/agreements/approve?approval_session_id=${id}` }] });
+      }
+      if (path === "/v3/vault/payment-tokens") {
+        const setupId = (body as { payment_source: { token: { id: string } } }).payment_source.token.id;
+        const setup = setupTokens.get(setupId) as { payment_source: { paypal: { description: string } } } | undefined;
+        if (!setup || !approved.has(setupId)) return json(422, { name: "UNPROCESSABLE_ENTITY", details: [{ issue: "SETUP_TOKEN_NOT_APPROVED" }] });
+        const id = `tok${++n}`;
+        // billing_plan is display-only: PayPal doesn't return it (SPEC §3).
+        tokens.set(id, { id, payment_source: { paypal: { description: setup.payment_source.paypal.description, payer_id: "MAYA00000001" } } });
+        return remember(tokens.get(id)!);
+      }
       const track = /^\/v2\/checkout\/orders\/([^/]+)\/track$/.exec(path);
       if (track) {
         const order = orders.get(track[1]!);
@@ -131,5 +148,5 @@ export function fakePayPal(): FakePayPal {
     return id;
   };
 
-  return { fetch: fakeFetch as typeof fetch, tokens, orders, disputes, posts, clock, openDispute };
+  return { fetch: fakeFetch as typeof fetch, tokens, orders, disputes, posts, clock, openDispute, approve: (id) => approved.add(id) };
 }

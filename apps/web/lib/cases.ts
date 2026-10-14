@@ -81,7 +81,7 @@ export async function buildCaseBundle(id: string, paypal: PayPalClient, now: Dat
 
 // Other charges under this agreement: Transaction Search filtered client-side on the
 // custom_field prefix rb1:<tokenId>: (SPEC §5.3a), then each one's dispute status.
-async function findHistory(paypal: PayPalClient, tokenId: string, start: Date, now: Date): Promise<HistoryEntry[]> {
+export async function findHistory(paypal: PayPalClient, tokenId: string, start: Date, now: Date, checkDisputes = true): Promise<HistoryEntry[]> {
   const prefix = `rb1:${tokenId}:`;
   const found: HistoryEntry[] = [];
   for (let from = start.getTime(); from < now.getTime(); from += WINDOW_DAYS * DAY_MS) {
@@ -99,6 +99,7 @@ async function findHistory(paypal: PayPalClient, tokenId: string, start: Date, n
       if (page >= (res.data.total_pages ?? 1)) break;
     }
   }
+  if (!checkDisputes) return found;
   for (const h of found) {
     const d = await paypal.get(`/v1/customer/disputes?disputed_transaction_id=${encodeURIComponent(h.captureId)}`, DisputeList);
     // Unknown dispute status counts as disputed: it must not help the merchant (fail closed).
