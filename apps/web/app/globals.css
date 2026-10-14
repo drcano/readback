@@ -110,3 +110,5 @@ main.wide { max-width: 96rem; }
 .rail > li { border: 1px solid var(--rule); border-radius: var(--radius); background: var(--surface); padding: var(--space-4); }
 .rail h2 { margin: 0 0 var(--space-2); font-size: var(--text-base); }
 .rail p { margin: 0 0 var(--space-3); }
+.ask { margin-bottom: var(--space-4); }
+.ask .field { margin-bottom: var(--space-2); }

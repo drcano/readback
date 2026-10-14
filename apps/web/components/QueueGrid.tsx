@@ -14,6 +14,7 @@ import {
 import { AgGridProvider, AgGridReact } from "ag-grid-react";
 import { useEffect, useState } from "react";
 import type { QueueRow } from "@/lib/queue";
+import { answer, FILTERS, type FilterId } from "@/lib/queue-filters";
 
 const modules = [ClientSideRowModelModule, TextFilterModule, NumberFilterModule, QuickFilterModule, ColumnAutoSizeModule];
 
@@ -73,6 +74,17 @@ export function QueueGrid() {
   const [rows, setRows] = useState<QueueRow[] | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [question, setQuestion] = useState("");
+  const [filter, setFilter] = useState<FilterId>("all");
+  const [reply, setReply] = useState<string | null>(null);
+
+  async function ask() {
+    const res = await fetch("/api/studio-agent", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ question }) }).catch(() => null);
+    const body = (await res?.json().catch(() => null)) as { ok: boolean; filter?: FilterId; via?: string } | null;
+    if (!body?.ok || !body.filter || !rows) return setReply("Couldn't answer that; try rephrasing.");
+    setFilter(body.filter);
+    setReply(`${answer(body.filter, rows).text} (filter chosen by ${body.via}; the filter itself is deterministic)`);
+  }
 
   useEffect(() => {
     fetch("/api/queue")
@@ -87,6 +99,13 @@ export function QueueGrid() {
   return (
     <>
       {notice && <p className="banner" role="status">{notice}</p>}
+      <form className="ask" onSubmit={(e) => { e.preventDefault(); void ask(); }}>
+        <label htmlFor="queue-ask">Ask the queue</label>
+        <input id="queue-ask" className="field" value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="e.g. cases the merchant should lose · failed only on delivery · consent unverified" maxLength={300} />
+        <button type="submit" disabled={question.trim().length < 2 || !rows}>Ask</button>{" "}
+        {filter !== "all" && <button type="button" onClick={() => { setFilter("all"); setReply(null); }}>Show all</button>}
+      </form>
+      {reply && <p role="status">{reply}</p>}
       <label htmlFor="queue-search">Search cases</label>
       <input id="queue-search" type="search" className="field" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="e.g. BUYER_FAVOR, UNAUTHORISED, Fixture" />
       <div className="grid-wrap">
@@ -94,7 +113,7 @@ export function QueueGrid() {
           <p aria-busy="true">Fetching disputes from PayPal and running the checks…</p>
         ) : (
           <AgGridProvider modules={modules}>
-            <AgGridReact theme={theme} rowData={rows} columnDefs={columns} defaultColDef={{ filter: true }} quickFilterText={search} autoSizeStrategy={{ type: "fitCellContents" }} enableCellTextSelection />
+            <AgGridReact theme={theme} rowData={rows.filter(FILTERS[filter].match)} columnDefs={columns} defaultColDef={{ filter: true }} quickFilterText={search} autoSizeStrategy={{ type: "fitCellContents" }} enableCellTextSelection />
           </AgGridProvider>
         )}
       </div>
