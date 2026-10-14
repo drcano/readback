@@ -13,3 +13,5 @@ export * from "./terms.ts";
 export * from "./thumbprint.ts";
 export * from "./setup.ts";
 export * from "./lights.ts";
+export * from "./ap2.ts";
+export { AP2_EXAMPLE_CHAIN } from "./ap2-example.ts";
