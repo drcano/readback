@@ -11,3 +11,4 @@ export * from "./money.ts";
 export * from "./result.ts";
 export * from "./terms.ts";
 export * from "./thumbprint.ts";
+export * from "./setup.ts";
