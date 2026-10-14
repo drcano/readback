@@ -13,8 +13,11 @@ try {
     if (await fetch("http://localhost:3123/api/health").then((r) => r.ok, () => false)) break;
     await sleep(500);
   }
-  const test = spawn(process.execPath, ["e2e/judge.e2e.ts"], { stdio: "inherit" });
-  process.exitCode = await new Promise<number>((resolve) => test.on("exit", (code) => resolve(code ?? 1)));
+  const run = (file: string) =>
+    new Promise<number>((resolve) => spawn(process.execPath, [file], { stdio: "inherit" }).on("exit", (code) => resolve(code ?? 1)));
+  const judge = await run("e2e/judge.e2e.ts");
+  const axe = await run("e2e/axe.e2e.ts");
+  process.exitCode = judge || axe;
 } finally {
   next.kill();
   fake.kill();
