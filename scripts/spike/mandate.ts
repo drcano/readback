@@ -7,7 +7,9 @@ export async function sha256Hex(text: string): Promise<string> {
   return Buffer.from(digest).toString("hex");
 }
 
-export type Purchase = { tokenId: string; sku: string; qty: number; unit: string; period: number };
+// `terms` is optional (the `?`): step 1 has no real agreement, so buildCharge invents terms.
+// Steps 3+ pass the real token's description so the order's copy byte-equals it.
+export type Purchase = { tokenId: string; sku: string; qty: number; unit: string; period: number; terms?: string };
 
 export async function buildCharge(p: Purchase) {
   // A throwaway P-256 agent key. Production uses AGENT_PRIVATE_KEY in apps/agent.
@@ -16,7 +18,12 @@ export async function buildCharge(p: Purchase) {
   const jwk = { kty, crv, x, y }; // exactly these four members (SPEC §4.3)
   const fingerprint = (await calculateJwkThumbprint(jwk, "sha256")).slice(0, 16);
 
-  const terms = `RB1 Good Boy Provisions | ${p.sku} x${p.qty}/30d | max USD 65.00 | 2026-10-14..2027-03-31 | agent ${fingerprint}`;
+  // Spike-honest caveat: with real terms, their fingerprint came from step 2's throwaway key, not
+  // this one, so the mandate would fail Readback's fingerprint check. PayPal doesn't care; the
+  // spike only tests what PayPal stores and returns. (`??` = Python's `x if x is not None else y`.)
+  const terms =
+    p.terms ??
+    `RB1 Good Boy Provisions | ${p.sku} x${p.qty}/30d | max USD 65.00 | 2026-10-14..2027-03-31 | agent ${fingerprint}`;
   const termsHash = await sha256Hex(terms);
   const amt = ((Math.round(Number(p.unit) * 100) * p.qty) / 100).toFixed(2);
 

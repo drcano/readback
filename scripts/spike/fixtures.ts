@@ -4,6 +4,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 
 const FAKES: Record<string, string> = {
   email_address: "maya@example.com",
+  email: "maya@example.com", // Disputes v1 uses `email`, not `email_address`
   given_name: "Maya",
   surname: "Example",
   full_name: "Maya Example",
@@ -30,6 +31,11 @@ export function scrub(value: unknown): unknown {
     Object.entries(value).map(([k, v]) => {
       if (typeof v === "string" && k in FAKES) return [k, FAKES[k]];
       if (typeof v === "string" && (k === "payer_id" || k === "account_id")) return [k, fakeId(v)];
+      // Disputes v1: buyer.name / seller.name are full-name strings. Can't fake every `name`
+      // key (items have names too), so only these two parents.
+      if ((k === "buyer" || k === "seller") && v !== null && typeof v === "object" && "name" in v) {
+        return [k, scrub({ ...v, name: k === "buyer" ? "Maya Example" : "Sandbox Merchant" })];
+      }
       return [k, scrub(v)];
     }),
   );

@@ -29,30 +29,57 @@ export async function getAccessToken(): Promise<string> {
 }
 
 export type PayPalRequest =
-  | { method: "GET"; path: string }
+  | { method: "GET" | "DELETE"; path: string }
   // Every POST names its PayPal-Request-Id. It's derived from the operation, never random,
   // so retrying the same operation is a no-op on PayPal's side (CLAUDE.md §5).
-  | { method: "POST"; path: string; requestId: string; body: unknown };
+  // `headers` is for sandbox-only extras such as PayPal-Mock-Response (negative testing).
+  | { method: "POST"; path: string; requestId: string; body: unknown; headers?: Record<string, string> }
+  // Multipart POST (Disputes provide-evidence). fetch writes the Content-Type + boundary itself.
+  | { method: "POST"; path: string; requestId: string; form: FormData };
+
+// What came back, success or not. Like Python's `requests.Response` but already parsed.
+export type PayPalResponse = { status: number; ok: boolean; json: unknown; debugId: string | null };
+
+// Calls PayPal and never throws on an HTTP error: the spike needs to inspect failures
+// (DUPLICATE_INVOICE_ID, INVALID_VAULT_ID, 404) as data, not parse them out of exception text.
+export async function paypalRaw(req: PayPalRequest): Promise<PayPalResponse> {
+  const headers: Record<string, string> = { Authorization: `Bearer ${await getAccessToken()}` };
+  let body: string | FormData | undefined;
+  if (req.method === "POST") {
+    // Inside this branch TypeScript knows req is one of the two POST shapes ("narrowing").
+    headers["PayPal-Request-Id"] = req.requestId;
+    headers["Prefer"] = "return=representation"; // full object back, not just links
+    if ("form" in req) {
+      body = req.form; // no Content-Type: fetch must add the multipart boundary itself
+    } else {
+      headers["Content-Type"] = "application/json";
+      Object.assign(headers, req.headers);
+      body = JSON.stringify(req.body);
+    }
+  }
+
+  const res = await fetch(`${BASE}${req.path}`, { method: req.method, headers, body });
+  const text = await res.text();
+  let json: unknown = {};
+  try {
+    if (text) json = JSON.parse(text);
+  } catch {
+    json = { non_json_body: text.slice(0, 500) }; // keep it visible instead of crashing
+  }
+  const debugId = res.headers.get("paypal-debug-id");
+  console.log(`${req.method} ${req.path} -> ${res.status} (debug_id ${debugId})`);
+  return { status: res.status, ok: res.ok, json, debugId };
+}
 
 // Calls PayPal and returns the parsed JSON. Throws with PayPal's error body and debug_id on failure.
 export async function paypal(req: PayPalRequest): Promise<unknown> {
-  const headers: Record<string, string> = {
-    Authorization: `Bearer ${await getAccessToken()}`,
-    "Content-Type": "application/json",
-  };
-  if (req.method === "POST") {
-    headers["PayPal-Request-Id"] = req.requestId;
-    headers["Prefer"] = "return=representation"; // full object back, not just links
-  }
+  const res = await paypalRaw(req);
+  if (!res.ok) throw new Error(`${res.status} debug_id ${res.debugId}\n${JSON.stringify(res.json, null, 2)}`);
+  return res.json;
+}
 
-  const res = await fetch(`${BASE}${req.path}`, {
-    method: req.method,
-    headers,
-    body: req.method === "POST" ? JSON.stringify(req.body) : undefined,
-  });
-  const text = await res.text();
-  const json: unknown = text ? JSON.parse(text) : {};
-  console.log(`${req.method} ${req.path} -> ${res.status} (debug_id ${res.headers.get("paypal-debug-id")})`);
-  if (!res.ok) throw new Error(JSON.stringify(json, null, 2));
-  return json;
+// PayPal error bodies list problems as details[].issue (e.g. "DUPLICATE_INVOICE_ID").
+export function issues(json: unknown): string[] {
+  const details = (json as { details?: { issue?: string }[] }).details ?? [];
+  return details.map((d) => d.issue ?? "?");
 }
