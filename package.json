@@ -18,7 +18,8 @@
     "spike:disputes": "node --env-file=.env scripts/spike/07-disputes.ts",
     "spike:tracking": "node --env-file=.env scripts/spike/08-tracking.ts",
     "spike:crypto": "node scripts/spike/09-crypto.ts",
-    "seed:charge": "node --env-file=.env scripts/seed-charge.ts"
+    "seed:charge": "node --env-file=.env scripts/seed-charge.ts",
+    "agreement:create": "node --env-file=.env scripts/create-agreement.ts"
   },
   "devDependencies": {
     "@readback/core": "workspace:*",
