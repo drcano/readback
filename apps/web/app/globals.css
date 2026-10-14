@@ -112,3 +112,17 @@ main.wide { max-width: 96rem; }
 .rail p { margin: 0 0 var(--space-3); }
 .ask { margin-bottom: var(--space-4); }
 .ask .field { margin-bottom: var(--space-2); }
+
+/* Same claim, two verdicts */
+.verdicts { margin: var(--space-8) 0; }
+.claim { font-size: var(--text-xl); font-weight: 600; margin: 0 0 var(--space-1); }
+.verdict-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr)); gap: var(--space-4); margin: var(--space-4) 0; }
+.verdict-card { border: 1px solid var(--rule); border-top-width: 6px; border-radius: var(--radius); background: var(--surface); padding: var(--space-4); }
+.verdict-card[data-outcome="SELLER_FAVOR"] { border-top-color: var(--pass); }
+.verdict-card[data-outcome="BUYER_FAVOR"] { border-top-color: var(--fail); }
+.verdict-card h3 { margin: var(--space-1) 0 var(--space-2); font-size: var(--text-lg); }
+.verdict-card .lights { grid-template-columns: repeat(2, 1fr); margin: var(--space-3) 0; }
+.outcome { font-size: var(--text-lg); font-weight: 700; margin: var(--space-2) 0; }
+.small { font-size: var(--text-sm); }
+.state { white-space: nowrap; }
+@media (max-width: 480px) { .verdict-card .lights { grid-template-columns: 1fr; } }
