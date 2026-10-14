@@ -13,6 +13,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.133.0",
     "@readback/core": "workspace:*",
     "next": "16.4.0",
     "react": "19.3.0",
