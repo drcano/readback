@@ -3,7 +3,7 @@
 // re-runs every check, including the agent's signature, here in the browser with readback-core.
 // Fixture IDs (fixture-hero, fixture-twist) build the case in the browser and are labeled as such.
 import { type CaseBundle, type CaseResult, evaluateCase, groupFingerprint, lights } from "@readback/core";
-import { directCharge, heroCase } from "@readback/core/fixtures";
+import { fixtureCases } from "@readback/core/fixtures";
 import { useCallback, useEffect, useState } from "react";
 import { CheckTable } from "./CheckTable";
 import { FourLights } from "./FourLights";
@@ -12,9 +12,11 @@ type Loaded = { bundle: CaseBundle; server: CaseResult | null; fixture: boolean 
 type Verify = { result: CaseResult; ms: number; matchesServer: boolean | null };
 
 async function load(id: string): Promise<Loaded> {
-  if (id === "fixture-hero" || id === "fixture-twist") {
-    const hero = await heroCase();
-    return { bundle: id === "fixture-hero" ? hero.bundle : directCharge(hero), server: null, fixture: true };
+  if (id.startsWith("fixture-")) {
+    const wanted = { "fixture-hero": "PP-D-HERO1", "fixture-twist": "PP-D-TWIST" }[id] ?? id.slice("fixture-".length);
+    const found = (await fixtureCases()).find((f) => f.id === wanted);
+    if (!found) throw new Error("No such fixture.");
+    return { bundle: found.bundle, server: null, fixture: true };
   }
   const res = await fetch(`/api/cases/${encodeURIComponent(id)}`);
   const body = (await res.json()) as { ok: boolean; bundle?: CaseBundle; result?: CaseResult; message?: string };
