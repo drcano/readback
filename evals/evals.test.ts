@@ -300,7 +300,6 @@ afterAll(() => {
     return { passed: xs.filter((o) => o.pass).length, total: xs.length };
   };
   const report = {
-    generatedAt: new Date().toISOString(),
     scenarios: results.length,
     passed: results.filter((o) => o.pass).length,
     metrics: {
