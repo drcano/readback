@@ -8,10 +8,14 @@ jobs:
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 22.18
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
+      # Unit tests, the 10,000-mutation tamper fuzz, and the 54 labeled evals.
       - run: pnpm test
       - run: pnpm --filter @readback/core exec playwright install --with-deps chromium
       - run: pnpm test:browser
+      # Real Next.js server against an HTTP fake of PayPal, driven in Chromium.
+      - run: pnpm --filter @readback/web build
+      - run: pnpm --filter @readback/web test:e2e
