@@ -119,6 +119,11 @@ describe("checkRules", () => {
     expect(check({}, [], new Date("2027-10-14T00:00:00Z"))).toEqual(["MANDATE_EXPIRED"]);
   });
 
+  it("flags a replayed cart", () => {
+    const chain = [nextClip([], { type: "GATE_ALLOW", refs: { intent_mandate_id: "im_1", cart_mandate_id: "cm_1", amount_cents: "2250", quantity: "1" }, reasons: [], timestamp: "2026-10-19T00:00:00Z" })];
+    expect(check({}, chain)).toEqual(["CART_ALREADY_AUTHORIZED"]);
+  });
+
   it("flags a merchant redirect", () => {
     expect(check({ merchant: "evil_merchant" })).toEqual(["MERCHANT_NOT_ALLOWED"]);
   });

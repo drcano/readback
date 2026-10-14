@@ -9,7 +9,9 @@ export type GateRequest = {
   mandateJwt: string; // the shopper-signed IntentMandate VC
   expectedShopper: string; // shopper DID on file for this account
   cart: unknown; // proposed by the agent; untrusted until parsed
-  chain: readonly Clip[]; // the ledger so far: revocations and past spend come from here
+  // The *entire* append-only ledger, not a per-mandate view: seq must equal position for
+  // verifyChain to pass. Revocations, past spend and replays are all read from here.
+  chain: readonly Clip[];
   now: Date;
 };
 
@@ -40,6 +42,9 @@ export function checkRules(mandate: IntentMandate, cart: CartMandate, chain: rea
   }
   if (now < new Date(mandate.valid_from)) reasons.push("MANDATE_NOT_YET_VALID");
   if (now >= new Date(mandate.expires_at)) reasons.push("MANDATE_EXPIRED");
+  if (chain.some((c) => c.type === "GATE_ALLOW" && c.refs["cart_mandate_id"] === cart.id)) {
+    reasons.push("CART_ALREADY_AUTHORIZED"); // replay; also the idempotency record for DUPLICATE disputes
+  }
   if (!intent.merchants.includes(cart.merchant)) reasons.push("MERCHANT_NOT_ALLOWED");
 
   for (const item of cart.items) {
