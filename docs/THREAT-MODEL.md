@@ -226,7 +226,7 @@ Where the dispute opens in inquiry, Readback first sends her the terms she appro
 - The runtime's per-call terms fetch and `my_agent_card()` go through the merchant's endpoint (`/api/agreements/[tokenId]`). They therefore detect **misconfiguration only**, not a lying merchant.
 - **The only independent check is Maya's.** She compares the full 16-character fingerprint shown by her own runtime, inside her own Claude, with what PayPal's approval page shows. The shopper page deliberately does not display the fingerprint, so the comparison has to use the runtime's display. Fingerprints are never truncated on screen.
 - **Production fix:** PayPal stores an agent-key field natively and fetches the key from the agent itself, closing this gap. See `docs/PROPOSAL-agent-terms.md`.
-- **UX mitigation in this build:** the agent presents its fingerprint as one guided step ("Does PayPal's page show qX7m-P2vL-9cRt-4sYb? Reply yes."), in large grouped monospace. The shopper page never shows it.
+- **UX mitigation in this build:** the agent presents its fingerprint as one guided step ("Does PayPal's page show qX7m P2vL 9cRt 4sYb? Reply yes."), in large grouped monospace. The shopper page never shows it.
 
 ### T22. The agent runtime itself is compromised
 

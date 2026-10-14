@@ -55,7 +55,8 @@ describe("fingerprints", () => {
     expect(attacker.fingerprint).not.toBe(agent.fingerprint);
   });
   it("groups 4×4 for display, never truncated", () => {
-    expect(groupFingerprint("qX7mP2vL9cRt4sYb")).toBe("qX7m-P2vL-9cRt-4sYb");
+    expect(groupFingerprint("qX7mP2vL9cRt4sYb")).toBe("qX7m P2vL 9cRt 4sYb");
+    expect(groupFingerprint("-TJ7jbI7FwjvYh2f")).toBe("-TJ7 jbI7 Fwjv Yh2f"); // a leading "-" stays visible
   });
   it("non-extractable keys can still sign (judge mode)", async () => {
     const tabKey = await generateAgentKey(false);

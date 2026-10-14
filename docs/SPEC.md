@@ -139,7 +139,7 @@ RB1 Good Boy Provisions | GBP-SR24 x1/30d | max USD 65.00 | 2026-10-14..2027-03-
 | Agent fingerprint | The first 16 characters (96 bits) of the base64url RFC 7638 thumbprint of the agent's P-256 public key, compared case-sensitively |
 
 **How the fingerprint is displayed:**
-- **In every UI and in the runtime:** grouped 4×4 and in monospace, as `qX7m-P2vL-9cRt-4sYb`.
+- **In every UI and in the runtime:** grouped 4×4 with spaces and in monospace, as `qX7m P2vL 9cRt 4sYb` (spaces, because `-` and `_` are themselves base64url characters; see ADR 0002).
 - **In the stored string:** ungrouped.
 - **Never truncate it on screen.** A partial fingerprint can be brute-forced.
 

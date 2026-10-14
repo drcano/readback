@@ -10,9 +10,10 @@ export async function agentFingerprint(jwk: PublicJwk): Promise<string> {
   return (await calculateJwkThumbprint({ kty, crv, x, y }, "sha256")).slice(0, FINGERPRINT_LENGTH);
 }
 
-// For display only: "qX7mP2vL9cRt4sYb" -> "qX7m-P2vL-9cRt-4sYb". Never truncate (SPEC §4.1).
+// For display only: "qX7mP2vL9cRt4sYb" -> "qX7m P2vL 9cRt 4sYb". Never truncate (SPEC §4.1).
+// Grouped with spaces, not dashes: "-" is itself a base64url character (ADR 0002).
 export function groupFingerprint(fingerprint: string): string {
-  return fingerprint.match(/.{1,4}/g)?.join("-") ?? fingerprint;
+  return fingerprint.match(/.{1,4}/g)?.join(" ") ?? fingerprint;
 }
 
 export type AgentKey = { privateKey: CryptoKey; publicJwk: PublicJwk; fingerprint: string };
