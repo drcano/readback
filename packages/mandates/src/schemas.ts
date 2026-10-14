@@ -4,7 +4,7 @@ import { z } from "zod";
 
 // Money as PayPal sends it: a decimal string, never a float (0.1 + 0.2 !== 0.3).
 export const MoneySchema = z.strictObject({
-  value: z.string().regex(/^\d+(\.\d{1,2})?$/),
+  value: z.string().regex(/^\d{1,9}(\.\d{1,2})?$/), // 9 digits keeps cents exact as a JS number
   currency: z.string().regex(/^[A-Z]{3}$/),
 });
 export type Money = z.infer<typeof MoneySchema>;
@@ -22,7 +22,7 @@ export const IntentMandateSchema = z.strictObject({
     skus: z.array(z.string().min(1)).min(1),
     max_unit_price: MoneySchema,
     max_amount_per_period: MoneySchema,
-    period: z.string().regex(/^P(\d+D|\d+W|\d+M)$/), // ISO 8601 subset: P30D, P2W, P1M
+    period: z.string().regex(/^P[1-9]\d*[DWM]$/), // ISO 8601 subset: P30D, P2W, P1M
     max_quantity_per_period: z.number().int().positive(),
     merchants: z.array(z.string().min(1)).min(1),
   }),
