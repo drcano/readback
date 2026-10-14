@@ -31,10 +31,12 @@ Diagrams and where each rule lives: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
 | Piece | State |
 |---|---|
-| `packages/readback-core`: terms grammar, ES256 mandates with header hygiene, fingerprints, labels, gate decision, eleven checks, classification | Built; 130 tests, ~98% coverage, 10,000-mutation tamper fuzz, runs in headless Chromium |
+| `packages/readback-core`: terms grammar, ES256 mandates with header hygiene, fingerprints, labels, gate decision, eleven checks, classification, AP2 import | Built; 143 tests, ~98% coverage, 10,000-mutation tamper fuzz, runs in headless Chromium |
 | `apps/agent`: MCP agent runtime (stateless, two secret paths) | Built; tested over the MCP protocol |
 | `apps/web`: shopper flow, judge mode, investigator queue + case view, checkout gate, agreements, webhooks | Built; tested against an in-memory PayPal fake and end to end in Chromium |
 | `evals/`: 58 labeled scenarios, also runnable in your browser at `/judge` | 58/58 as labeled; dispute suggestions 5/5 seller-side, 6/6 buyer-side, 4/4 no suggestion; 0 wrong in either direction ([results](evals/results/latest.json)) |
+| AP2 v0.2 import: checks AP2's own published mandate chain (disclosures, agent signature, binding, amount, payee, dates) | Built; try it at `/ap2` |
+| Neutrality: one standard of evidence for both sides | [ADR 0004](docs/decisions/0004-neutrality.md); evals measure errors in both directions |
 | Sandbox spike (does PayPal behave as the design assumes?) | *Pending*: step 9 (crypto) passed; steps 1–8 need sandbox credentials |
 
 ## Run it locally
@@ -48,7 +50,7 @@ pnpm run doctor                       # checks the configuration (plain `pnpm do
 pnpm dev                              # web on :3000, agent runtime on :3001
 ```
 
-Without PayPal credentials the investigator queue still shows labeled fixture cases, and `/investigator/fixture-hero` and `/investigator/fixture-twist` show both verdicts, re-verified in your browser.
+Without PayPal credentials you can still see: both verdicts on `/` (re-verified in your browser), the labeled fixture cases in `/investigator`, every eval scenario at `/judge`, and AP2's official mandate checked at `/ap2`.
 
 Tests: `pnpm test` · browser: `pnpm test:browser` · evals: `pnpm eval` · end to end: `pnpm --filter @readback/web build && pnpm --filter @readback/web test:e2e`.
 
