@@ -8,10 +8,12 @@ import { paypalClient } from "@/lib/paypal/client";
 
 type Ctx = { params: Promise<{ tokenId: string }> };
 
-export async function GET(_req: Request, ctx: Ctx): Promise<Response> {
+export async function GET(req: Request, ctx: Ctx): Promise<Response> {
   const id = TokenIdSchema.safeParse((await ctx.params).tokenId);
   if (!id.success) return Response.json({ ok: false }, { status: 400 });
-  const view = await readAgreement(paypalClient(), id.data, new Date());
+  // ?charges=false skips Transaction Search: the agent runtime's per-call terms check needs only the terms.
+  const withCharges = new URL(req.url).searchParams.get("charges") !== "false";
+  const view = await readAgreement(paypalClient(), id.data, new Date(), withCharges);
   return view ? Response.json({ ok: true, ...view }) : Response.json({ ok: false }, { status: 502 });
 }
 

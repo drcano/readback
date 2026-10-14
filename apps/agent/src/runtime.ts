@@ -22,7 +22,7 @@ const refuse = (t: string): ToolResult => ({ content: [{ type: "text", text: `Re
 // The guard every tool runs first. Returns the terms if this runtime may act, or a refusal.
 async function myTerms(agreement: string, profile: Profile, deps: Deps): Promise<{ terms: Terms; text: string } | ToolResult> {
   if (agreement !== profile.agreementId) return refuse("this connection only serves its own agreement.");
-  const view = await deps.merchant.agreement(agreement);
+  const view = await deps.merchant.agreement(agreement, { charges: false });
   if (!view?.active || !view.terms) return refuse("that agreement isn't active on PayPal.");
   const parsed = parseTerms(view.terms);
   if (!parsed.ok) return refuse("the agreement's terms can't be read.");

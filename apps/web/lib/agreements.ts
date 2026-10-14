@@ -77,12 +77,12 @@ export type AgreementView = {
 };
 
 // GET /api/agreements/[tokenId] (SPEC §5.3a). Merchant-served, so it's never evidence. No personal data.
-export async function readAgreement(paypal: PayPalClient, tokenId: string, now: Date): Promise<AgreementView | null> {
+export async function readAgreement(paypal: PayPalClient, tokenId: string, now: Date, withCharges = true): Promise<AgreementView | null> {
   const res = await paypal.get(`/v3/vault/payment-tokens/${encodeURIComponent(tokenId)}`, PaymentTokenSchema);
   if (!res.ok && res.status !== 404) return null;
   const terms = res.ok ? (res.data.payment_source.paypal.description ?? null) : null;
   const parsed = terms ? parseTerms(terms) : null;
-  const charges = parsed?.ok
+  const charges = parsed?.ok && withCharges
     ? (await findHistory(paypal, tokenId, new Date(`${parsed.value.start}T00:00:00Z`), now, false)).map((h) => ({
         captureId: h.captureId,
         time: h.captureTime,

@@ -17,15 +17,16 @@ export type CheckoutReply =
   | { ok: false; failures: { code: string; message: string }[] };
 
 export type Merchant = {
-  agreement(tokenId: string): Promise<AgreementView | null>;
+  agreement(tokenId: string, opts?: { charges: boolean }): Promise<AgreementView | null>;
   checkout(mandate: string): Promise<CheckoutReply>;
   revoke(tokenId: string, proof: string): Promise<boolean>;
 };
 
 export function httpMerchant(baseUrl: string, fetchImpl: typeof fetch = fetch): Merchant {
   return {
-    async agreement(tokenId) {
-      const res = await fetchImpl(`${baseUrl}/api/agreements/${encodeURIComponent(tokenId)}`).catch(() => null);
+    async agreement(tokenId, opts = { charges: true }) {
+      const q = opts.charges ? "" : "?charges=false";
+      const res = await fetchImpl(`${baseUrl}/api/agreements/${encodeURIComponent(tokenId)}${q}`).catch(() => null);
       const parsed = AgreementViewSchema.safeParse(await res?.json().catch(() => null));
       return parsed.success ? parsed.data : null;
     },
