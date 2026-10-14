@@ -51,7 +51,7 @@ Checked against `github.com/paypal/paypal-rest-api-specifications` (main, 2026-1
 
 ## Runbook (run in this order once `.env` is filled)
 
-Before starting: standard merchant REST app with **Vault**, **Disputes** and **Transaction Search** on; a webhook (any https URL) subscribed to `VAULT.PAYMENT-TOKEN.DELETED`; in the sandbox **business** account, "block accidental payments" on.
+Before starting: `pnpm run doctor` (checks env and app scopes). Standard merchant REST app with **Vault**, **Disputes** and **Transaction Search** on; a webhook (any https URL) subscribed to `VAULT.PAYMENT-TOKEN.DELETED`; in the sandbox **business** account, "block accidental payments" on.
 
 1. `pnpm spike:orders`: approve as **Maya**; note the receipt.
 2. `pnpm spike:agreement`: approve as **Maya**, **screenshot PayPal's page**. The return URL 404s; that's expected. Note token **A**.
@@ -64,6 +64,11 @@ Before starting: standard merchant REST app with **Vault**, **Disputes** and **T
 9. `pnpm spike:history` now and ~3 hours later (lag).
 10. `pnpm spike:revocation <B>` (type DELETE).
 11. A fresh `pnpm spike:agreement` → token **C**, then `pnpm spike:revocation <C> --buyer-cancel` and cancel as Maya in Settings > Payments > Manage automatic payments; screenshot each screen.
+
+After the spike, the hero agreement and seed charges (Oct 21):
+12. `pnpm --filter @readback/agent pubkey` → note the fingerprint.
+13. `pnpm agreement:create <fingerprint> 1` → approve as **Maya**, comparing the fingerprint on PayPal's page → put the printed ID in `.env` as `HERO_AGREEMENT_ID`.
+14. `pnpm seed:charge` on Oct 21, 23 and 28 at minimum, then daily from Nov 1 as needed.
 
 Fixtures from step 3 on are signed with throwaway keys that don't match step 2's terms fingerprint, and their order bodies are built by hand: they record **what PayPal stores and returns**, not product-shaped cases. **Product-shaped fixtures for `readback-core` and the evals come from `pnpm seed:charge`**, which signs with the real agent key and charges through core's `authorizeCharge`; it saves each order as `evals/fixtures/spike/seed-<invoice_id>-order.json`.
 

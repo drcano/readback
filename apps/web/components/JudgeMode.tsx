@@ -87,7 +87,7 @@ export function JudgeMode() {
         </li>
         <li>
           <h2>3. Dispute</h2>
-          <p>Disputes are a fixed, hand-opened sandbox pool; PayPal doesn't allow creating them by API. Open the seeded hero case instead.</p>
+          <p>Disputes are a fixed sandbox pool opened by hand (creating them by API is limited-release at PayPal). Open the seeded hero case instead.</p>
           <a href="/investigator">Open the investigator queue</a>
         </li>
         <li>
