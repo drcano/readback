@@ -85,7 +85,7 @@ export async function buildCaseBundle(id: string, paypal: PayPalClient, now: Dat
   const terms = termsText ? parseTerms(termsText) : null;
   const payerId = token?.payment_source.paypal.payer_id ?? orderData.payer?.payer_id ?? orderData.payment_source?.paypal?.account_id;
   const history = tokenId && terms?.ok
-    ? await findHistory(paypal, tokenId, new Date(`${terms.value.start}T00:00:00Z`), now, { checkDisputes: true, verifyPayer: payerId })
+    ? await findHistory(paypal, tokenId, new Date(`${terms.value.start}T00:00:00Z`), now, { checkDisputes: true, verifyPayer: payerId, before: cap.data.create_time })
     : { entries: [], complete: true };
 
   const { supplementary_data: _s, ...capture } = cap.data;
@@ -119,7 +119,7 @@ export async function findHistory(
   tokenId: string,
   start: Date,
   now: Date,
-  opts: { checkDisputes: boolean; verifyPayer?: string | undefined },
+  opts: { checkDisputes: boolean; verifyPayer?: string | undefined; before?: string },
 ): Promise<{ entries: HistoryEntry[]; complete: boolean }> {
   const prefix = `rb1:${tokenId}:`;
   const entries: HistoryEntry[] = [];
@@ -140,13 +140,24 @@ export async function findHistory(
       if (page >= (res.data.total_pages ?? 1)) break;
     }
   }
-  for (const h of entries) {
+  // Check 11 needs two undisputed, PayPal-verified captures before the disputed one, the earliest
+  // 7+ days back. Oldest first, stop once two qualify: a few PayPal calls instead of two per charge.
+  // Entries left unchecked stay unverified, so they can never count FOR the merchant; checks 3 and 7
+  // still read every entry's labels, so they can still count AGAINST it.
+  const candidates = entries
+    .filter((h) => opts.before === undefined || Date.parse(h.captureTime) < Date.parse(opts.before))
+    .sort((a, b) => Date.parse(a.captureTime) - Date.parse(b.captureTime));
+  let qualified = 0;
+  for (const h of opts.verifyPayer ? candidates : entries) {
     if (opts.checkDisputes) {
       const d = await paypal.get(`/v1/customer/disputes?disputed_transaction_id=${encodeURIComponent(h.captureId)}`, DisputeList);
       // Unknown dispute status counts as disputed: it must not help the merchant (fail closed).
       h.disputed = !d.ok || (d.data.items?.length ?? 0) > 0;
     }
-    if (opts.verifyPayer) h.verified = await paidWithThisAgreement(paypal, h.captureId, tokenId, opts.verifyPayer);
+    if (opts.verifyPayer && !h.disputed) {
+      h.verified = await paidWithThisAgreement(paypal, h.captureId, tokenId, opts.verifyPayer);
+      if (h.verified && ++qualified >= 2) break;
+    }
   }
   return { entries, complete: true };
 }
