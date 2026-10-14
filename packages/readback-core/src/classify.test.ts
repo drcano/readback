@@ -1,7 +1,8 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import type { CaseBundle, DisputeReason } from "./case.ts";
 import { classify, evaluateCase } from "./classify.ts";
-import { directCharge, HERO_CAPTURE_TIME, type HeroCase, heroCase } from "./fixtures.ts";
+import { directCharge, HERO_CAPTURE_TIME, HERO_TOKEN_ID, type HeroCase, heroCase } from "./fixtures.ts";
+import { customId } from "./ids.ts";
 import { generateAgentKey, type AgentKey } from "./thumbprint.ts";
 
 let hero: HeroCase;
@@ -136,6 +137,12 @@ describe("classification rows", () => {
     pu(b).invoice_id = inv;
     const r = await outcome(b);
     expect(r.suggestion).toBe("BUYER_FAVOR");
+  });
+
+  it("row 4: a second charge in the same period (if duplicate blocking were off)", async () => {
+    const b = withReason(clone(), "DUPLICATE_TRANSACTION");
+    b.history.push({ captureId: "CAP-EARLIER", captureTime: "2026-11-08T09:00:00Z", customId: customId(HERO_TOKEN_ID, hero.termsHash, hero.mandate.p, "9".repeat(64)), disputed: false });
+    expect(await outcome(b)).toMatchObject({ row: 4, suggestion: "BUYER_FAVOR", failed: ["7"] });
   });
 
   it("rows 5/6: not received, with and without a tracker", async () => {

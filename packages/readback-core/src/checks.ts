@@ -178,7 +178,13 @@ export async function runChecks(b: CaseBundle): Promise<{ facts: CaseFacts; chec
       const out: Failure[] = [];
       if (p === null || p !== sig.p || p > 999) out.push(f("WRONG_PERIOD", "The signed period isn't the period it was signed in."));
       else if (pu.invoice_id !== invoiceId(tokenId, p)) out.push(f("INVOICE_NOT_CANONICAL", "The invoice number isn't the canonical one for this period."));
-      return { failures: out, secondary: facts.secondaryTerms };
+      // Fallback if PayPal's duplicate-invoice blocking were ever off: this must be the earliest
+      // charge of its period. Inert while blocking is on, since PayPal allows only one.
+      const earlierSamePeriod = otherCaptures.some(
+        (h) => h.customId && parseCustomId(h.customId)?.period === sig.p && toSec(h.captureTime) < facts.captureSec,
+      );
+      if (earlierSamePeriod) out.push(f("NOT_FIRST_IN_PERIOD", "Another charge was already made in this period."));
+      return { failures: out, secondary: facts.secondaryTerms, provisional: facts.provisional };
     }],
 
     ["8", "Terms", "Within dates", () => {
