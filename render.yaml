@@ -1,0 +1,62 @@
+# Render Blueprint: two stateless Starter services (always on during judging; no disk, no database).
+# Secrets are set in the Render dashboard (sync: false), never in this file.
+services:
+  - type: web
+    name: readback-web
+    runtime: node
+    plan: starter
+    rootDir: .
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @readback/web build
+    startCommand: pnpm --filter @readback/web start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "22.18.0"
+      - key: PAYPAL_API_BASE
+        value: https://api-m.sandbox.paypal.com
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: PAYPAL_WEBHOOK_ID
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: ANTHROPIC_MODEL
+        value: claude-sonnet-5-5
+      - key: ANTHROPIC_DAILY_CALLS
+        value: "500"
+      - key: MERCHANT_ADMIN_TOKEN
+        sync: false
+      - key: AGENT_RUNTIME_URL # the agent service's public https URL
+        sync: false
+      - key: HERO_AGREEMENT_ID
+        sync: false
+      - key: JUDGE_AGREEMENT_ID
+        sync: false
+      - key: DEMO_MODE
+        value: "true"
+
+  - type: web
+    name: readback-agent
+    runtime: node
+    plan: starter
+    rootDir: .
+    buildCommand: corepack enable && pnpm install --frozen-lockfile
+    startCommand: pnpm --filter @readback/agent start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "22.18.0"
+      - key: AGENT_PRIVATE_KEY # the same value as apps/agent/.env; never in apps/web
+        sync: false
+      - key: MERCHANT_URL
+        sync: false
+      - key: HERO_MCP_SECRET
+        sync: false
+      - key: JUDGE_MCP_SECRET
+        sync: false
+      - key: HERO_AGREEMENT_ID
+        sync: false
+      - key: JUDGE_AGREEMENT_ID
+        sync: false
