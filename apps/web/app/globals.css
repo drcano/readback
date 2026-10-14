@@ -1,0 +1,102 @@
+/* Readback design tokens: one source for the Next.js pages and (from Nov 1) the AG Studio theme.
+   The look is a flight-recorder printout: ink on paper, monospace for every PayPal ID, and
+   state carried by words and symbols first, color second. */
+:root {
+  --paper: #f7f5f0;
+  --surface: #ffffff;
+  --ink: #1b1d21;
+  --ink-muted: #5b606a;
+  --rule: #d9d5cc;
+  --accent: #0b4f8a; /* links, focus */
+  --pass: #1d6b3a;
+  --pass-bg: #e3f1e7;
+  --caution: #8a5a00;
+  --caution-bg: #fbf0d9;
+  --fail: #a3261d;
+  --fail-bg: #f9e2df;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.75rem;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --radius: 4px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #15171a;
+    --surface: #1d2024;
+    --ink: #eceae4;
+    --ink-muted: #a3a8b1;
+    --rule: #33373d;
+    --accent: #7db7ec;
+    --pass: #7fd39b;
+    --pass-bg: #18301f;
+    --caution: #f0c46b;
+    --caution-bg: #34290f;
+    --fail: #f2948b;
+    --fail-bg: #3a1a17;
+  }
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: var(--text-base) / 1.5 var(--font-sans);
+}
+main { max-width: 64rem; margin: 0 auto; padding: var(--space-6) var(--space-4); }
+h1 { font-size: var(--text-xl); margin: 0 0 var(--space-2); }
+h2 { font-size: var(--text-lg); margin: var(--space-8) 0 var(--space-3); }
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--font-mono); font-size: var(--text-sm); overflow-wrap: anywhere; }
+.muted { color: var(--ink-muted); }
+.label-chip {
+  display: inline-block; padding: 0 var(--space-2); border: 1px solid var(--rule);
+  border-radius: var(--radius); font-size: var(--text-sm); color: var(--ink-muted);
+}
+
+/* Four lights */
+.lights { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: var(--space-3); list-style: none; padding: 0; margin: 0; }
+.light { border: 1px solid var(--rule); border-left-width: 6px; border-radius: var(--radius); padding: var(--space-3) var(--space-4); background: var(--surface); }
+.light[data-state="pass"] { border-left-color: var(--pass); }
+.light[data-state="caution"] { border-left-color: var(--caution); }
+.light[data-state="fail"] { border-left-color: var(--fail); }
+.light-head { display: flex; align-items: baseline; gap: var(--space-2); font-weight: 600; }
+.state { font-size: var(--text-sm); font-weight: 600; padding: 0 var(--space-2); border-radius: var(--radius); }
+.state[data-state="pass"] { color: var(--pass); background: var(--pass-bg); }
+.state[data-state="caution"] { color: var(--caution); background: var(--caution-bg); }
+.state[data-state="fail"] { color: var(--fail); background: var(--fail-bg); }
+.light p { margin: var(--space-1) 0 0; font-size: var(--text-sm); color: var(--ink-muted); }
+
+/* Verdict */
+.verdict { border: 1px solid var(--rule); border-radius: var(--radius); background: var(--surface); padding: var(--space-4); margin: var(--space-6) 0; }
+.verdict strong { font-size: var(--text-lg); }
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; background: var(--surface); font-size: var(--text-sm); }
+th, td { text-align: left; padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { color: var(--ink-muted); font-weight: 600; }
+td:first-child { white-space: nowrap; }
+.fp { white-space: nowrap; font-family: var(--font-mono); }
+caption { text-align: left; padding: var(--space-2) var(--space-3); }
+.table-wrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: var(--radius); }
+
+button {
+  font: inherit; padding: var(--space-2) var(--space-4); border: 1px solid var(--ink); border-radius: var(--radius);
+  background: var(--surface); color: var(--ink); cursor: pointer;
+}
+button:disabled { opacity: 0.6; cursor: default; }
+.banner { padding: var(--space-3) var(--space-4); border: 1px dashed var(--rule); border-radius: var(--radius); margin-bottom: var(--space-4); font-size: var(--text-sm); }
+.eyebrow { margin: 0; font-size: var(--text-sm); color: var(--ink-muted); font-weight: 600; }

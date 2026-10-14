@@ -120,7 +120,9 @@ export function directCharge(hero: HeroCase): CaseBundle {
   pu.amount = { currency_code: "USD", value: "59.00", breakdown: { item_total: { currency_code: "USD", value: "59.00" } } };
   pu.items = [{ name: "Salmon & Rice Adult (24 lb)", sku: "GBP-SR24", quantity: "1", unit_amount: { currency_code: "USD", value: "59.00" } }];
   delete b.order.payment_source!.paypal!.stored_credential;
-  b.capture = { ...b.capture, id: "CAP-DIRECT", amount: { currency_code: "USD", value: "59.00" }, invoice_id: pu.invoice_id };
+  b.order.id = "ORDER-DIRECT";
+  pu.shipping = { ...pu.shipping, trackers: [{ id: "TRK-DIRECT", status: "SHIPPED" }] }; // it did ship
+  b.capture = { ...b.capture, id: "CAP-DIRECT", create_time: "2026-11-09T10:00:00Z", amount: { currency_code: "USD", value: "59.00" }, invoice_id: pu.invoice_id };
   delete b.capture.custom_id;
   b.dispute = { ...b.dispute!, dispute_id: "PP-D-TWIST", disputed_transactions: [{ seller_transaction_id: "CAP-DIRECT", invoice_number: pu.invoice_id }] };
   return b;

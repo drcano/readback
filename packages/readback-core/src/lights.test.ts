@@ -9,6 +9,8 @@ describe("four lights", () => {
     const states = async (b: Parameters<typeof evaluateCase>[0]) => lights((await evaluateCase(b)).checks).map((l) => `${l.group}:${l.state}`);
     expect(await states(hero.bundle)).toEqual(["Consent:pass", "Agent:pass", "Terms:pass", "Delivery:pass"]);
     expect(await states(directCharge(hero))).toEqual(["Consent:pass", "Agent:fail", "Terms:pass", "Delivery:pass"]);
+    const twist = lights((await evaluateCase(directCharge(hero))).checks)[1]!;
+    expect(twist.summary).toBe("The charge carries no signed request from an agent.");
     expect(await states({ ...hero.bundle, token: null })).toEqual(["Consent:caution", "Agent:pass", "Terms:caution", "Delivery:pass"]);
     expect(await states({ ...hero.bundle, now: "2026-11-08T16:00:00Z" })).toEqual(["Consent:pass", "Agent:caution", "Terms:caution", "Delivery:caution"]);
   });
