@@ -1,0 +1,27 @@
+{
+  "name": "@readback/web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Readback's merchant deployment: shopper pages, judge mode, investigator queue and case view, stateless API routes.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@readback/core": "workspace:*",
+    "next": "16.4.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "vitest": "^5.0.4"
+  }
+}

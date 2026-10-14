@@ -6,6 +6,7 @@
     "node": ">=22"
   },
   "scripts": {
+    "dev": "pnpm -r --parallel --if-present dev",
     "typecheck": "tsc --noEmit && pnpm -r typecheck",
     "test": "pnpm -r test",
     "spike:orders": "node --env-file=.env scripts/spike/01-orders.ts",
