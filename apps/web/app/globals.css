@@ -100,3 +100,6 @@ button {
 button:disabled { opacity: 0.6; cursor: default; }
 .banner { padding: var(--space-3) var(--space-4); border: 1px dashed var(--rule); border-radius: var(--radius); margin-bottom: var(--space-4); font-size: var(--text-sm); }
 .eyebrow { margin: 0; font-size: var(--text-sm); color: var(--ink-muted); font-weight: 600; }
+label { display: block; font-weight: 600; margin-bottom: var(--space-1); }
+.field { width: 100%; font: inherit; padding: var(--space-2) var(--space-3); border: 1px solid var(--rule); border-radius: var(--radius); background: var(--surface); color: var(--ink); }
+h3 { font-size: var(--text-base); margin: var(--space-4) 0 var(--space-2); }
