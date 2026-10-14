@@ -23,6 +23,8 @@ Maya's assistant ──asks──▶ agent runtime ──signs (ES256)──▶ 
 3. **A deterministic gate.** The merchant's gate verifies the signature, re-reads the terms from PayPal, checks every limit, and charges the saved wallet with an `invoice_id` that names the period, so PayPal itself refuses a second charge in the same period.
 4. **Eleven checks.** For a dispute, Readback rebuilds the case from PayPal's records (dispute → capture → order → PayPal's own record of which saved wallet paid → terms) and runs eleven checks. It suggests an outcome only when the evidence supports one.
 
+Diagrams and where each rule lives: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
 **Principles:** LLMs propose; cryptography and deterministic checks decide. Readback stores nothing; PayPal is the only system of record.
 
 ## Status (Oct 15)
