@@ -1,8 +1,7 @@
-// Minimal PayPal REST helper for the day-one sandbox spike.
+// Minimal PayPal REST helper for the sandbox spike.
 // Throwaway on purpose: product code uses @paypal/paypal-server-sdk + apps/web/lib/paypal.
-import { randomUUID } from "node:crypto";
-
 const BASE = process.env.PAYPAL_API_BASE ?? "https://api-m.sandbox.paypal.com";
+if (!BASE.includes("sandbox")) throw new Error(`Spike scripts run against the sandbox only, not ${BASE}`);
 
 function requireEnv(name: string): string {
   const value = process.env[name];
@@ -29,22 +28,31 @@ export async function getAccessToken(): Promise<string> {
   return cachedToken;
 }
 
-// Calls a PayPal endpoint. Every POST gets a fresh PayPal-Request-Id (idempotency key).
-export async function paypal(method: "GET" | "POST", path: string, body?: unknown): Promise<unknown> {
+export type PayPalRequest =
+  | { method: "GET"; path: string }
+  // Every POST names its PayPal-Request-Id. It's derived from the operation, never random,
+  // so retrying the same operation is a no-op on PayPal's side (CLAUDE.md §5).
+  | { method: "POST"; path: string; requestId: string; body: unknown };
+
+// Calls PayPal and returns the parsed JSON. Throws with PayPal's error body and debug_id on failure.
+export async function paypal(req: PayPalRequest): Promise<unknown> {
   const headers: Record<string, string> = {
     Authorization: `Bearer ${await getAccessToken()}`,
     "Content-Type": "application/json",
   };
-  if (method === "POST") headers["PayPal-Request-Id"] = randomUUID();
+  if (req.method === "POST") {
+    headers["PayPal-Request-Id"] = req.requestId;
+    headers["Prefer"] = "return=representation"; // full object back, not just links
+  }
 
-  const res = await fetch(`${BASE}${path}`, {
-    method,
+  const res = await fetch(`${BASE}${req.path}`, {
+    method: req.method,
     headers,
-    body: body === undefined ? undefined : JSON.stringify(body),
+    body: req.method === "POST" ? JSON.stringify(req.body) : undefined,
   });
   const text = await res.text();
   const json: unknown = text ? JSON.parse(text) : {};
-  console.log(`${method} ${path} -> ${res.status} (debug_id ${res.headers.get("paypal-debug-id")})`);
+  console.log(`${req.method} ${req.path} -> ${res.status} (debug_id ${res.headers.get("paypal-debug-id")})`);
   if (!res.ok) throw new Error(JSON.stringify(json, null, 2));
   return json;
 }
