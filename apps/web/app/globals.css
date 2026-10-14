@@ -106,3 +106,7 @@ h3 { font-size: var(--text-base); margin: var(--space-4) 0 var(--space-2); }
 main.wide { max-width: 96rem; }
 .grid-wrap { height: 32rem; margin-top: var(--space-3); }
 .lights-strip { display: inline-flex; gap: var(--space-1); }
+.rail { list-style: none; padding: 0; display: grid; gap: var(--space-3); }
+.rail > li { border: 1px solid var(--rule); border-radius: var(--radius); background: var(--surface); padding: var(--space-4); }
+.rail h2 { margin: 0 0 var(--space-2); font-size: var(--text-base); }
+.rail p { margin: 0 0 var(--space-3); }
