@@ -4,7 +4,10 @@
   "description": "Pure, browser-safe verification for AI agent purchases on PayPal: terms, signed mandates, IDs, the eleven checks.",
   "license": "Apache-2.0",
   "type": "module",
-  "exports": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./fixtures": "./src/fixtures.ts"
+  },
   "scripts": {
     "test": "vitest run --coverage",
     "typecheck": "tsc --noEmit",

@@ -31,7 +31,7 @@ describe("same claim, two verdicts", () => {
     const r = await outcome(directCharge(hero));
     expect(r).toMatchObject({ row: 3, suggestion: "BUYER_FAVOR" });
     expect(r.failed).toEqual(expect.arrayContaining(["2b", "3"]));
-    expect(r.failed).not.toContain("5"); // every term was respected: amount within cap
+    expect(r.failed).toEqual(["2b", "3"]); // every term was respected: only the Agent checks fail
   });
 });
 

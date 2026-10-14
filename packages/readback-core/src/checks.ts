@@ -173,15 +173,19 @@ export async function runChecks(b: CaseBundle): Promise<{ facts: CaseFacts; chec
     }],
 
     ["7", "Terms", "One per period", () => {
-      if (!terms || !sig || tokenId === null) return { failures: [f("PERIOD_UNKNOWN", "The charge's period can't be established without a signed request.")], secondary: facts.secondaryTerms };
-      const p = periodIndex(sig.iat, terms);
+      if (!terms || tokenId === null) return { failures: [f("PERIOD_UNKNOWN", "The charge's period can't be established.")], secondary: facts.secondaryTerms };
       const out: Failure[] = [];
-      if (p === null || p !== sig.p || p > 999) out.push(f("WRONG_PERIOD", "The signed period isn't the period it was signed in."));
-      else if (pu.invoice_id !== invoiceId(tokenId, p)) out.push(f("INVOICE_NOT_CANONICAL", "The invoice number isn't the canonical one for this period."));
-      // Fallback if PayPal's duplicate-invoice blocking were ever off: this must be the earliest
-      // charge of its period. Inert while blocking is on, since PayPal allows only one.
+      // With a signed request, the period is the signed one and the invoice must be canonical.
+      // Without one, the period comes from PayPal's capture time, and the missing labels are
+      // already check 2b's failure: this check stays about the terms themselves.
+      const p = sig ? periodIndex(sig.iat, terms) : periodIndex(facts.captureSec, terms);
+      if (sig && (p === null || p !== sig.p || p > 999)) out.push(f("WRONG_PERIOD", "The signed period isn't the period it was signed in."));
+      else if (sig && pu.invoice_id !== invoiceId(tokenId, p!)) out.push(f("INVOICE_NOT_CANONICAL", "The invoice number isn't the canonical one for this period."));
+      if (p === null) out.push(f("OUTSIDE_DATES", "The charge happened before the agreement started."));
+      // This must be the earliest charge of its period. While PayPal's duplicate-invoice blocking
+      // is on it can't be otherwise for labeled charges; it matters for unlabeled ones.
       const earlierSamePeriod = otherCaptures.some(
-        (h) => h.customId && parseCustomId(h.customId)?.period === sig.p && toSec(h.captureTime) < facts.captureSec,
+        (h) => h.customId && parseCustomId(h.customId)?.period === p && toSec(h.captureTime) < facts.captureSec,
       );
       if (earlierSamePeriod) out.push(f("NOT_FIRST_IN_PERIOD", "Another charge was already made in this period."));
       return { failures: out, secondary: facts.secondaryTerms, provisional: facts.provisional };
@@ -201,9 +205,9 @@ export async function runChecks(b: CaseBundle): Promise<{ facts: CaseFacts; chec
       const out: Failure[] = [];
       if (sig && sig.th !== th16) out.push(f("TERMS_HASH_MISMATCH", "The agent signed different terms."));
       const cid = pu.custom_id ? parseCustomId(pu.custom_id) : null;
-      if (!cid || cid.termsHash16 !== th16) out.push(f("TERMS_HASH_MISMATCH", "The charge's reference names different terms."));
+      // A missing reference is check 2b's failure; a reference naming other terms is this one's.
+      if (cid && cid.termsHash16 !== th16) out.push(f("TERMS_HASH_MISMATCH", "The charge's reference names different terms."));
       if (pu.description !== facts.termsText) out.push(f("TERMS_COPY_DIFFERS", "The terms copied onto the charge differ from the approved terms."));
-      if (!sig) out.push(f("NO_MANDATE", "No signed request binds this charge to the terms."));
       return { failures: out, secondary: facts.secondaryTerms };
     }],
 
