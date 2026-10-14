@@ -11,6 +11,7 @@ const PAGES: [string, string | null][] = [
   ["/investigator/fixture-hero", "text=Re-verified locally"],
   ["/investigator/fixture-twist", "text=Re-verified locally"],
   ["/judge", null],
+  ["/ap2", "text=Agent's signature on the closed mandate"],
 ];
 
 const b = await chromium.launch();
