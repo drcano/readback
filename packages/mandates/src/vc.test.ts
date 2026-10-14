@@ -35,6 +35,11 @@ describe("did:key", () => {
     expect(shopper.did).toMatch(/^did:key:z6Mk/);
     await expect(publicKeyFromDid(shopper.did)).resolves.toBeDefined();
   });
+  it("is browser-safe: imports only jose", async () => {
+    const { readFile } = await import("node:fs/promises");
+    const source = await readFile(new URL("./did.ts", import.meta.url), "utf8");
+    expect(source).not.toMatch(/Buffer|node:/);
+  });
   it("rejects non-Ed25519 or malformed DIDs", async () => {
     await expect(publicKeyFromDid("did:web:example.com")).rejects.toThrow();
     await expect(publicKeyFromDid("did:key:z0OIl")).rejects.toThrow("invalid base58");
