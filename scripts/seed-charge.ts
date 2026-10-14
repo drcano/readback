@@ -5,6 +5,7 @@
 // Run it on Oct 21, 23 and 28 at minimum, then daily from Nov 1 (CLAUDE.md §8).
 import { spawnSync } from "node:child_process";
 import { authorizeCharge, denialFromPayPalIssue, PaymentTokenSchema } from "@readback/core";
+import { saveFixture } from "./spike/fixtures.ts";
 import { issues, paypal, paypalRaw } from "./spike/paypal.ts";
 
 const MERCHANT = "Good Boy Provisions";
@@ -52,3 +53,6 @@ if (status !== "COMPLETED") {
   status = cap.status;
 }
 console.log(`order ${o.id} ${status}`);
+// Product-shaped fixtures for readback-core's tests come from here, not from spike steps 3-5
+// (those build orders by hand to probe PayPal). Scrubbed of personal data on save.
+saveFixture(`seed-${decision.invoiceId}-order`, await paypal({ method: "GET", path: `/v2/checkout/orders/${o.id}` }));

@@ -65,7 +65,7 @@ Before starting: standard merchant REST app with **Vault**, **Disputes** and **T
 10. `pnpm spike:revocation <B>` (type DELETE).
 11. A fresh `pnpm spike:agreement` → token **C**, then `pnpm spike:revocation <C> --buyer-cancel` and cancel as Maya in Settings > Payments > Manage automatic payments; screenshot each screen.
 
-Fixtures from step 3 on are signed with throwaway keys that don't match step 2's terms fingerprint: valid for what PayPal stores, not for crypto evals.
+Fixtures from step 3 on are signed with throwaway keys that don't match step 2's terms fingerprint, and their order bodies are built by hand: they record **what PayPal stores and returns**, not product-shaped cases. **Product-shaped fixtures for `readback-core` and the evals come from `pnpm seed:charge`**, which signs with the real agent key and charges through core's `authorizeCharge`; it saves each order as `evals/fixtures/spike/seed-<invoice_id>-order.json`.
 
 ## Step 1 — Orders basics
 

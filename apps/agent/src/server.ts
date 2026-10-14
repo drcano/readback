@@ -6,20 +6,27 @@ import { createApp } from "./app.ts";
 import { loadAgentKey } from "./key.ts";
 import { httpMerchant } from "./merchant.ts";
 
-const env = (name: string): string => {
+// Before the agreements exist (pre Oct 21) the runtime still starts: the paths exist but every
+// tool refuses, because no real agreement ID can equal the placeholder.
+const UNSET = "agreement-not-configured";
+const secret = (name: string): string => {
   const v = process.env[name];
-  if (!v) throw new Error(`${name} is not set (see apps/agent/.env.example)`);
-  return v;
+  if (!v) console.warn(`${name} not set: generating a random one, so that path is unreachable this run`);
+  return v ?? crypto.randomUUID();
 };
 
 const app = createApp(
   {
-    heroSecret: env("HERO_MCP_SECRET"),
-    heroAgreementId: env("HERO_AGREEMENT_ID"),
-    judgeSecret: env("JUDGE_MCP_SECRET"),
-    judgeAgreementId: env("JUDGE_AGREEMENT_ID"),
+    heroSecret: secret("HERO_MCP_SECRET"),
+    heroAgreementId: process.env["HERO_AGREEMENT_ID"] || UNSET,
+    judgeSecret: secret("JUDGE_MCP_SECRET"),
+    judgeAgreementId: process.env["JUDGE_AGREEMENT_ID"] || UNSET,
   },
-  { key: await loadAgentKey(process.env["AGENT_PRIVATE_KEY"]), merchant: httpMerchant(env("MERCHANT_URL")), now: () => new Date() },
+  {
+    key: await loadAgentKey(process.env["AGENT_PRIVATE_KEY"]),
+    merchant: httpMerchant(process.env["MERCHANT_URL"] ?? "http://localhost:3000"),
+    now: () => new Date(),
+  },
 );
 
 const port = Number(process.env["PORT"] ?? 3001);
