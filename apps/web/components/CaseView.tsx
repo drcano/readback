@@ -34,6 +34,13 @@ export function CaseView({ id }: { id: string }) {
   const [verify, setVerify] = useState<Verify | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [draft, setDraft] = useState<{ kind: string; text: string } | null>(null);
+
+  async function loadDraft() {
+    const res = await fetch(`/api/cases/${encodeURIComponent(id)}/draft`, { method: "POST" }).catch(() => null);
+    const body = (await res?.json().catch(() => null)) as { ok: boolean; draft?: { kind: string; text: string } } | null;
+    if (body?.ok && body.draft) setDraft(body.draft);
+  }
   const [brief, setBrief] = useState<{ sentences: { text: string; cites: string[] }[]; by: string } | null>(null);
 
   async function explain() {
@@ -120,6 +127,19 @@ export function CaseView({ id }: { id: string }) {
           ))}
           <li className="muted">Written by {brief.by === "claude" ? "Claude, validated by rules" : "rules (Claude unavailable or rejected)"}.</li>
         </ul>
+      )}
+
+      <h2>Merchant</h2>
+      <p>
+        <button type="button" onClick={loadDraft}>Draft a reply to the shopper</button>{" "}
+        <span className="muted">Generated from the checks; Sam approves before anything is sent. Sending is disabled on the public demo.</span>
+      </p>
+      {draft && (
+        <figure className="verdict">
+          <figcaption className="eyebrow">{draft.kind === "inquiry" ? "Inquiry: her own approval, read back" : draft.kind === "refund" ? "Refund note" : "No draft"}</figcaption>
+          {draft.text.split("\n\n").map((para) => <p key={para}>{para}</p>)}
+          <button type="button" disabled>Send via PayPal (admin only)</button>
+        </figure>
       )}
 
       <h2>Checks</h2>
