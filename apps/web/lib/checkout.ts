@@ -5,6 +5,7 @@ import {
   checkFreshness,
   denialFromPayPalIssue,
   type Failure,
+  parseCents,
   PaymentTokenSchema,
   verifyMandate,
 } from "@readback/core";
@@ -32,10 +33,13 @@ export async function checkout(jws: string, paypal: PayPalClient, nowSec: number
   if (!verified.ok) return deny(400, verified.error);
   const stale = checkFreshness(verified.value.payload, nowSec);
   if (stale.length > 0) return deny(400, ...stale);
-  const { agr, sku } = verified.value.payload;
+  const { agr, sku, unit } = verified.value.payload;
 
   const item = CATALOG[sku];
   if (!item) return deny(422, { code: "UNKNOWN_ITEM", message: "That item isn't sold here." });
+  // The merchant's own protection: the signed price must be today's catalog price, so an agent
+  // talked into a fake "sale" price can't produce an underpaid order.
+  if (parseCents(unit) !== item.unitCents) return deny(422, { code: "PRICE_CHANGED", message: "The price changed since your agent checked; ask it again." });
 
   // 2. The agreement as PayPal holds it right now. 404 = cancelled.
   const tok = await paypal.get(`/v3/vault/payment-tokens/${encodeURIComponent(agr)}`, PaymentTokenSchema);

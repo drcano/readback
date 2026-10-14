@@ -10,9 +10,13 @@
     "sign": "node --env-file=.env src/sign-cli.ts",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "pubkey": "node --env-file=.env src/pubkey.ts"
+    "pubkey": "node --env-file=.env src/pubkey.ts",
+    "dev": "node --env-file=.env src/server.ts",
+    "start": "node src/server.ts"
   },
   "dependencies": {
+    "@modelcontextprotocol/node": "2.1.1",
+    "@modelcontextprotocol/server": "2.3.1",
     "@readback/core": "workspace:*",
     "jose": "^6.2.12",
     "zod": "^4.6.7"
