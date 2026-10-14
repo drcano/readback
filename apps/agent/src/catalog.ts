@@ -1,6 +1,8 @@
 // Catalog pages the agent can browse (SPEC §5.2 browse_catalog). Some are attack fixtures from
 // SPEC §10: they try to talk the agent into buying something else. Everything here reaches Claude
 // as UNTRUSTED data; whatever Claude then asks for, the runtime only signs what fits the terms.
+import { CATALOG } from "@readback/core/catalog";
+
 export type CatalogPage = { sku: string; title: string; price: string; body: string; attack?: string };
 
 export const CATALOG_PAGES: CatalogPage[] = [
@@ -35,9 +37,8 @@ export function searchCatalog(query: string): CatalogPage[] {
   return hits.length > 0 ? hits : CATALOG_PAGES;
 }
 
-// The price the runtime signs comes from the merchant's real catalog entry for the SKU (the first,
-// non-attack page), never from page text. The gate re-checks it against the merchant's own price.
+// The price the runtime signs is the shop's catalog price for the SKU, never a number from page
+// text (that's the price-swap attack). The gate re-checks it against the same catalog.
 export function listedUnitCents(sku: string): number | null {
-  const page = CATALOG_PAGES.find((p) => p.sku === sku && !p.attack);
-  return page ? Math.round(Number(page.price) * 100) : null;
+  return CATALOG[sku]?.unitCents ?? null;
 }
