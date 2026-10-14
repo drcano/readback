@@ -2,11 +2,12 @@
 // The case view (SPEC §5.6). Fetches the case bundle from /api/cases/[id] (live PayPal data), then
 // re-runs every check, including the agent's signature, here in the browser with readback-core.
 // Fixture IDs (fixture-hero, fixture-twist) build the case in the browser and are labeled as such.
-import { type CaseBundle, type CaseResult, evaluateCase, groupFingerprint, lights } from "@readback/core";
+import { type CaseBundle, type CaseResult, evaluateCase, lights } from "@readback/core";
 import { fixtureCases } from "@readback/core/fixtures";
 import { useCallback, useEffect, useState } from "react";
 import { CheckTable } from "./CheckTable";
 import { FourLights } from "./FourLights";
+import { Tape } from "./Tape";
 
 type Loaded = { bundle: CaseBundle; server: CaseResult | null; fixture: boolean };
 type Verify = { result: CaseResult; ms: number; matchesServer: boolean | null };
@@ -77,8 +78,6 @@ export function CaseView({ id }: { id: string }) {
   const { bundle } = loaded;
   const { result } = verify;
   const c = result.classification;
-  const pu = bundle.order.purchase_units[0];
-  const fingerprint = result.facts.terms?.fingerprint;
 
   return (
     <>
@@ -146,15 +145,7 @@ export function CaseView({ id }: { id: string }) {
       <CheckTable checks={result.checks} />
 
       <h2>Tape</h2>
-      <ol className="mono">
-        <li>Agreement {result.facts.tokenId ?? "(none attested by PayPal)"}: {result.facts.termsText ?? "no terms"}</li>
-        {fingerprint && <li>Approved agent key <span className="fp">{groupFingerprint(fingerprint)}</span></li>}
-        <li>Signed request: {result.facts.mandate ? <>signed by <span className="fp">{groupFingerprint(result.facts.mandate.fingerprint)}</span>, period {result.facts.mandate.payload.p}</> : "none"}</li>
-        <li>Order {bundle.order.id}: {pu?.invoice_id ?? "no invoice"}</li>
-        <li>Capture {bundle.capture.id}: {bundle.capture.status}</li>
-        <li>Tracker: {pu?.shipping?.trackers?.map((t) => `${t.id} ${t.status}`).join(", ") || "none"}</li>
-        {bundle.dispute && <li>Dispute {bundle.dispute.dispute_id}: {bundle.dispute.status}</li>}
-      </ol>
+      <Tape bundle={bundle} result={result} />
     </>
   );
 }
