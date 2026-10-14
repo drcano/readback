@@ -9,9 +9,19 @@
     "typecheck": "tsc --noEmit && pnpm -r typecheck",
     "test": "pnpm -r test",
     "spike:orders": "node --env-file=.env scripts/spike/01-orders.ts",
-    "test:browser": "pnpm -r --if-present test:browser"
+    "test:browser": "pnpm -r --if-present test:browser",
+    "spike:agreement": "node --env-file=.env scripts/spike/02-agreement.ts",
+    "spike:vault-charge": "node --env-file=.env scripts/spike/03-vault-charge.ts",
+    "spike:duplicate-guard": "node --env-file=.env scripts/spike/04-duplicate-guard.ts",
+    "spike:revocation": "node --env-file=.env scripts/spike/05-revocation.ts",
+    "spike:history": "node --env-file=.env scripts/spike/06-history.ts",
+    "spike:disputes": "node --env-file=.env scripts/spike/07-disputes.ts",
+    "spike:tracking": "node --env-file=.env scripts/spike/08-tracking.ts",
+    "spike:crypto": "node scripts/spike/09-crypto.ts",
+    "seed:charge": "node --env-file=.env scripts/seed-charge.ts"
   },
   "devDependencies": {
+    "@readback/core": "workspace:*",
     "@types/node": "^26.6.5",
     "jose": "^6.2.12",
     "typescript": "^7.0.2"
