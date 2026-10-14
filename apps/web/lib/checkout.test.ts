@@ -54,7 +54,7 @@ describe("checkout gate", () => {
     expect(codes(await run(await mandate(), NOW + 600))).toEqual(["EXPIRED"]);
     expect(codes(await run(await mandate({ unitCents: 7000 })))).toEqual(["PRICE_CHANGED"]);
     expect(codes(await run(await mandate({ unitCents: 699 })))).toEqual(["PRICE_CHANGED"]); // price-swap attack
-    expect(codes(await run(await mandate({ sku: "GBP-PREMIUM", unitCents: 14999 })))).toEqual(["SKU_NOT_APPROVED"]);
+    expect(codes(await run(await mandate({ sku: "GBP-PREMIUM", unitCents: 14999 })))).toEqual(["SKU_NOT_APPROVED", "OVER_CAP"]); // every reason, not just the first
     expect(codes(await run(await mandate({ sku: "NOT-SOLD" })))).toEqual(["UNKNOWN_ITEM"]);
     expect(pp.posts).toEqual([]);
   });
