@@ -16,5 +16,9 @@
   },
   "devDependencies": {
     "vitest": "^5.0.4"
+  },
+  "exports": {
+    ".": "./scenarios.ts",
+    "./tamper": "./tamper.ts"
   }
 }

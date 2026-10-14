@@ -15,7 +15,8 @@ export default function Home() {
       <h2>Try it yourself</h2>
       <JudgeMode />
       <p className="muted">
-        Also: <a href="/shopper">the shopper flow</a> · <a href="/investigator">the investigator queue</a>
+        Also: <a href="/judge">judge it yourself (run every eval in your browser)</a> · <a href="/shopper">the shopper flow</a> ·{" "}
+        <a href="/investigator">the investigator queue</a>
       </p>
     </main>
   );

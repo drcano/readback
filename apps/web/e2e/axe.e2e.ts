@@ -10,6 +10,7 @@ const PAGES: [string, string | null][] = [
   ["/investigator", "text=PP-D-HERO1"],
   ["/investigator/fixture-hero", "text=Re-verified locally"],
   ["/investigator/fixture-twist", "text=Re-verified locally"],
+  ["/judge", null],
 ];
 
 const b = await chromium.launch();
