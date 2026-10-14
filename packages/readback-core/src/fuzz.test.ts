@@ -75,5 +75,5 @@ describe("tamper fuzzing", () => {
     );
     expect(caught + unchanged).toBe(10_000);
     expect(unchanged).toBeLessThan(500); // nearly every mutation really changed something
-  });
+  }, 60_000); // ~3s alone; generous so parallel CI load can't time it out
 });
