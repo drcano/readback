@@ -8,7 +8,8 @@
   "scripts": {
     "typecheck": "tsc --noEmit && pnpm -r typecheck",
     "test": "pnpm -r test",
-    "spike:orders": "node --env-file=.env scripts/spike/01-orders.ts"
+    "spike:orders": "node --env-file=.env scripts/spike/01-orders.ts",
+    "test:browser": "pnpm -r --if-present test:browser"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",
