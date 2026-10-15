@@ -136,6 +136,8 @@ export function denialFromPayPalIssue(issue: string): Failure {
       return { code: "ALREADY_ORDERED_THIS_PERIOD", message: "Already ordered this period (refused by PayPal)." };
     case "INVALID_VAULT_ID":
     case "AGREEMENT_ALREADY_CANCELLED":
+    // What the sandbox really returns for a revoked token (spike step 5, 2026-10-15): 403 PERMISSION_DENIED.
+    case "PERMISSION_DENIED":
       return { code: "AGREEMENT_NOT_ACTIVE", message: "Your agreement isn't active (refused by PayPal)." };
     default:
       return { code: "PAYPAL_REFUSED", message: `PayPal refused the charge (${issue}).` };

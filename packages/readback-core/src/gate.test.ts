@@ -115,6 +115,7 @@ describe("authorizeCharge", () => {
     expect(denialFromPayPalIssue("DUPLICATE_INVOICE_ID").code).toBe("ALREADY_ORDERED_THIS_PERIOD");
     expect(denialFromPayPalIssue("INVALID_VAULT_ID").code).toBe("AGREEMENT_NOT_ACTIVE");
     expect(denialFromPayPalIssue("AGREEMENT_ALREADY_CANCELLED").code).toBe("AGREEMENT_NOT_ACTIVE");
+    expect(denialFromPayPalIssue("PERMISSION_DENIED").code).toBe("AGREEMENT_NOT_ACTIVE");
     expect(denialFromPayPalIssue("INSTRUMENT_DECLINED")).toEqual({ code: "PAYPAL_REFUSED", message: "PayPal refused the charge (INSTRUMENT_DECLINED)." });
   });
 });
