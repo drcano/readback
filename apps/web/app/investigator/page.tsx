@@ -1,21 +1,18 @@
 // /investigator — the queue. A proposed workflow for a PayPal claims investigator (SPEC §5.6).
 import { QueueGrid } from "@/components/QueueGrid";
-import { AppHeader } from "@/components/ui";
+import { AppFooter, AppHeader } from "@/components/ui";
 
 export default function QueuePage() {
   return (
     <>
-      <AppHeader section="Investigator" />
-      <main className="wide">
-        <div className="page-head">
-          <div>
-            <p className="eyebrow">Proposed investigator workflow</p>
-            <h1>Agent-purchase disputes</h1>
-            <p className="muted">Every row is checked against PayPal&apos;s own records: the terms the shopper approved, her agent&apos;s signature, the charge, delivery and history. Results are re-derivable from PayPal, not independent.</p>
-          </div>
-        </div>
+      <AppHeader current="queue" />
+      <main className="console">
+        <p className="cap">Proposed workflow for PayPal investigators</p>
+        <h1>“My AI bought that.” Who&apos;s right?</h1>
+        <p className="lede">Each dispute is rebuilt from PayPal&apos;s own records: what the shopper approved, what her AI agent actually asked for, what was charged, and what shipped. Readback recommends a ruling. A person decides.</p>
         <QueueGrid />
       </main>
+      <AppFooter />
     </>
   );
 }

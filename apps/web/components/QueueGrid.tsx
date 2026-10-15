@@ -1,6 +1,7 @@
 "use client";
-// The investigator queue grid. AG Grid Community now; from Nov 1 the same columns and renderers
-// move inside an AG Studio custom widget (SPEC §5.6). Themed from the shared design tokens.
+// The investigator queue: "same claim, two verdicts" up top, then every open dispute in AG Grid
+// Community (from Nov 1 the same columns and renderers move inside an AG Studio custom widget,
+// SPEC §5.6). Themed from the shared design tokens.
 import {
   CellStyleModule,
   ClientSideRowModelModule,
@@ -10,17 +11,16 @@ import {
   QuickFilterModule,
   RowStyleModule,
   TextFilterModule,
-  TooltipModule,
   themeQuartz,
 } from "ag-grid-community";
 import { AgGridProvider, AgGridReact } from "ag-grid-react";
 import { useEffect, useState } from "react";
+import { claimQuote, reasonLabel, recommendation, stepTitle } from "@/lib/labels";
 import type { QueueRow } from "@/lib/queue";
-import { reasonLabel, stageLabel, verdictLabel } from "@/lib/labels";
 import { answer, FILTERS, type FilterId } from "@/lib/queue-filters";
-import { LightDots, VerdictPill } from "./ui";
+import { RecPill, Steps } from "./ui";
 
-const modules = [CellStyleModule, ClientSideRowModelModule, TextFilterModule, NumberFilterModule, QuickFilterModule, RowStyleModule, TooltipModule];
+const modules = [CellStyleModule, ClientSideRowModelModule, TextFilterModule, NumberFilterModule, QuickFilterModule, RowStyleModule];
 
 const theme = themeQuartz.withParams({
   fontFamily: "var(--font-sans)",
@@ -29,74 +29,89 @@ const theme = themeQuartz.withParams({
   borderColor: "var(--rule)",
   accentColor: "var(--accent)",
   headerTextColor: "var(--ink-muted)",
-  headerFontWeight: 600,
-  headerBackgroundColor: "var(--paper)",
+  headerFontWeight: 700,
+  headerFontSize: 12,
+  headerBackgroundColor: "var(--surface)",
   rowHoverColor: "var(--hover)",
   fontSize: 14,
-  rowHeight: 48,
-  headerHeight: 40,
-  wrapperBorderRadius: 6,
-  cellHorizontalPadding: 14,
+  rowHeight: 72,
+  headerHeight: 44,
+  wrapperBorder: false,
+  wrapperBorderRadius: 0,
+  cellHorizontalPadding: 20,
+  columnBorder: false,
 });
 
-const GROUPS = ["Consent", "Agent", "Terms", "Delivery"] as const;
+function ClaimCell({ data }: ICellRendererParams<QueueRow>) {
+  if (!data) return null;
+  return (
+    <span className="claim-cell">
+      <strong>{claimQuote(data.reason)}</strong>
+      <small>
+        <span className="mono">{data.id}</span>
+        {data.source === "Live" ? <span className="live">LIVE</span> : <> · fixture</>}
+      </small>
+    </span>
+  );
+}
+const StepsCell = ({ data }: ICellRendererParams<QueueRow>) => (data ? <Steps lights={data.lights} /> : null);
+const RecCell = ({ data }: ICellRendererParams<QueueRow>) => (data ? <RecPill suggestion={data.suggestion} /> : null);
+function DueCell({ data }: ICellRendererParams<QueueRow>) {
+  if (!data?.due) return <span className="muted">{data?.stage === "CHARGEBACK" ? "Under PayPal review" : "—"}</span>;
+  const due = new Date(data.due);
+  const days = Math.ceil((due.getTime() - Date.now()) / 86_400_000);
+  const date = due.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+  return <span>{days >= 0 ? `${date} · ${days} day${days === 1 ? "" : "s"}` : "Past due"}</span>;
+}
 
-// Columns an investigator scans first. Stage, failed checks, evidence and note stay in the row
-// data (the Ask filters read them) but are hidden to keep the grid scannable.
 const columns: ColDef<QueueRow>[] = [
-  { field: "id", headerName: "Case", cellRenderer: IdCell, minWidth: 200, flex: 1.2 },
-  ...GROUPS.map((group): ColDef<QueueRow> => ({
-    headerName: group,
-    colId: group,
-    width: 104,
-    filter: false,
-    valueGetter: (p) => p.data?.lights.find((l) => l.group === group)?.state,
-    cellRenderer: LightCell,
-  })),
-  { field: "suggestion", headerName: "Verdict", cellRenderer: VerdictCell, width: 170, getQuickFilterText: (p) => verdictLabel(p.value) },
-  { field: "classification", headerName: "Why", flex: 1.5, minWidth: 200 },
-  { field: "reason", headerName: "Claim", width: 170, valueFormatter: (p) => reasonLabel(String(p.value ?? "")) },
-  { field: "amount", headerName: "Amount", width: 120, type: "rightAligned", filter: "agNumberColumnFilter", valueFormatter: (p) => (typeof p.value === "number" ? `$${p.value.toFixed(2)}` : "") },
-  { field: "due", headerName: "Deadline", cellRenderer: DueCell, width: 130 },
-  { field: "source", headerName: "Source", cellRenderer: SourceCell, width: 110 },
-  { field: "stage", headerName: "Stage", hide: true, valueFormatter: (p) => stageLabel(String(p.value ?? "")) },
-  { field: "failed", headerName: "Failed checks", hide: true },
-  { field: "evidence", headerName: "Evidence", hide: true },
-  { field: "note", headerName: "Note", hide: true },
+  { field: "reason", headerName: "Dispute", cellRenderer: ClaimCell, flex: 2.2, minWidth: 260, getQuickFilterText: (p) => `${p.data?.id} ${reasonLabel(String(p.value))} ${claimQuote(String(p.value))}` },
+  { headerName: "Evidence from PayPal", cellRenderer: StepsCell, flex: 2.6, minWidth: 420, sortable: false, filter: false, getQuickFilterText: (p) => p.data?.lights.map(stepTitle).join(" ") ?? "" },
+  { field: "suggestion", headerName: "Recommendation", cellRenderer: RecCell, width: 200, getQuickFilterText: (p) => recommendation(p.value).label },
+  { field: "amount", headerName: "Amount", width: 120, type: "rightAligned", filter: "agNumberColumnFilter", valueFormatter: (p) => (typeof p.value === "number" ? `$${p.value.toFixed(2)}` : ""), cellStyle: { fontWeight: 700 } },
+  { field: "due", headerName: "Respond by", cellRenderer: DueCell, width: 190 },
 ];
 
-// One light per column, under its group's name.
-function LightCell({ data, colDef }: ICellRendererParams<QueueRow>) {
-  const light = data?.lights.find((l) => l.group === colDef?.colId);
-  return light ? <LightDots lights={[light]} /> : null;
-}
-
-function IdCell({ data }: ICellRendererParams<QueueRow>) {
-  return data ? <a className="mono case-link" href={data.href}>{data.id}</a> : null;
-}
-
-function VerdictCell({ data }: ICellRendererParams<QueueRow>) {
-  return data ? <VerdictPill suggestion={data.suggestion} /> : null;
-}
-
-function SourceCell({ data }: ICellRendererParams<QueueRow>) {
-  return data ? <span className="tag" data-source={data.source}>{data.source}</span> : null;
-}
-
-function DueCell({ data }: ICellRendererParams<QueueRow>) {
-  if (!data?.due) return <span className="muted">—</span>;
-  const days = Math.ceil((Date.parse(data.due) - Date.now()) / 86_400_000);
-  return <span>{days >= 0 ? `${days} day${days === 1 ? "" : "s"} left` : "past due"}</span>;
-}
-
-// The summary strip doubles as the quick filters.
-const STRIP: { id: FilterId; label: string }[] = [
-  { id: "all", label: "Open cases" },
-  { id: "merchant_should_lose", label: "Buyer's favor" },
-  { id: "merchant_should_win", label: "Seller's favor" },
-  { id: "no_suggestion", label: "No suggestion" },
+const CHIPS: { id: FilterId; label: string }[] = [
+  { id: "all", label: "All" },
+  { id: "merchant_should_lose", label: "Refund the buyer" },
+  { id: "merchant_should_win", label: "Uphold the charge" },
+  { id: "no_suggestion", label: "Needs review" },
   { id: "live_only", label: "Live from PayPal" },
 ];
+
+// The demo's moment: the same "I didn't make this purchase" claim, one upheld, one refunded.
+function Pair({ rows }: { rows: QueueRow[] }) {
+  const claim = (r: QueueRow) => r.reason === "UNAUTHORISED";
+  const uphold = rows.find((r) => claim(r) && r.suggestion === "SELLER_FAVOR");
+  const refund = rows.find((r) => claim(r) && r.suggestion === "BUYER_FAVOR");
+  if (!uphold || !refund) return null;
+  const why = (r: QueueRow) => {
+    const failed = r.lights.find((l) => l.state === "fail");
+    return failed ? `${stepTitle(failed)}. The store charged her saved wallet on its own.` : "Her agent signed this exact order, inside the limits she approved on PayPal.";
+  };
+  return (
+    <section className="card pair" aria-labelledby="pair-h">
+      <div className="pair-head">
+        <h2 id="pair-h">Same claim, two verdicts</h2>
+        <span className="muted">Both shoppers say: <em>“I didn&apos;t make this purchase.”</em></span>
+      </div>
+      <div className="pair-grid">
+        {[uphold, refund].map((r) => (
+          <a key={r.id} className="pair-card" href={r.href}>
+            <span className="pair-top">
+              <RecPill suggestion={r.suggestion} />
+              <span className="mono muted">{r.id} · ${r.amount.toFixed(2)}</span>
+            </span>
+            <p className="pair-why">{why(r)}</p>
+            <Steps lights={r.lights} />
+            <p className="pair-open">Open case →</p>
+          </a>
+        ))}
+      </div>
+    </section>
+  );
+}
 
 export function QueueGrid() {
   const [rows, setRows] = useState<QueueRow[] | null>(null);
@@ -124,53 +139,60 @@ export function QueueGrid() {
       .catch(() => setNotice("Couldn't load the queue."));
   }, []);
 
-  const count = (id: FilterId) => (rows ? rows.filter(FILTERS[id].match).length : null);
+  const count = (id: FilterId) => (rows ? rows.filter(FILTERS[id].match).length : 0);
 
   return (
     <>
       {notice && <p className="banner" role="status">{notice}</p>}
-      <div className="stats" role="group" aria-label="Filter the queue">
-        {STRIP.map((f) => (
-          <button key={f.id} type="button" className="stat" aria-pressed={filter === f.id} data-filter={f.id} onClick={() => { setFilter(f.id); setReply(null); }}>
-            <span className="stat-value">{count(f.id) ?? "–"}</span>
-            <span className="stat-label">{f.label}</span>
-          </button>
-        ))}
-      </div>
-      <div className="toolbar">
-        <div className="toolbar-search">
-          <label htmlFor="queue-search" className="sr-only">Search cases</label>
-          <input id="queue-search" type="search" className="field" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search cases, claims, verdicts…" />
-        </div>
-        <form className="toolbar-ask" onSubmit={(e) => { e.preventDefault(); void ask(); }}>
-          <label htmlFor="queue-ask" className="sr-only">Ask the queue</label>
-          <input id="queue-ask" className="field" value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="Ask: cases the merchant should lose" maxLength={300} />
-          <button type="submit" className="btn" disabled={question.trim().length < 2 || !rows}>Ask</button>
-        </form>
-      </div>
-      {reply && <p role="status" className="reply">{reply}</p>}
-      <div className="grid-wrap">
-        {rows === null ? (
-          <div className="skeleton" aria-busy="true" aria-label="Fetching disputes from PayPal and running the checks">
-            {Array.from({ length: 5 }, (_, i) => <div key={i} className="skeleton-row" />)}
+      {rows && <Pair rows={rows} />}
+
+      <section aria-labelledby="queue-h">
+        <div className="queue-head">
+          <h2 id="queue-h">All open disputes</h2>
+          <span className="muted">{rows ? `${rows.length} cases` : "Loading…"}</span>
+          <div className="chips" role="group" aria-label="Filter by recommendation">
+            {CHIPS.map((c) => (
+              <button key={c.id} type="button" className="chip" aria-pressed={filter === c.id} onClick={() => { setFilter(c.id); setReply(null); }}>
+                {c.label} · {count(c.id)}
+              </button>
+            ))}
           </div>
-        ) : (
-          <AgGridProvider modules={modules}>
-            <AgGridReact
-              theme={theme}
-              rowData={rows.filter(FILTERS[filter].match)}
-              columnDefs={columns}
-              defaultColDef={{ filter: true }}
-              quickFilterText={search}
-              domLayout="autoHeight"
-              enableCellTextSelection
-              onRowClicked={(e) => { if (e.data && !(e.event?.target instanceof HTMLAnchorElement)) window.location.href = e.data.href; }}
-              rowClass="clickable-row"
-              overlayNoRowsTemplate="No cases match."
-            />
-          </AgGridProvider>
-        )}
-      </div>
+        </div>
+        <div className="toolbar">
+          <div className="toolbar-search">
+            <label htmlFor="queue-search" className="sr-only">Search disputes</label>
+            <input id="queue-search" type="search" className="field" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search disputes…" />
+          </div>
+          <form className="toolbar-ask" onSubmit={(e) => { e.preventDefault(); void ask(); }}>
+            <label htmlFor="queue-ask" className="sr-only">Ask the queue</label>
+            <input id="queue-ask" className="field" value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="Ask: which cases should the store lose?" maxLength={300} />
+            <button type="submit" className="btn" disabled={question.trim().length < 2 || !rows}>Ask</button>
+          </form>
+        </div>
+        {reply && <p role="status" className="reply">{reply}</p>}
+        <div className="card grid-card">
+          {rows === null ? (
+            <div className="skeleton" aria-busy="true" aria-label="Fetching disputes from PayPal and running the checks">
+              {Array.from({ length: 5 }, (_, i) => <div key={i} className="skeleton-row" />)}
+            </div>
+          ) : (
+            <AgGridProvider modules={modules}>
+              <AgGridReact
+                theme={theme}
+                rowData={rows.filter(FILTERS[filter].match)}
+                columnDefs={columns}
+                defaultColDef={{ filter: false, suppressHeaderMenuButton: true }}
+                quickFilterText={search}
+                domLayout="autoHeight"
+                onRowClicked={(e) => { if (e.data) window.location.href = e.data.href; }}
+                rowClass="clickable-row"
+                overlayNoRowsTemplate="No disputes match."
+              />
+            </AgGridProvider>
+          )}
+        </div>
+        <p className="legend">✓ passed · ! partly verified · ✕ failed. Every result is rebuilt from PayPal&apos;s records and re-checked in your browser; Readback stores nothing.</p>
+      </section>
     </>
   );
 }

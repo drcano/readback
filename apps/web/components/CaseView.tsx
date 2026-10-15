@@ -5,11 +5,11 @@
 import { type CaseBundle, type CaseResult, evaluateCase, lights } from "@readback/core";
 import { fixtureCases } from "@readback/core/fixtures";
 import { useCallback, useEffect, useState } from "react";
+import { claimQuote, reasonLabel, recommendation, stageLabel } from "@/lib/labels";
+import { CaseActions, CaseFacts } from "./CaseSide";
+import { EvidenceChain } from "./EvidenceChain";
 import { CheckTable } from "./CheckTable";
-import { FourLights } from "./FourLights";
 import { Tape } from "./Tape";
-import { VerdictPill } from "./ui";
-import { reasonLabel, stageLabel } from "@/lib/labels";
 
 type Loaded = { bundle: CaseBundle; server: CaseResult | null; fixture: boolean };
 type Verify = { result: CaseResult; ms: number; matchesServer: boolean | null };
@@ -27,26 +27,13 @@ async function load(id: string): Promise<Loaded> {
   return { bundle: body.bundle, server: body.result ?? null, fixture: false };
 }
 
+const UPHOLD_WHY = "Her own AI agent asked for this exact order, inside the limits she approved on PayPal. The charge was authorized, even if she doesn't remember it.";
+
 export function CaseView({ id }: { id: string }) {
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   const [verify, setVerify] = useState<Verify | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [draft, setDraft] = useState<{ kind: string; text: string } | null>(null);
-
-  async function loadDraft() {
-    const res = await fetch(`/api/cases/${encodeURIComponent(id)}/draft`, { method: "POST" }).catch(() => null);
-    const body = (await res?.json().catch(() => null)) as { ok: boolean; draft?: { kind: string; text: string } } | null;
-    if (body?.ok && body.draft) setDraft(body.draft);
-  }
-  const [brief, setBrief] = useState<{ sentences: { text: string; cites: string[] }[]; by: string } | null>(null);
-
-  async function explain() {
-    setBrief(null);
-    const res = await fetch(`/api/cases/${encodeURIComponent(id)}/brief`, { method: "POST" }).catch(() => null);
-    const body = (await res?.json().catch(() => null)) as { ok: boolean; brief?: NonNullable<typeof brief> } | null;
-    if (body?.ok && body.brief) setBrief(body.brief);
-  }
 
   const reverify = useCallback(async (data: Loaded) => {
     setBusy(true);
@@ -69,88 +56,59 @@ export function CaseView({ id }: { id: string }) {
       .catch((e: unknown) => setError(e instanceof Error ? e.message : "Couldn't load this case."));
   }, [id, reverify]);
 
-  if (error) return <p role="alert">{error}</p>;
-  if (!loaded || !verify) return <p aria-busy="true">Fetching the case from PayPal and re-verifying it in your browser…</p>;
+  if (error) return <p role="alert" className="banner">{error}</p>;
+  if (!loaded || !verify) return <p aria-busy="true" className="lede">Fetching the case from PayPal and re-checking it in your browser…</p>;
 
   const { bundle } = loaded;
   const { result } = verify;
   const c = result.classification;
+  const rec = recommendation(c.suggestion);
   const groups = lights(result.checks);
-  // The banner's one-line "why": the first failing group, else the first caution, else all clear.
   const lead = groups.find((g) => g.state === "fail") ?? groups.find((g) => g.state === "caution");
-  const why = lead ? `${lead.group}: ${lead.summary}` : "All four groups pass on PayPal's records.";
+  const why = rec.key === "uphold" ? UPHOLD_WHY : rec.key === "refund" && lead ? lead.summary : `${c.label}. The evidence doesn't support a recommendation either way, so a person should look.`;
+  const terms = result.facts.terms;
 
   return (
-    <>
-      {loaded.fixture && <p className="banner">Fixture: built in your browser from recorded shapes, not live PayPal data.</p>}
-      <h1>
-        {result.mode === "preview" ? "Charge preview" : "Dispute"}{" "}
-        <span className="mono">{bundle.dispute?.dispute_id ?? bundle.capture.id}</span>
-      </h1>
-      <ul className="case-meta" aria-label="Case details">
-        <li>{result.mode === "preview" ? "Read as if disputed (unauthorized)" : reasonLabel(result.reason)}</li>
-        {bundle.dispute && <li>{stageLabel(bundle.dispute.dispute_life_cycle_stage)}</li>}
-        <li>${bundle.capture.amount.value} USD</li>
-        <li>Captured {new Date(bundle.capture.create_time).toUTCString().replace(" GMT", " UTC")}</li>
-      </ul>
-
-      <section className="verdict-banner" data-verdict={c.suggestion ?? "NONE"} aria-labelledby="verdict-h">
-        <p className="eyebrow">Suggested outcome · classification row {c.row}</p>
-        <div><VerdictPill suggestion={c.suggestion} large /></div>
-        <h2 id="verdict-h">{c.label}</h2>
-        <p className="verdict-why">{c.suggestion ? why : `${why} The evidence doesn't support a suggestion.`}</p>
-        {c.notes.map((n) => <p key={n} className="muted">{n}</p>)}
-        <p className="muted small">
-          PayPal&apos;s Seller Protection field on this capture: <span className="mono">{bundle.capture.seller_protection?.status ?? "not present"}</span>
+    <div className="case-layout">
+      <div className="case-main">
+        {loaded.fixture && <p className="banner">Fixture: built in your browser from recorded PayPal shapes, not live data.</p>}
+        <p className="cap">
+          {result.mode === "preview" ? "Charge preview, read as if disputed" : `${reasonLabel(result.reason)} claim`} · <span className="mono">{bundle.dispute?.dispute_id ?? bundle.capture.id}</span>
         </p>
-      </section>
+        <h1>{result.mode === "preview" ? "If she disputed this charge…" : `The shopper says: ${claimQuote(result.reason)}`}</h1>
+        <p className="case-sub">
+          ${bundle.capture.amount.value}
+          {terms ? ` to ${terms.merchant}` : ""}
+          {bundle.order.purchase_units[0]?.items?.[0] ? ` for ${bundle.order.purchase_units[0].items[0].quantity} × ${bundle.order.purchase_units[0].items[0].name}` : ""}
+          , charged {new Date(bundle.capture.create_time).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })}.
+        </p>
 
-      <FourLights lights={groups} />
+        <section className="card rec-banner" data-rec={rec.key} aria-labelledby="rec-h">
+          <p className="cap">Readback recommends</p>
+          <h2 id="rec-h">{rec.label}</h2>
+          <p>{why}</p>
+          {c.notes.map((n) => <p key={n} className="muted">{n}</p>)}
+        </section>
 
-      <div className="verify-row">
-        <span role="status" className="verified" data-match={verify.matchesServer === false ? "false" : "true"}>
-          {verify.matchesServer === false
-            ? `✕ Re-verified in your browser in ${verify.ms} ms: does NOT match the server`
-            : `✓ Re-verified in your browser in ${verify.ms} ms${verify.matchesServer ? ", matching the server" : ""}`}
-        </span>
-        <button type="button" className="btn" onClick={() => reverify(loaded)} disabled={busy}>Run again</button>
+        <EvidenceChain bundle={bundle} result={result} groups={groups} verify={verify} />
+
+        <details className="card more">
+          <summary>All 11 checks and the PayPal records behind them</summary>
+          <p className="muted small">
+            Classification row {c.row} ({c.code}).{" "}
+            <button type="button" className="btn" onClick={() => reverify(loaded)} disabled={busy}>Re-check in this browser</button>
+          </p>
+          <h3>Checks</h3>
+          <CheckTable checks={result.checks} />
+          <h3>Tape</h3>
+          <Tape bundle={bundle} result={result} />
+        </details>
       </div>
 
-      <div className="actions">
-        <section className="card" aria-labelledby="brief-h">
-          <h2 id="brief-h">Brief</h2>
-          <p>Every sentence must cite a check or a PayPal object; uncited or contradicting drafts are rejected.</p>
-          <button type="button" className="btn btn-primary" onClick={explain}>Explain this case</button>
-          {brief && (
-            <ul aria-label="Case brief">
-              {brief.sentences.map((s) => (
-                <li key={s.text}>
-                  {s.text} {s.cites.map((c) => <span key={c} className="label-chip mono">{c}</span>)}
-                </li>
-              ))}
-              <li className="muted">Written by {brief.by === "claude" ? "Claude, validated by rules" : "rules (Claude unavailable or rejected)"}.</li>
-            </ul>
-          )}
-        </section>
-        <section className="card" aria-labelledby="merchant-h">
-          <h2 id="merchant-h">Merchant</h2>
-          <p>Generated from the checks; Sam approves before anything is sent. Sending is disabled on the public demo.</p>
-          <button type="button" className="btn" onClick={loadDraft}>Draft a reply to the shopper</button>
-          {draft && (
-            <figure className="verdict">
-              <figcaption className="eyebrow">{draft.kind === "inquiry" ? "Inquiry: her own approval, read back" : draft.kind === "refund" ? "Refund note" : "No draft"}</figcaption>
-              {draft.text.split("\n\n").map((para) => <p key={para}>{para}</p>)}
-              <button type="button" className="btn" disabled>Send via PayPal (admin only)</button>
-            </figure>
-          )}
-        </section>
-      </div>
-
-      <h2>Checks</h2>
-      <CheckTable checks={result.checks} />
-
-      <h2>Tape</h2>
-      <Tape bundle={bundle} result={result} />
-    </>
+      <aside className="case-side" aria-label="Case actions and facts">
+        <CaseActions id={id} rec={rec} amount={bundle.capture.amount.value} />
+        <CaseFacts bundle={bundle} result={result} stage={bundle.dispute ? stageLabel(bundle.dispute.dispute_life_cycle_stage) : null} />
+      </aside>
+    </div>
   );
 }

@@ -1,0 +1,78 @@
+"use client";
+// The case view's side panel: what to do next (brief and drafted reply; nothing is sent from the
+// public demo) and the case facts as PayPal shows them.
+import type { CaseBundle, CaseResult } from "@readback/core";
+import { useState } from "react";
+import type { Rec } from "@/lib/labels";
+
+const NEXT: Record<Rec["key"], string> = {
+  uphold: "Answer the dispute with her approved limits and her agent's signed request, both from PayPal's records.",
+  refund: "The store can't show a request from her agent. Refunding now avoids a lost dispute.",
+  review: "The records don't settle it either way. Read the brief, then decide.",
+};
+
+export function CaseActions({ id, rec, amount }: { id: string; rec: Rec; amount: string }) {
+  const [brief, setBrief] = useState<{ sentences: { text: string; cites: string[] }[]; by: string } | null>(null);
+  const [draft, setDraft] = useState<{ kind: string; text: string } | null>(null);
+
+  async function explain() {
+    setBrief(null);
+    const res = await fetch(`/api/cases/${encodeURIComponent(id)}/brief`, { method: "POST" }).catch(() => null);
+    const body = (await res?.json().catch(() => null)) as { ok: boolean; brief?: NonNullable<typeof brief> } | null;
+    if (body?.ok && body.brief) setBrief(body.brief);
+  }
+  async function loadDraft() {
+    const res = await fetch(`/api/cases/${encodeURIComponent(id)}/draft`, { method: "POST" }).catch(() => null);
+    const body = (await res?.json().catch(() => null)) as { ok: boolean; draft?: { kind: string; text: string } } | null;
+    if (body?.ok && body.draft) setDraft(body.draft);
+  }
+
+  return (
+    <section className="card side-card" aria-labelledby="next-h">
+      <h2 id="next-h">Next step</h2>
+      <p>{NEXT[rec.key]}</p>
+      <div className="side-actions">
+        <button type="button" className="btn btn-primary" onClick={explain}>Explain this case in plain English</button>
+        <button type="button" className="btn" onClick={loadDraft}>Draft a reply to the shopper</button>
+        {rec.key === "refund" && <button type="button" className="btn" disabled>Refund ${amount} (admin only)</button>}
+      </div>
+      <p className="side-note">Every sentence in the brief cites a check or a PayPal record. A person approves before anything is sent; sending is off on the public demo.</p>
+      {brief && (
+        <div className="output" role="status">
+          <h3 className="cap">Brief</h3>
+          <ul>
+            {brief.sentences.map((s) => (
+              <li key={s.text}>{s.text} {s.cites.map((c) => <span key={c} className="label-chip mono">{c}</span>)}</li>
+            ))}
+          </ul>
+          <p className="muted small">Written by {brief.by === "claude" ? "Claude, validated by rules" : "rules (Claude unavailable or rejected)"}.</p>
+        </div>
+      )}
+      {draft && (
+        <div className="output" role="status">
+          <h3 className="cap">{draft.kind === "inquiry" ? "Reply: her own approval, read back" : draft.kind === "refund" ? "Refund note" : "No draft"}</h3>
+          {draft.text.split("\n\n").map((para) => <p key={para}>{para}</p>)}
+        </div>
+      )}
+    </section>
+  );
+}
+
+export function CaseFacts({ bundle, result, stage }: { bundle: CaseBundle; result: CaseResult; stage: string | null }) {
+  const due = bundle.dispute?.seller_response_due_date;
+  const fmt = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+  return (
+    <section className="card side-card" aria-labelledby="facts-h">
+      <h2 id="facts-h">Case facts</h2>
+      <dl className="facts">
+        <dt>Amount</dt><dd><strong>${bundle.capture.amount.value}</strong></dd>
+        {result.facts.terms && (<><dt>Store</dt><dd>{result.facts.terms.merchant}</dd></>)}
+        <dt>Charged</dt><dd>{fmt(bundle.capture.create_time)}</dd>
+        {stage && (<><dt>Stage</dt><dd>{stage}</dd></>)}
+        <dt>Respond by</dt><dd>{due ? fmt(due) : "—"}</dd>
+        <dt>Seller Protection</dt><dd>PayPal shows <span className="mono">{bundle.capture.seller_protection?.status ?? "not present"}</span></dd>
+        <dt>Capture</dt><dd className="mono">{bundle.capture.id}</dd>
+      </dl>
+    </section>
+  );
+}
