@@ -1,0 +1,97 @@
+{
+  "dispute_id": "PP-R-BVW-10191531",
+  "create_time": "2026-10-15T13:57:00.898Z",
+  "update_time": "2026-10-15T14:00:24.079Z",
+  "disputed_transactions": [
+    {
+      "buyer_transaction_id": "3EV09859MW051213R",
+      "seller_transaction_id": "3F170383RM082905B",
+      "create_time": "2026-10-15T13:17:07.000Z",
+      "transaction_status": "HELD",
+      "gross_amount": {
+        "currency_code": "USD",
+        "value": "64.99"
+      },
+      "invoice_number": "RB-63y80131kp838264b-P001",
+      "custom": "rb1:63y80131kp838264b:1a168811825349b0:p001:9c63b603145174b1",
+      "buyer": {
+        "email": "maya@example.com",
+        "payer_id": "FAKEPAYER0001",
+        "name": "Maya Example"
+      },
+      "seller": {
+        "email": "maya@example.com",
+        "merchant_id": "CECTB4SU6GCRL",
+        "name": "Sandbox Merchant"
+      },
+      "items": [
+        {
+          "item_id": "GBP-SR24",
+          "item_name": "Salmon & Rice Adult (24 lb)",
+          "item_quantity": "1",
+          "reason": "MERCHANDISE_OR_SERVICE_NOT_RECEIVED",
+          "item_type": "PRODUCT"
+        }
+      ],
+      "seller_protection_eligible": true,
+      "seller_protection_type": "EXPANDED_SELLER_PROTECTION"
+    }
+  ],
+  "reason": "MERCHANDISE_OR_SERVICE_NOT_RECEIVED",
+  "status": "UNDER_REVIEW",
+  "dispute_amount": {
+    "currency_code": "USD",
+    "value": "64.99"
+  },
+  "dispute_state": "UNDER_PAYPAL_REVIEW",
+  "fund_movements": [
+    {
+      "party": "RECEIVER",
+      "amount": {
+        "currency_code": "USD",
+        "value": "62.23"
+      },
+      "initiated_time": "2026-10-15T14:00:04.000Z",
+      "type": "DEBIT",
+      "reason": "HOLD_PLACED"
+    }
+  ],
+  "dispute_life_cycle_stage": "CHARGEBACK",
+  "dispute_channel": "INTERNAL",
+  "extensions": {
+    "buyer_contacted_time": "2026-10-15T13:57:00.282Z"
+  },
+  "evidences": [
+    {
+      "evidence_type": "CREATE",
+      "notes": "Readback sandbox spike step 7: test dispute on a spike charge.",
+      "source": "SUBMITTED_BY_BUYER",
+      "date": "2026-10-15T13:57:00.898Z",
+      "dispute_life_cycle_stage": "INQUIRY"
+    }
+  ],
+  "offer": {
+    "buyer_requested_amount": {
+      "currency_code": "USD",
+      "value": "64.99"
+    }
+  },
+  "refund_details": {
+    "allowed_refund_amount": {
+      "currency_code": "USD",
+      "value": "64.99"
+    }
+  },
+  "links": [
+    {
+      "href": "https://api-m.sandbox.paypal.com/v1/customer/disputes/PP-R-BVW-10191531",
+      "rel": "self",
+      "method": "GET"
+    },
+    {
+      "href": "https://api-m.sandbox.paypal.com/v1/customer/disputes/PP-R-BVW-10191531/provide-supporting-info",
+      "rel": "provide_supporting_info",
+      "method": "POST"
+    }
+  ]
+}

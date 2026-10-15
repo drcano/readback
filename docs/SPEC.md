@@ -483,7 +483,7 @@ Every route is stateless.
 | GET | `/api/cases/[id]` | Public | dispute or capture → order → token → trackers → Transaction Search | **Case bundle:** only the fields the checks read, plus the server-side classification. The browser re-verifies from it |
 | POST | `/api/cases/[id]/brief` | Public | none (Claude only) | Cited brief, validated |
 | POST | `/api/cases/[id]/draft` | Public (draft only) | none (Claude only) | Cited draft response or inquiry message |
-| POST | `/api/cases/[id]/actions` | Admin | `send-message`, `accept-claim`, `make-offer`, `escalate`, `provide-evidence` (after reading `evidences[]`/`messages[]`) | PayPal's response |
+| POST | `/api/cases/[id]/actions` | Admin | `send-message`, `accept-claim`, `make-offer`, `escalate`, `provide-evidence` or `provide-supporting-info`, whichever the dispute's `links` offer (spike step 7; after reading `evidences[]`/`messages[]`) | PayPal's response |
 | POST | `/api/studio-agent` | Public | none (deterministic filters over `/api/queue` results; Claude phrases them) | Answer plus a filter spec |
 | POST | `/api/chat` | Public; rate-limited | none directly; calls the runtime's **judge path** only | Chat turns |
 | POST | `/api/webhooks/paypal` | PayPal signature, verified first | `POST /v1/notifications/verify-webhook-signature`, then re-fetches | 200 |

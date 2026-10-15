@@ -1,0 +1,12 @@
+{
+  "name": "UNPROCESSABLE_ENTITY",
+  "message": "The requested action could not be performed, semantically incorrect, or failed business validation.",
+  "debug_id": "f9031668ce0fc",
+  "information_link": "https://developer.paypal.com/docs/api/customer-disputes/v1/#errors",
+  "details": [
+    {
+      "issue": "ACTION_NOT_ALLOWED_IN_CURRENT_DISPUTE_STATE"
+    }
+  ],
+  "links": []
+}
