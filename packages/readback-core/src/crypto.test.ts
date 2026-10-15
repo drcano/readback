@@ -273,3 +273,9 @@ describe("action proofs (SPEC §4.7)", () => {
     expect(await verifyActionProof(await make(), expected())).toMatchObject({ ok: false, error: { code } });
   });
 });
+
+describe("generated fingerprints are readable on PayPal's page", () => {
+  it("never contain _ (refused in plan names) or I/l (identical in PayPal's font)", async () => {
+    for (let i = 0; i < 20; i++) expect((await generateAgentKey(false)).fingerprint).not.toMatch(/[_Il]/);
+  });
+});
