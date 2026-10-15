@@ -68,7 +68,7 @@ Before starting: `pnpm run doctor` (checks env and app scopes). Standard merchan
 After the spike, the hero agreement and seed charges (Oct 21):
 12. `pnpm --filter @readback/agent pubkey` → note the fingerprint.
 13. `pnpm agreement:create <fingerprint> 1` → approve as **Maya**, comparing the fingerprint on PayPal's page → put the printed ID in `.env` as `HERO_AGREEMENT_ID`.
-14. `pnpm seed:charge` on Oct 21, 23 and 28 at minimum, then daily from Nov 1 as needed.
+14. `pnpm seed:charge` daily from Oct 15. On Dante's Mac a launchd job (`~/Library/LaunchAgents/dev.readback.seed-charge.plist`, 9:00 local, log in `~/Library/Logs/readback-seed.log`) runs it and a Transaction Search check; a missed run happens on wake. A second run in the same UTC day is refused by PayPal (`DUPLICATE_INVOICE_ID`), so it's safe to run by hand too.
 
 Fixtures from step 3 on are signed with throwaway keys that don't match step 2's terms fingerprint, and their order bodies are built by hand: they record **what PayPal stores and returns**, not product-shaped cases. **Product-shaped fixtures for `readback-core` and the evals come from `pnpm seed:charge`**, which signs with the real agent key and charges through core's `authorizeCharge`; it saves each order as `evals/fixtures/spike/seed-<invoice_id>-order.json`.
 
@@ -104,7 +104,7 @@ Fixtures from step 3 on are signed with throwaway keys that don't match step 2's
 
 **Hero agreement (2026-10-15).** Production agent key generated into `apps/agent/.env` (never printed): fingerprint `GAX4 1xq- rZuP w9cM`. Hero agreement `5td85928ph747680n`, 1-day cadence from 2026-10-15, approved as Maya; PayPal's page showed "agent GAX4 1xq- rZuP w9cM", and the terms round-tripped byte-for-byte. The first seed charge (P001) was signed by `apps/agent`, allowed by core's gate, and charged; `@readback/verify` on its capture passes checks 1–9 with no vault echo, and check 10 after tracking. Two findings from that run:
 - A vault charge doesn't copy the buyer's address onto the order, so check 10 failed. The gate now sends the agreement's shipping address (accepted and round-tripped; commit 1a08a1e), and `seed:charge` adds a tracker.
-- `I` and `l` look identical on PayPal's page (ADR 0002). An earlier hero agreement (`2rn91433te339105w`, key `zSQh…`) was replaced for that reason; its one charge is not used.
+- `I` and `l` look identical on PayPal's page (ADR 0002). An earlier hero agreement (`2rn91433te339105w`, key `zSQh…`) was replaced for that reason and revoked the same day (DELETE → 204); its one charge is not used.
 
 ## Decision
 
