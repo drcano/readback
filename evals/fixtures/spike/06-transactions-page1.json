@@ -1,0 +1,44 @@
+{
+  "transaction_details": [
+    {
+      "transaction_info": {
+        "transaction_id": "7L974153J1894614B",
+        "transaction_event_code": "T1900",
+        "transaction_initiation_date": "2026-10-13T16:48:16Z",
+        "transaction_updated_date": "2026-10-13T16:48:16Z",
+        "transaction_amount": {
+          "currency_code": "USD",
+          "value": "5000.00"
+        },
+        "transaction_status": "S",
+        "transaction_subject": "Initial balance",
+        "ending_balance": {
+          "currency_code": "USD",
+          "value": "5000.00"
+        },
+        "available_balance": {
+          "currency_code": "USD",
+          "value": "5000.00"
+        },
+        "protection_eligibility": "02",
+        "instrument_type": "PayPal",
+        "instrument_sub_type": "PayPal Wallet"
+      }
+    }
+  ],
+  "account_number": "CECTB4SU6GCRL",
+  "start_date": "2026-09-15T16:00:05Z",
+  "end_date": "2026-10-15T12:59:59Z",
+  "last_refreshed_datetime": "2026-10-15T12:59:59Z",
+  "page": 1,
+  "total_items": 1,
+  "total_pages": 1,
+  "links": [
+    {
+      "href": "https://api.sandbox.paypal.com/v1/reporting/transactions?fields=transaction_info&end_date=2026-10-15T16%3A00%3A05.161Z&start_date=2026-09-15T16%3A00%3A05.161Z&page_size=500&page=1",
+      "rel": "self",
+      "method": "GET",
+      "encType": "application/json"
+    }
+  ]
+}
