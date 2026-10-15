@@ -57,14 +57,19 @@ console.log(`order ${o.id} ${status}`);
 // 5. Ship it, as the merchant would (check 10 reads the tracker). A fake USPS number: sandbox only.
 const got = (await paypal({ method: "GET", path: `/v2/checkout/orders/${o.id}` })) as { purchase_units: { payments?: { captures?: { id: string }[] } }[] };
 const captureId = got.purchase_units[0]?.payments?.captures?.[0]?.id;
+// A failed tracker must not lose the fixture: the charge already happened and can't be redone.
 if (captureId) {
-  await paypal({
-    method: "POST",
-    path: `/v2/checkout/orders/${o.id}/track`,
-    requestId: decision.requestIds.track,
-    body: { capture_id: captureId, tracking_number: `94001112025558${decision.mandateHash.replace(/\D/g, "").slice(0, 8).padEnd(8, "0")}`, carrier: "USPS", items: [{ name: ITEM.name, sku: ITEM.sku, quantity: "1" }] },
-  });
-  console.log("shipped (USPS tracker added)");
+  try {
+    await paypal({
+      method: "POST",
+      path: `/v2/checkout/orders/${o.id}/track`,
+      requestId: decision.requestIds.track,
+      body: { capture_id: captureId, tracking_number: `94001112025558${decision.mandateHash.replace(/\D/g, "").slice(0, 8).padEnd(8, "0")}`, carrier: "USPS", items: [{ name: ITEM.name, sku: ITEM.sku, quantity: "1" }] },
+    });
+    console.log("shipped (USPS tracker added)");
+  } catch (e) {
+    console.error(`Tracker not added (rerun: pnpm spike:tracking ${o.id}): ${String(e).split("\n")[0]}`);
+  }
 }
 // Product-shaped fixtures for readback-core's tests come from here, not from spike steps 3-5
 // (those build orders by hand to probe PayPal). Scrubbed of personal data on save.
