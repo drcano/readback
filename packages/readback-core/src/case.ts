@@ -25,7 +25,7 @@ export const PaymentTokenSchema = z.object({
     paypal: z.object({
       description: z.string().optional(), // the approved terms string
       payer_id: z.string().optional(),
-      shipping: z.object({ address: AddressSchema.optional() }).optional(),
+      shipping: z.object({ name: z.object({ full_name: z.string().optional() }).optional(), address: AddressSchema.optional() }).optional(),
     }),
   }),
 });

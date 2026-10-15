@@ -223,7 +223,8 @@ export async function runChecks(b: CaseBundle): Promise<{ facts: CaseFacts; chec
       const out: Failure[] = [];
       if (!pu.shipping?.trackers?.some((t) => t.status === "SHIPPED")) out.push(f("NOT_SHIPPED", "No shipment was reported for this order."));
       const approved = b.token?.payment_source.paypal.shipping?.address;
-      if (approved && !sameAddress(approved, pu.shipping?.address)) out.push(f("ADDRESS_DIFFERS", "It shipped to a different address than the one approved."));
+      if (approved && !pu.shipping?.address) out.push(f("NO_ADDRESS", "The order carries no shipping address."));
+      else if (approved && !sameAddress(approved, pu.shipping?.address)) out.push(f("ADDRESS_DIFFERS", "It shipped to a different address than the one approved."));
       return { failures: out };
     }],
 

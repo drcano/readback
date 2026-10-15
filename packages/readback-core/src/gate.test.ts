@@ -111,6 +111,14 @@ describe("authorizeCharge", () => {
     expect(await codes(await input({ jws: yesterday }))).toEqual(["EXPIRED"]);
   });
 
+  it("ships to the address she approved on the agreement (a vault charge doesn't copy it)", async () => {
+    const address = { address_line_1: "1 Example St", admin_area_2: "Springfield", admin_area_1: "CA", postal_code: "00000", country_code: "US" };
+    const i = await input();
+    i.token = { ...token, payment_source: { paypal: { ...token.payment_source.paypal, shipping: { name: { full_name: "Maya Example" }, address } } } };
+    const d = await authorizeCharge(i);
+    expect(d.allow && d.orderRequest.purchase_units[0].shipping).toEqual({ type: "SHIPPING", name: { full_name: "Maya Example" }, address });
+  });
+
   it("maps PayPal refusals to plain-language denials", () => {
     expect(denialFromPayPalIssue("DUPLICATE_INVOICE_ID").code).toBe("ALREADY_ORDERED_THIS_PERIOD");
     expect(denialFromPayPalIssue("INVALID_VAULT_ID").code).toBe("AGREEMENT_NOT_ACTIVE");

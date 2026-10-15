@@ -1,7 +1,7 @@
 // The checkout gate's decision (SPEC §5.3), as a pure function. The route does the I/O
 // (GET the payment token, POST the order); everything that decides allow or deny lives here.
 // Fails closed: every path that isn't a clean allow is a denial with plain-language reasons.
-import type { PaymentToken } from "./case.ts";
+import type { Address, PaymentToken } from "./case.ts";
 import { sha256Hex } from "./hash.ts";
 import { customId, invoiceId, requestIds } from "./ids.ts";
 import { CLOCK_SKEW_SEC, checkAgainstTerms, checkFreshness, type MandatePayload, verifyMandate } from "./mandate.ts";
@@ -30,6 +30,7 @@ export type OrderRequest = {
       description: string;
       invoice_id: string;
       custom_id: string;
+      shipping?: { type: "SHIPPING"; name?: { full_name: string }; address: Address };
       amount: { currency_code: "USD"; value: string; breakdown: { item_total: { currency_code: "USD"; value: string } } };
       items: [
         {
@@ -90,6 +91,10 @@ export async function authorizeCharge(input: GateInput): Promise<GateDecision> {
   // 5–6. Canonical labels and the order body. invoice_id makes PayPal refuse a second charge
   // in the same period; the request IDs make a retried submission a no-op.
   const inv = invoiceId(m.agr, m.p);
+  // A vault charge doesn't copy the buyer's address onto the order (seen in the sandbox), so the
+  // gate sends the one she approved on the agreement; check 10 compares the two.
+  const ship = input.token.payment_source.paypal.shipping;
+  const fullName = ship?.name?.full_name;
   const cid = customId(m.agr, termsHash, m.p, mandateHash);
   return {
     allow: true,
@@ -112,6 +117,7 @@ export async function authorizeCharge(input: GateInput): Promise<GateDecision> {
           description: termsText!,
           invoice_id: inv,
           custom_id: cid,
+          ...(ship?.address ? { shipping: { type: "SHIPPING" as const, ...(fullName ? { name: { full_name: fullName } } : {}), address: ship.address } } : {}),
           amount: { currency_code: "USD", value: m.amt, breakdown: { item_total: { currency_code: "USD", value: m.amt } } },
           items: [
             {
