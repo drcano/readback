@@ -1,0 +1,134 @@
+{
+  "id": "5LF82308N6219614T",
+  "intent": "CAPTURE",
+  "status": "COMPLETED",
+  "payment_source": {
+    "paypal": {
+      "email_address": "maya@example.com",
+      "account_id": "FAKEPAYER0001",
+      "account_status": "VERIFIED",
+      "name": {
+        "given_name": "Maya",
+        "surname": "Example"
+      },
+      "address": {
+        "country_code": "US"
+      },
+      "stored_credential": {
+        "payment_initiator": "MERCHANT",
+        "usage_pattern": "RECURRING_PREPAID",
+        "usage": "SUBSEQUENT"
+      }
+    }
+  },
+  "purchase_units": [
+    {
+      "reference_id": "default",
+      "amount": {
+        "currency_code": "USD",
+        "value": "64.99",
+        "breakdown": {
+          "item_total": {
+            "currency_code": "USD",
+            "value": "64.99"
+          }
+        }
+      },
+      "payee": {
+        "email_address": "maya@example.com",
+        "merchant_id": "CECTB4SU6GCRL"
+      },
+      "description": "RB1 Good Boy Provisions | GBP-SR24 x1/1d | max USD 65.00 | 2026-10-15..2027-03-31 | agent zSQhKgd0RiXKIibh",
+      "custom_id": "rb1:2rn91433te339105w:1ffa7b84a32b3bd2:p001:d73b2cb3fe71a537",
+      "invoice_id": "RB-2rn91433te339105w-P001",
+      "items": [
+        {
+          "name": "Salmon & Rice Adult (24 lb)",
+          "unit_amount": {
+            "currency_code": "USD",
+            "value": "64.99"
+          },
+          "quantity": "1",
+          "description": "eyJhbGciOiJFUzI1NiIsInR5cCI6InJiLW1hbmRhdGUrand0IiwiandrIjp7Imt0eSI6IkVDIiwiY3J2IjoiUC0yNTYiLCJ4IjoiNlBIZ3NiR1hKODZwWmlMRDFud09XeE1mV2FxU080RlJWZU5BT3hRRE1ZSSIsInkiOiI2UHdQbzBYd21EQWtXX2dSclp1VTNWWGdRa3RhSUdkd3lnRnAyQVM4V0QwIn19.eyJ2IjoxLCJhZ3IiOiIycm45MTQzM3RlMzM5MTA1dyIsInRoIjoiMWZmYTdiODRhMzJiM2JkMiIsInNrdSI6IkdCUC1TUjI0IiwicXR5IjoxLCJ1bml0IjoiNjQuOTkiLCJhbXQiOiI2NC45OSIsImN1ciI6IlVTRCIsInAiOjEsImlhdCI6MTc5MjA3MjA3NywiZXhwIjoxNzkyMDcyMzc3LCJqdGkiOiIwMGRlYjQ5OC1hM2JiLTRmNzItOGRhMy03YjNiOWY0Mjc3N2YifQ.-2Jerl3XPVtStG_5hz_gunyXiMC2uh501hxQUnGcp5JmUzOPE6WWggqVtyy0PaGqT1CtsO6ORYxdOlnyVeEggA",
+          "sku": "GBP-SR24",
+          "category": "PHYSICAL_GOODS"
+        }
+      ],
+      "payments": {
+        "captures": [
+          {
+            "id": "6U323335DN7634128",
+            "status": "COMPLETED",
+            "amount": {
+              "currency_code": "USD",
+              "value": "64.99"
+            },
+            "final_capture": true,
+            "seller_protection": {
+              "status": "ELIGIBLE",
+              "dispute_categories": [
+                "ITEM_NOT_RECEIVED",
+                "UNAUTHORIZED_TRANSACTION"
+              ]
+            },
+            "seller_receivable_breakdown": {
+              "gross_amount": {
+                "currency_code": "USD",
+                "value": "64.99"
+              },
+              "paypal_fee": {
+                "currency_code": "USD",
+                "value": "2.76"
+              },
+              "net_amount": {
+                "currency_code": "USD",
+                "value": "62.23"
+              }
+            },
+            "invoice_id": "RB-2rn91433te339105w-P001",
+            "custom_id": "rb1:2rn91433te339105w:1ffa7b84a32b3bd2:p001:d73b2cb3fe71a537",
+            "links": [
+              {
+                "href": "https://api.sandbox.paypal.com/v2/payments/captures/6U323335DN7634128",
+                "rel": "self",
+                "method": "GET"
+              },
+              {
+                "href": "https://api.sandbox.paypal.com/v2/payments/captures/6U323335DN7634128/refund",
+                "rel": "refund",
+                "method": "POST"
+              },
+              {
+                "href": "https://api.sandbox.paypal.com/v2/checkout/orders/5LF82308N6219614T",
+                "rel": "up",
+                "method": "GET"
+              }
+            ],
+            "create_time": "2026-10-15T13:47:59Z",
+            "update_time": "2026-10-15T13:47:59Z"
+          }
+        ]
+      }
+    }
+  ],
+  "payer": {
+    "name": {
+      "given_name": "Maya",
+      "surname": "Example"
+    },
+    "email_address": "maya@example.com",
+    "payer_id": "FAKEPAYER0001",
+    "address": {
+      "country_code": "US"
+    }
+  },
+  "create_time": "2026-10-15T13:47:59Z",
+  "update_time": "2026-10-15T13:47:59Z",
+  "links": [
+    {
+      "href": "https://api.sandbox.paypal.com/v2/checkout/orders/5LF82308N6219614T",
+      "rel": "self",
+      "method": "GET"
+    }
+  ]
+}

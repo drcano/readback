@@ -11,3 +11,5 @@ Status: accepted (2026-10-15). Display only; the stored terms string is unchange
 **Consequences.** `groupFingerprint` in `readback-core` changed; SPEC §4.1 and THREAT-MODEL T21 updated. No format-freeze impact.
 
 **Update, 2026-10-15 (spike step 2).** PayPal rejects `_` in plan names, and base64url fingerprints can contain it, so `generateAgentKey` draws keys until the fingerprint has no `_` (about 78% of keys qualify). The plan name is merchant-supplied and not stored, so the comparison on PayPal's page can't prove which fingerprint is in `description`; THREAT-MODEL T21 states that limit.
+
+**Update, 2026-10-15 (hero approval page).** PayPal's page uses a proportional sans-serif in which `I` and `l` are indistinguishable: the first production fingerprint, `zSQh Kgd0 RiXK Iibh`, rendered as "…libh" ([screenshot](assets/0001-approval-page-plan-name.png)). Keys are now drawn until the fingerprint has no `_`, `I` or `l` (about 36% qualify). The first production key and its agreement were replaced the same day, before any history depended on them.

@@ -94,6 +94,10 @@ Fixtures from step 3 on are signed with throwaway keys that don't match step 2's
 3. **T21 (key swap at setup):** the plan name now ends with the grouped fingerprint, and agent keys are drawn until the fingerprint has no `_`. The plan name is merchant-supplied and not stored, so the comparison on PayPal's page can't prove which fingerprint is in `description`; T21 stays "not stopped by code," and the proposal to PayPal asks it to show the stored terms (commit 4af9012; THREAT-MODEL T21, ADR 0002).
 4. **Revoked agreements:** `PERMISSION_DENIED` maps to "agreement not active" (commit 149ecf8).
 
+**Hero agreement (2026-10-15).** Production agent key generated into `apps/agent/.env` (never printed): fingerprint `GAX4 1xq- rZuP w9cM`. Hero agreement `5td85928ph747680n`, 1-day cadence from 2026-10-15, approved as Maya; PayPal's page showed "agent GAX4 1xq- rZuP w9cM", and the terms round-tripped byte-for-byte. The first seed charge (P001) was signed by `apps/agent`, allowed by core's gate, and charged; `@readback/verify` on its capture passes checks 1–9 with no vault echo, and check 10 after tracking. Two findings from that run:
+- A vault charge doesn't copy the buyer's address onto the order, so check 10 failed. The gate now sends the agreement's shipping address (accepted and round-tripped; commit 1a08a1e), and `seed:charge` adds a tracker.
+- `I` and `l` look identical on PayPal's page (ADR 0002). An earlier hero agreement (`2rn91433te339105w`, key `zSQh…`) was replaced for that reason; its one charge is not used.
+
 ## Decision
 
 Go, with the changes above. Steps 1, 2 and 4 pass; step 3's charge passes and its echo fails, with the fallback in place; step 7 (disputes) is the remaining go/no-go.
