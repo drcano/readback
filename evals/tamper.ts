@@ -5,7 +5,9 @@
 import { type CaseBundle, evaluateCase, verifyMandate } from "@readback/core";
 import { heroCase } from "@readback/core/fixtures";
 
-// mulberry32: a tiny deterministic PRNG, so a seed reproduces the same run.
+// mulberry32: a tiny deterministic PRNG, so a seed reproduces the same mutation choices. The hero
+// case is re-signed each run (fresh key, randomized ECDSA), so a few flips land as no-ops on some
+// runs and not others: caught/unchanged drift by a handful; kept must be 0 every time.
 function rng(seed: number) {
   let a = seed >>> 0;
   return () => {

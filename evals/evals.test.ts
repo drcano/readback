@@ -23,6 +23,8 @@ it("tamper sample: no mutated hero case keeps SELLER_FAVOR", () => {
 });
 
 afterAll(() => {
-  const report = { ...summarize(results), tamperSample: tamper, results };
+  // caught/unchanged vary run to run (see tamper.ts), so only the stable numbers are committed.
+  const { mutations, kept, seed } = tamper;
+  const report = { ...summarize(results), tamperSample: { mutations, kept, seed }, results };
   writeFileSync(new URL("./results/latest.json", import.meta.url), JSON.stringify(report, null, 2) + "\n");
 });

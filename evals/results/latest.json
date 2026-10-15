@@ -43,9 +43,7 @@
   },
   "tamperSample": {
     "mutations": 2000,
-    "caught": 1984,
     "kept": 0,
-    "unchanged": 16,
     "seed": 1
   },
   "results": [
