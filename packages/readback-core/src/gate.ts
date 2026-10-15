@@ -22,7 +22,7 @@ export type OrderRequest = {
   payment_source: {
     paypal: {
       vault_id: string;
-      stored_credential: { payment_initiator: "MERCHANT"; usage: "SUBSEQUENT"; usage_pattern: "UNSCHEDULED_PREPAID" };
+      stored_credential: { payment_initiator: "MERCHANT"; usage: "SUBSEQUENT"; usage_pattern: "RECURRING_PREPAID" };
     };
   };
   purchase_units: [
@@ -104,7 +104,7 @@ export async function authorizeCharge(input: GateInput): Promise<GateDecision> {
       payment_source: {
         paypal: {
           vault_id: m.agr,
-          stored_credential: { payment_initiator: "MERCHANT", usage: "SUBSEQUENT", usage_pattern: "UNSCHEDULED_PREPAID" },
+          stored_credential: { payment_initiator: "MERCHANT", usage: "SUBSEQUENT", usage_pattern: "RECURRING_PREPAID" },
         },
       },
       purchase_units: [

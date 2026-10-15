@@ -4,12 +4,13 @@
 import { formatCents } from "./money.ts";
 import { fail, ok, type Result } from "./result.ts";
 import { endExclusiveSec, formatTerms, periodIndex, type Terms } from "./terms.ts";
+import { groupFingerprint } from "./thumbprint.ts";
 
 export type SetupTokenRequest = {
   payment_source: {
     paypal: {
       description: string;
-      usage_pattern: "UNSCHEDULED_PREPAID";
+      usage_pattern: "RECURRING_PREPAID";
       usage_type: "MERCHANT";
       customer_type: "CONSUMER";
       permit_multiple_payment_tokens: true;
@@ -20,6 +21,7 @@ export type SetupTokenRequest = {
             tenure_type: "REGULAR";
             sequence: 1;
             total_cycles: number;
+            start_date: string;
             // [spike] Vault v3's spec leaves `frequency` empty; this is the Subscriptions v1 shape.
             frequency: { interval_unit: "DAY"; interval_count: number };
             pricing_scheme: { pricing_model: "VARIABLE"; price: { currency_code: "USD"; value: string } };
@@ -34,11 +36,12 @@ export type SetupTokenRequest = {
 
 const PLAN_NAME = /^[A-Za-z0-9 ()+',.:-]{1,127}$/;
 
-// "Good Boy Provisions: GBP-SR24, up to 1 per order every 30 days, max USD 65.00 each, until 2027-03-31"
+// "GBP-SR24, up to 1 per order every 30 days, max USD 65.00 each, until 2027-03-31, agent 9Z8i 8h5x JfVQ zcCl"
+// PayPal's page already prefixes "to <brand_name>:", so the merchant isn't repeated. This is the
+// only text PayPal shows the buyer; it's merchant-supplied and not stored (THREAT-MODEL T21).
 export function planName(t: Terms): string {
   const every = t.periodDays === 1 ? "every day" : `every ${t.periodDays} days`;
-  // Merchant names may contain "&", which PayPal's plan-name charset doesn't allow.
-  return `${t.merchant.replaceAll("&", "and")}: ${t.sku}, up to ${t.qty} per order ${every}, max USD ${formatCents(t.capCents)} each, until ${t.end}`;
+  return `${t.sku}, up to ${t.qty} per order ${every}, max USD ${formatCents(t.capCents)} each, until ${t.end}, agent ${groupFingerprint(t.fingerprint)}`;
 }
 
 export function buildSetupTokenRequest(
@@ -52,7 +55,7 @@ export function buildSetupTokenRequest(
     payment_source: {
       paypal: {
         description: formatTerms(t),
-        usage_pattern: "UNSCHEDULED_PREPAID",
+        usage_pattern: "RECURRING_PREPAID",
         usage_type: "MERCHANT",
         customer_type: "CONSUMER",
         permit_multiple_payment_tokens: true,
@@ -63,6 +66,8 @@ export function buildSetupTokenRequest(
               tenure_type: "REGULAR",
               sequence: 1,
               total_cycles: periodIndex(endExclusiveSec(t) - 1, t)!,
+              // Without it PayPal treats the plan as starting now and wants a first payment (spike step 2).
+              start_date: t.start,
               frequency: { interval_unit: "DAY", interval_count: t.periodDays },
               pricing_scheme: { pricing_model: "VARIABLE", price: { currency_code: "USD", value: formatCents(t.capCents) } },
             },

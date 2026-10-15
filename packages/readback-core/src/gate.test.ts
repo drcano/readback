@@ -57,7 +57,7 @@ describe("authorizeCharge", () => {
     expect(d.requestIds.create).toBe(`rb-${d.mandateHash.slice(0, 40)}`);
     expect(d.orderRequest).toEqual({
       intent: "CAPTURE",
-      payment_source: { paypal: { vault_id: TOKEN, stored_credential: { payment_initiator: "MERCHANT", usage: "SUBSEQUENT", usage_pattern: "UNSCHEDULED_PREPAID" } } },
+      payment_source: { paypal: { vault_id: TOKEN, stored_credential: { payment_initiator: "MERCHANT", usage: "SUBSEQUENT", usage_pattern: "RECURRING_PREPAID" } } },
       purchase_units: [{
         description: termsText,
         invoice_id: d.invoiceId,

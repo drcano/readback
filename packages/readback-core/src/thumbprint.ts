@@ -20,9 +20,15 @@ export type AgentKey = { privateKey: CryptoKey; publicJwk: PublicJwk; fingerprin
 
 // extractable: false is for judge mode's in-tab key: the browser can sign with it but can never
 // export it. The agent runtime generates its key once with extractable: true to store in env.
+// PayPal's approval page shows the plan name, whose charset has no "_" (spike step 2), so keys are
+// drawn until the fingerprint has none (about 78% of keys qualify; 64 tries never realistically fail).
 export async function generateAgentKey(extractable: boolean): Promise<AgentKey> {
-  const { privateKey, publicKey } = await generateKeyPair("ES256", { extractable });
-  const { kty, crv, x, y } = await exportJWK(publicKey);
-  const publicJwk = PublicJwkSchema.parse({ kty, crv, x, y });
-  return { privateKey, publicJwk, fingerprint: await agentFingerprint(publicJwk) };
+  for (let i = 0; i < 64; i++) {
+    const { privateKey, publicKey } = await generateKeyPair("ES256", { extractable });
+    const { kty, crv, x, y } = await exportJWK(publicKey);
+    const publicJwk = PublicJwkSchema.parse({ kty, crv, x, y });
+    const fingerprint = await agentFingerprint(publicJwk);
+    if (!fingerprint.includes("_")) return { privateKey, publicJwk, fingerprint };
+  }
+  throw new Error("Could not generate an agent key with a displayable fingerprint.");
 }
