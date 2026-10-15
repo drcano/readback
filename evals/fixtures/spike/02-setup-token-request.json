@@ -1,0 +1,44 @@
+{
+  "payment_source": {
+    "paypal": {
+      "description": "RB1 Good Boy Provisions | GBP-SR24 x1/30d | max USD 65.00 | 2026-10-15..2027-03-31 | agent boDw_fl9jK-YMRJH",
+      "usage_pattern": "RECURRING_PREPAID",
+      "usage_type": "MERCHANT",
+      "customer_type": "CONSUMER",
+      "permit_multiple_payment_tokens": true,
+      "billing_plan": {
+        "name": "Good Boy Provisions: GBP-SR24 x1 every 30 days, max USD 65.00",
+        "billing_cycles": [
+          {
+            "tenure_type": "REGULAR",
+            "pricing_scheme": {
+              "pricing_model": "VARIABLE",
+              "price": {
+                "currency_code": "USD",
+                "value": "65.00"
+              }
+            },
+            "frequency": {
+              "interval_unit": "DAY",
+              "interval_count": 30
+            },
+            "total_cycles": 6,
+            "sequence": 1,
+            "start_date": "2026-10-15"
+          }
+        ],
+        "one_time_charges": {
+          "total_amount": {
+            "currency_code": "USD",
+            "value": "0.00"
+          }
+        }
+      },
+      "experience_context": {
+        "brand_name": "Good Boy Provisions",
+        "return_url": "https://example.com/return",
+        "cancel_url": "https://example.com/cancel"
+      }
+    }
+  }
+}

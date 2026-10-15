@@ -1,0 +1,54 @@
+{
+  "id": "63y80131kp838264b",
+  "customer": {
+    "id": "vubWztsHJl"
+  },
+  "payment_source": {
+    "paypal": {
+      "description": "RB1 Good Boy Provisions | GBP-SR24 x1/30d | max USD 65.00 | 2026-10-15..2027-03-31 | agent 5_jy3jJaiu96W-4D",
+      "shipping": {
+        "name": {
+          "full_name": "Maya Example"
+        },
+        "address": {
+          "address_line_1": "1 Example St",
+          "admin_area_2": "Springfield",
+          "admin_area_1": "CA",
+          "postal_code": "00000",
+          "country_code": "US"
+        }
+      },
+      "usage_type": "MERCHANT",
+      "customer_type": "CONSUMER",
+      "email_address": "maya@example.com",
+      "payer_id": "FAKEPAYER0001",
+      "name": {
+        "given_name": "Maya",
+        "surname": "Example",
+        "full_name": "Maya Example"
+      },
+      "phone": {
+        "phone_number": {
+          "country_code": "US",
+          "national_number": "5555550100"
+        }
+      }
+    }
+  },
+  "links": [
+    {
+      "href": "https://api.sandbox.paypal.com/v3/vault/payment-tokens/63y80131kp838264b",
+      "rel": "self",
+      "method": "GET",
+      "encType": "application/json"
+    },
+    {
+      "href": "https://api.sandbox.paypal.com/v3/vault/payment-tokens/63y80131kp838264b",
+      "rel": "delete",
+      "method": "DELETE",
+      "encType": "application/json"
+    }
+  ],
+  "create_time": "2026-10-15T13:16:43.443Z",
+  "update_time": "2026-10-15T13:17:01.283Z"
+}

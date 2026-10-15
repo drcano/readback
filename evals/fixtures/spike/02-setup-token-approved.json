@@ -1,0 +1,32 @@
+{
+  "id": "16065722A6436664R",
+  "customer": {
+    "id": "hWUiNglxPE"
+  },
+  "status": "APPROVED",
+  "payment_source": {
+    "paypal": {
+      "description": "RB1 Good Boy Provisions | GBP-SR24 x1/30d | max USD 65.00 | 2026-10-15..2027-03-31 | agent boDw_fl9jK-YMRJH",
+      "usage_pattern": "RECURRING_PREPAID",
+      "permit_multiple_payment_tokens": true,
+      "usage_type": "MERCHANT",
+      "customer_type": "CONSUMER",
+      "email_address": "maya@example.com",
+      "payer_id": "FAKEPAYER0001"
+    }
+  },
+  "links": [
+    {
+      "href": "https://api.sandbox.paypal.com/v3/vault/setup-tokens/16065722A6436664R",
+      "rel": "self",
+      "method": "GET",
+      "encType": "application/json"
+    },
+    {
+      "href": "https://api.sandbox.paypal.com/v3/vault/payment-tokens",
+      "rel": "self",
+      "method": "POST",
+      "encType": "application/json"
+    }
+  ]
+}

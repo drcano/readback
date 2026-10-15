@@ -1,0 +1,17 @@
+{
+  "name": "RESOURCE_NOT_FOUND",
+  "message": "The specified resource does not exist.",
+  "debug_id": "ca4af231bd8b8",
+  "details": [
+    {
+      "issue": "TOKEN_NOT_FOUND",
+      "description": "The specified token id does not exist."
+    }
+  ],
+  "links": [
+    {
+      "href": "https://developer.paypal.com/docs/limited-release/payment-tokens/v3/api/#error-INVALID_RESOURCE_ID",
+      "method": "GET"
+    }
+  ]
+}

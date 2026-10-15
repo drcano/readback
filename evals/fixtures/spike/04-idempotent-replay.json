@@ -1,0 +1,153 @@
+{
+  "id": "4VV75159T17235818",
+  "intent": "CAPTURE",
+  "status": "COMPLETED",
+  "payment_source": {
+    "paypal": {
+      "email_address": "maya@example.com",
+      "account_id": "FAKEPAYER0001",
+      "account_status": "VERIFIED",
+      "name": {
+        "given_name": "Maya",
+        "surname": "Example"
+      },
+      "address": {
+        "country_code": "US"
+      },
+      "stored_credential": {
+        "payment_initiator": "MERCHANT",
+        "usage_pattern": "UNSCHEDULED_PREPAID",
+        "usage": "SUBSEQUENT"
+      }
+    }
+  },
+  "purchase_units": [
+    {
+      "reference_id": "default",
+      "amount": {
+        "currency_code": "USD",
+        "value": "64.99",
+        "breakdown": {
+          "item_total": {
+            "currency_code": "USD",
+            "value": "64.99"
+          },
+          "shipping": {
+            "currency_code": "USD",
+            "value": "0.00"
+          },
+          "handling": {
+            "currency_code": "USD",
+            "value": "0.00"
+          },
+          "insurance": {
+            "currency_code": "USD",
+            "value": "0.00"
+          },
+          "shipping_discount": {
+            "currency_code": "USD",
+            "value": "0.00"
+          }
+        }
+      },
+      "payee": {
+        "email_address": "maya@example.com",
+        "merchant_id": "CECTB4SU6GCRL"
+      },
+      "description": "RB1 Good Boy Provisions | GBP-SR24 x1/30d | max USD 65.00 | 2026-10-15..2027-03-31 | agent 5_jy3jJaiu96W-4D",
+      "custom_id": "rb1:63y80131kp838264b:1a168811825349b0:p902:70d82396c4bd706d",
+      "invoice_id": "RB-63y80131kp838264b-P902",
+      "items": [
+        {
+          "name": "Salmon & Rice Adult (24 lb)",
+          "unit_amount": {
+            "currency_code": "USD",
+            "value": "64.99"
+          },
+          "tax": {
+            "currency_code": "USD",
+            "value": "0.00"
+          },
+          "quantity": "1",
+          "description": "eyJhbGciOiJFUzI1NiIsInR5cCI6InJiLW1hbmRhdGUrand0IiwiandrIjp7Imt0eSI6IkVDIiwiY3J2IjoiUC0yNTYiLCJ4Ijoib1dUcjRMeDhHcWdwU3hMWWJFaGpGMjVrc2ZZcmI1WVN0SEwzOW1QdFJ1USIsInkiOiJpa24wb1BERHRFZkNBcHcxOGpsYlNNbUc4QVBJNnNjb29jNzhPU21lT3JzIn19.eyJ2IjoxLCJhZ3IiOiI2M3k4MDEzMWtwODM4MjY0YiIsInRoIjoiMWExNjg4MTE4MjUzNDliMCIsInNrdSI6IkdCUC1TUjI0IiwicXR5IjoxLCJ1bml0IjoiNjQuOTkiLCJhbXQiOiI2NC45OSIsImN1ciI6IlVTRCIsInAiOjkwMiwiaWF0IjoxNzkyMDcwNDkzLCJleHAiOjE3OTIwNzA3OTMsImp0aSI6IjE2MzE1YWYxLWQ1ZTYtNGQ5NC04NzdkLThiNzMyNjY4NTc1NyJ9.vJ_oNbAI4qjYCSVwn_4PemkbRiYUQoc955U0DYjpD95O6jkUF4rTbgBYwmi1Hp37SfVdTxDm9mCllau1s2uIjw",
+          "sku": "GBP-SR24"
+        }
+      ],
+      "payments": {
+        "captures": [
+          {
+            "id": "4Y277834PN807535Y",
+            "status": "COMPLETED",
+            "amount": {
+              "currency_code": "USD",
+              "value": "64.99"
+            },
+            "final_capture": true,
+            "seller_protection": {
+              "status": "ELIGIBLE",
+              "dispute_categories": [
+                "ITEM_NOT_RECEIVED",
+                "UNAUTHORIZED_TRANSACTION"
+              ]
+            },
+            "seller_receivable_breakdown": {
+              "gross_amount": {
+                "currency_code": "USD",
+                "value": "64.99"
+              },
+              "paypal_fee": {
+                "currency_code": "USD",
+                "value": "2.76"
+              },
+              "net_amount": {
+                "currency_code": "USD",
+                "value": "62.23"
+              }
+            },
+            "invoice_id": "RB-63y80131kp838264b-P902",
+            "custom_id": "rb1:63y80131kp838264b:1a168811825349b0:p902:70d82396c4bd706d",
+            "links": [
+              {
+                "href": "https://api.sandbox.paypal.com/v2/payments/captures/4Y277834PN807535Y",
+                "rel": "self",
+                "method": "GET"
+              },
+              {
+                "href": "https://api.sandbox.paypal.com/v2/payments/captures/4Y277834PN807535Y/refund",
+                "rel": "refund",
+                "method": "POST"
+              },
+              {
+                "href": "https://api.sandbox.paypal.com/v2/checkout/orders/4VV75159T17235818",
+                "rel": "up",
+                "method": "GET"
+              }
+            ],
+            "create_time": "2026-10-15T13:21:34Z",
+            "update_time": "2026-10-15T13:21:34Z"
+          }
+        ]
+      }
+    }
+  ],
+  "payer": {
+    "name": {
+      "given_name": "Maya",
+      "surname": "Example"
+    },
+    "email_address": "maya@example.com",
+    "payer_id": "FAKEPAYER0001",
+    "address": {
+      "country_code": "US"
+    }
+  },
+  "create_time": "2026-10-15T13:21:33Z",
+  "update_time": "2026-10-15T13:21:34Z",
+  "links": [
+    {
+      "href": "https://api.sandbox.paypal.com/v2/checkout/orders/4VV75159T17235818",
+      "rel": "self",
+      "method": "GET"
+    }
+  ]
+}

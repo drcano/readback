@@ -1,0 +1,42 @@
+{
+  "intent": "CAPTURE",
+  "payment_source": {
+    "paypal": {
+      "vault_id": "63y80131kp838264b",
+      "stored_credential": {
+        "payment_initiator": "MERCHANT",
+        "usage": "SUBSEQUENT",
+        "usage_pattern": "UNSCHEDULED_PREPAID"
+      }
+    }
+  },
+  "purchase_units": [
+    {
+      "description": "RB1 Good Boy Provisions | GBP-SR24 x1/30d | max USD 65.00 | 2026-10-15..2027-03-31 | agent 5_jy3jJaiu96W-4D",
+      "custom_id": "rb1:63y80131kp838264b:1a168811825349b0:p001:9c63b603145174b1",
+      "invoice_id": "RB-63y80131kp838264b-P001",
+      "amount": {
+        "currency_code": "USD",
+        "value": "64.99",
+        "breakdown": {
+          "item_total": {
+            "currency_code": "USD",
+            "value": "64.99"
+          }
+        }
+      },
+      "items": [
+        {
+          "name": "Salmon & Rice Adult (24 lb)",
+          "sku": "GBP-SR24",
+          "quantity": "1",
+          "unit_amount": {
+            "currency_code": "USD",
+            "value": "64.99"
+          },
+          "description": "eyJhbGciOiJFUzI1NiIsInR5cCI6InJiLW1hbmRhdGUrand0IiwiandrIjp7Imt0eSI6IkVDIiwiY3J2IjoiUC0yNTYiLCJ4IjoiWFpuS3ZHS0lJUVpZVnRzRHBUby05MnFaYUk4clZ6TzlldllxalFrN2RyYyIsInkiOiJBbDdOalVqUW1PWHRCYmpZWGtFQTRNa2VYbGotZGJ6eHFfZEg0d2pwelZRIn19.eyJ2IjoxLCJhZ3IiOiI2M3k4MDEzMWtwODM4MjY0YiIsInRoIjoiMWExNjg4MTE4MjUzNDliMCIsInNrdSI6IkdCUC1TUjI0IiwicXR5IjoxLCJ1bml0IjoiNjQuOTkiLCJhbXQiOiI2NC45OSIsImN1ciI6IlVTRCIsInAiOjEsImlhdCI6MTc5MjA3MDIyNSwiZXhwIjoxNzkyMDcwNTI1LCJqdGkiOiI3ODU2MjZmYS0yZTUyLTRjZDUtYmE5YS00OTIyNTZlNDUzMmQifQ.nD4VuaKc8TvtEwdWr5tWZMAFCU-lWw3BgvCY9wBrK54VMQApNw8J-uY_otWn4oDCbP7uDd0jjciClEzV9V2VAA"
+        }
+      ]
+    }
+  ]
+}

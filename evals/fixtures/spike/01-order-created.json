@@ -1,0 +1,62 @@
+{
+  "id": "7U326469YK098553F",
+  "intent": "CAPTURE",
+  "status": "CREATED",
+  "purchase_units": [
+    {
+      "reference_id": "default",
+      "amount": {
+        "currency_code": "USD",
+        "value": "64.99",
+        "breakdown": {
+          "item_total": {
+            "currency_code": "USD",
+            "value": "64.99"
+          }
+        }
+      },
+      "payee": {
+        "email_address": "maya@example.com",
+        "merchant_id": "CECTB4SU6GCRL"
+      },
+      "description": "RB1 Good Boy Provisions | GBP-SR24 x1/30d | max USD 65.00 | 2026-10-14..2027-03-31 | agent 9Z8i8h5_JfVQzcCl",
+      "custom_id": "rb1:SPIKE01MV9K4C8VXXXXXXXXXXXXXXXXXXXXX:9c8a021e9cf146d8:p001:c910c25840c415eb",
+      "invoice_id": "RB-SPIKE01MV9K4C8VXXXXXXXXXXXXXXXXXXXXX-P001",
+      "items": [
+        {
+          "name": "Salmon & Rice Adult (24 lb)",
+          "unit_amount": {
+            "currency_code": "USD",
+            "value": "64.99"
+          },
+          "quantity": "1",
+          "description": "eyJhbGciOiJFUzI1NiIsInR5cCI6InJiLW1hbmRhdGUrand0IiwiandrIjp7Imt0eSI6IkVDIiwiY3J2IjoiUC0yNTYiLCJ4IjoiUTduaENtd3ZyVkc5MkNHS2RORDdnMjU3ZU1EQjBoTU9IY0gyNVhlOWdtSSIsInkiOiJfaDJMMzM4SVFvcWhxalM2dXJrdWlNOEdiejN5RU5VQXVvQ2FMU3NpN1NVIn19.eyJ2IjoxLCJhZ3IiOiJTUElLRTAxTVY5SzRDOFZYWFhYWFhYWFhYWFhYWFhYWFhYWFgiLCJ0aCI6IjljOGEwMjFlOWNmMTQ2ZDgiLCJza3UiOiJHQlAtU1IyNCIsInF0eSI6MSwidW5pdCI6IjY0Ljk5IiwiYW10IjoiNjQuOTkiLCJjdXIiOiJVU0QiLCJwIjoxLCJpYXQiOjE3OTIwNjk4NTIsImV4cCI6MTc5MjA3MDE1MiwianRpIjoiMGE2NmI1ZDAtMjAyOC00ZDI3LTg2ODEtZjhjZjUyOWYyNWQxIn0.Ca9GP2pBUOnoQXTqGQBJa07rhaYe_UcJFCdXXgJgyJK69JgtTGbna4xZ5E4z_WNeNFMjHaHQ8diu4zAF1DkK1w",
+          "sku": "GBP-SR24"
+        }
+      ]
+    }
+  ],
+  "create_time": "2026-10-15T13:10:53Z",
+  "links": [
+    {
+      "href": "https://api.sandbox.paypal.com/v2/checkout/orders/7U326469YK098553F",
+      "rel": "self",
+      "method": "GET"
+    },
+    {
+      "href": "https://www.sandbox.paypal.com/checkoutnow?token=7U326469YK098553F",
+      "rel": "approve",
+      "method": "GET"
+    },
+    {
+      "href": "https://api.sandbox.paypal.com/v2/checkout/orders/7U326469YK098553F",
+      "rel": "update",
+      "method": "PATCH"
+    },
+    {
+      "href": "https://api.sandbox.paypal.com/v2/checkout/orders/7U326469YK098553F/capture",
+      "rel": "capture",
+      "method": "POST"
+    }
+  ]
+}

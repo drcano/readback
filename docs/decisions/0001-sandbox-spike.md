@@ -6,14 +6,14 @@ Each row is filled from a real sandbox run against a **standard merchant REST ap
 
 | # | Step | Go/no-go | Script | Result | Fixtures |
 |---|---|---|---|---|---|
-| 1 | Orders basics: every Readback field round-trips on GET | **yes** | `scripts/spike/01-orders.ts` | pending | `01-*.json` |
-| 2 | Agreement with terms: setup token → approval → payment token; `description` round-trips | **yes** | `02-agreement.ts` | pending | `02-*.json` |
-| 3 | Charge without the shopper; order echoes `attributes.vault.id` | **yes** | `03-vault-charge.ts` | pending | `03-*.json` |
-| 4 | Duplicate-period guard (`DUPLICATE_INVOICE_ID`), request-ID replay | **yes** | `04-duplicate-guard.ts` | pending | `04-*.json` |
-| 5 | Revocation: merchant DELETE, buyer-side cancel, webhooks | no | `05-revocation.ts` | pending | `05-*.json` |
+| 1 | Orders basics: every Readback field round-trips on GET | **yes** | `scripts/spike/01-orders.ts` | **PASS** (10-15) | `01-*.json` |
+| 2 | Agreement with terms: setup token → approval → payment token; `description` round-trips | **yes** | `02-agreement.ts` | **PASS with `RECURRING_PREPAID`**; `UNSCHEDULED_PREPAID` refused (10-15) | `02-*.json` |
+| 3 | Charge without the shopper; order echoes `attributes.vault.id` | **yes** | `03-vault-charge.ts` | charge **PASS**; vault echo **FAIL** (10-15) | `03-*.json` |
+| 4 | Duplicate-period guard (`DUPLICATE_INVOICE_ID`), request-ID replay | **yes** | `04-duplicate-guard.ts` | **PASS** (10-15) | `04-*.json` |
+| 5 | Revocation: merchant DELETE, buyer-side cancel, webhooks | no | `05-revocation.ts` | merchant DELETE done (10-15); buyer cancel and webhook pending | `05-*.json` |
 | 6 | History: Transaction Search, `:` in `custom_field`, lag | no | `06-history.ts` | pending | `06-*.json` |
-| 7 | Disputes: UI-opened, lifecycle to `adjudicate` | **yes** | `07-disputes.ts` | pending | `07-*.json` |
-| 8 | Tracking: `/track` round-trips | no | `08-tracking.ts` | pending | `08-*.json` |
+| 7 | Disputes: UI-opened, lifecycle to `adjudicate` | **yes** | `07-disputes.ts` | API reachable; needs a UI-opened dispute | `07-*.json` |
+| 8 | Tracking: `/track` round-trips | no | `08-tracking.ts` | **PASS** (10-15) | `08-*.json` |
 | 9 | Crypto (ES256 + thumbprint, Node and browser) / connector | **crypto: yes** | `09-crypto.ts`, `packages/readback-core` browser test | **crypto: PASS** (2026-10-15) | — |
 
 ## Known before running (from PayPal's Orders v2 OpenAPI spec)
@@ -72,9 +72,26 @@ After the spike, the hero agreement and seed charges (Oct 21):
 
 Fixtures from step 3 on are signed with throwaway keys that don't match step 2's terms fingerprint, and their order bodies are built by hand: they record **what PayPal stores and returns**, not product-shaped cases. **Product-shaped fixtures for `readback-core` and the evals come from `pnpm seed:charge`**, which signs with the real agent key and charges through core's `authorizeCharge`; it saves each order as `evals/fixtures/spike/seed-<invoice_id>-order.json`.
 
-## Step 1 — Orders basics
+## Results, 2026-10-15 (first sandbox run)
 
-Pending first run. Will record: every PASS/FAIL line, the retained length of `items[0].description`, whether the capture carries `custom_id`/`invoice_id`, `seller_protection`, the capture → order link, and what the buyer's receipt shows.
+**Step 1 (PASS).** All ten Readback fields round-trip byte-for-byte on GET, before and after capture, including the 619-character signed mandate in `items[0].description`. The capture carries `custom_id` and `invoice_id` and links to its order. `seller_protection` came back `ELIGIBLE` for `ITEM_NOT_RECEIVED` and `UNAUTHORIZED_TRANSACTION`. That is PayPal's field, recorded here, not a Seller Protection claim. Not yet recorded: what Maya's receipt shows.
+
+**Step 2 (PASS, with a change).** Five request shapes were tried. With `usage_pattern: UNSCHEDULED_PREPAID`, PayPal rejects every `billing_plan` (`422 INCOMPATIBLE_PARAMETER_VALUE` on `pricing_model`), whether the plan is `VARIABLE` with or without a price, or `FIXED`. `UNSCHEDULED_POSTPAID` fails the same way. Only **`RECURRING_PREPAID` + `VARIABLE`** is accepted. The terms `description` then round-trips byte-equal on create and GET. `billing_plan` is not returned, as SPEC assumed. `usage_pattern` and `permit_multiple_payment_tokens` are not echoed on GET (the script counts these as FAIL; they are informational). A second agreement for the same buyer gets a distinct token ID and a distinct `customer.id`, with the same `payer_id`.
+- **The approval page shows only `billing_plan.name`**, prefixed with the brand name ("to Good Boy Provisions: <name>"). The `description` terms string, with the agent fingerprint, is **not shown to the buyer**.
+- **Plan-name limits (probed):** max 127 characters; `_` is rejected (`INVALID_PARAMETER_SYNTAX`). Base64url fingerprints can contain `_`.
+
+**Step 3 (charge PASS, echo FAIL: go/no-go).** A vault charge with no buyer present auto-completes on create (no capture call needed). Every label round-trips, and order `payer.payer_id` equals the token's `payer_id`. **No `attributes.vault` anywhere**, under any of these: default GET, `?fields=payment_source`, `Prefer: return=representation`, `stored_credential.usage_pattern` of `RECURRING_PREPAID` (accepted) or `UNSCHEDULED_PREPAID` (also accepted on a recurring token), and on the capture. Listing tokens by the order's payer ID returns 404; `customer.id` (vault-side) never appears on the order. A $1 probe order (`invoice_id …-ECHOPROBE1`) exists on token A.
+
+**Step 4 (PASS).** A second charge in a used period is refused with `DUPLICATE_INVOICE_ID`. This is on by default: the business account's "block accidental payments" setting could not be saved in the sandbox UI, and was not needed. A mocked decline does not use up the invoice ID. Re-sending a `PayPal-Request-Id` returns the original order.
+
+**Step 5 (merchant side).** `DELETE` token → 204. Charging it then fails with **`403 PERMISSION_DENIED`**, not `INVALID_VAULT_ID` or `AGREEMENT_ALREADY_CANCELLED`. `denialFromPayPalIssue` now maps it to `AGREEMENT_NOT_ACTIVE`. GET on the token → 404 afterwards, so terms can't be re-read after revocation. Not yet done: webhook (none registered; needs a public URL) and buyer-side cancel.
+
+**Step 8 (PASS).** `/track` → 201; GET order shows `trackers[]` with `SHIPPED` and the item SKU.
+
+**Open decisions (for Dante; nothing changed in core yet beyond the error mapping):**
+1. **Usage pattern:** switch `setup.ts`/`gate.ts` from `UNSCHEDULED_PREPAID` to `RECURRING_PREPAID` (format-freeze item).
+2. **Check 2a without the echo:** SPEC's fallback (§12): the payer match (PayPal-attested) plus labels identify the agreement; the signature decides. A charge with stripped labels can't be tied to an agreement from merchant-side data (THREAT-MODEL T3 "not stopped" case).
+3. **T21 (key swap at setup):** the plan name is merchant-supplied and never stored, so the approval page can't prove which fingerprint is in `description`. The real defense is the runtime refusing terms without its own fingerprint, which Maya notices immediately. THREAT-MODEL T21, ADR 0002 and runbook step 13 need rewording.
 
 ## Decision
 
