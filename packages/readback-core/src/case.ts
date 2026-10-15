@@ -92,6 +92,7 @@ export type Order = z.infer<typeof OrderSchema>;
 export const CaptureSchema = z.object({
   id: z.string(),
   status: z.string(),
+  status_details: z.object({ reason: z.string().optional() }).optional(),
   amount: Money,
   create_time: z.string(),
   custom_id: z.string().optional(),

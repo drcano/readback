@@ -1,4 +1,4 @@
-// GET /api/cases/[id] — Public. A dispute ID (PP-D-…) or a capture ID (preview mode).
+// GET /api/cases/[id] — Public. A dispute ID (PP-D-… or PP-R-…) or a capture ID (preview mode).
 // Returns the case bundle (only the fields the checks read) plus the server-side result; the
 // browser re-runs the same checks from the bundle with readback-core (SPEC §5.6 "Re-verify").
 import { evaluateCase } from "@readback/core";

@@ -147,7 +147,10 @@ export async function runChecks(b: CaseBundle): Promise<{ facts: CaseFacts; chec
     ["4", "Consent", "Active at charge", () => {
       const out: Failure[] = [];
       if (tokenId === null) out.push(f("NO_AGREEMENT_LINK", "Nothing links this charge to a saved agreement."));
-      if (!COMPLETED_CAPTURE.has(b.capture.status)) out.push(f("CAPTURE_NOT_COMPLETED", "PayPal didn't complete this charge."));
+      // An open dispute turns the capture PENDING with reason BUYER_COMPLAINT (spike step 7): the
+      // money moved, the dispute is holding it. Every disputed charge looks like this.
+      const disputeHold = b.capture.status === "PENDING" && b.capture.status_details?.reason === "BUYER_COMPLAINT";
+      if (!COMPLETED_CAPTURE.has(b.capture.status) && !disputeHold) out.push(f("CAPTURE_NOT_COMPLETED", "PayPal didn't complete this charge."));
       if (b.tokenDeletedAt !== null && toSec(b.tokenDeletedAt) <= facts.captureSec) {
         out.push(f("CHARGED_AFTER_REVOCATION", "The charge happened after the agreement was cancelled."));
       }

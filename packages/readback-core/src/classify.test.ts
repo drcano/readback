@@ -27,6 +27,20 @@ describe("same claim, two verdicts", () => {
     expect(await outcome(hero.bundle)).toMatchObject({ row: 13, suggestion: "SELLER_FAVOR", failed: [] });
   });
 
+  it("hero, as PayPal really shows a disputed capture (PENDING, BUYER_COMPLAINT) → still SELLER_FAVOR", async () => {
+    const b = clone();
+    b.capture.status = "PENDING";
+    b.capture.status_details = { reason: "BUYER_COMPLAINT" };
+    expect(await outcome(b)).toMatchObject({ row: 13, suggestion: "SELLER_FAVOR", failed: [] });
+  });
+
+  it("a capture pending for any other reason didn't complete → check 4 fails", async () => {
+    const b = clone();
+    b.capture.status = "PENDING";
+    b.capture.status_details = { reason: "PENDING_REVIEW" };
+    expect((await outcome(b)).failed).toContain("4");
+  });
+
   it("twist: the merchant charged her wallet directly → row 3, BUYER_FAVOR", async () => {
     const r = await outcome(directCharge(hero));
     expect(r).toMatchObject({ row: 3, suggestion: "BUYER_FAVOR" });

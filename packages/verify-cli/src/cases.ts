@@ -51,10 +51,11 @@ const DAY_MS = 86_400_000;
 const WINDOW_DAYS = 31; // Transaction Search's maximum window
 
 export async function buildCaseBundle(id: string, paypal: PayPalClient, now: Date): Promise<CaseLookup> {
-  // Dispute IDs start with PP-D-; anything else is treated as a capture ID (preview mode).
+  // Dispute IDs start with PP-D- or PP-R- (both seen in the sandbox); capture IDs never start with
+  // PP-, so anything else is treated as a capture ID (preview mode).
   let dispute: CaseBundle["dispute"] = null;
   let captureId = id;
-  if (id.startsWith("PP-D-")) {
+  if (id.startsWith("PP-")) {
     const d = await paypal.get(`/v1/customer/disputes/${encodeURIComponent(id)}`, DisputeSchema);
     if (!d.ok) return { ok: false, status: d.status === 404 ? 404 : 502, message: "Dispute not found at PayPal." };
     dispute = d.data;
