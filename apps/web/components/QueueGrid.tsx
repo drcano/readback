@@ -39,11 +39,20 @@ const theme = themeQuartz.withParams({
   cellHorizontalPadding: 14,
 });
 
+const GROUPS = ["Consent", "Agent", "Terms", "Delivery"] as const;
+
 // Columns an investigator scans first. Stage, failed checks, evidence and note stay in the row
 // data (the Ask filters read them) but are hidden to keep the grid scannable.
 const columns: ColDef<QueueRow>[] = [
   { field: "id", headerName: "Case", cellRenderer: IdCell, minWidth: 200, flex: 1.2 },
-  { headerName: "C · A · T · D", headerTooltip: "Consent · Agent · Terms · Delivery", cellRenderer: LightsCell, width: 150, sortable: false, filter: false },
+  ...GROUPS.map((group): ColDef<QueueRow> => ({
+    headerName: group,
+    colId: group,
+    width: 104,
+    filter: false,
+    valueGetter: (p) => p.data?.lights.find((l) => l.group === group)?.state,
+    cellRenderer: LightCell,
+  })),
   { field: "suggestion", headerName: "Verdict", cellRenderer: VerdictCell, width: 170, getQuickFilterText: (p) => verdictLabel(p.value) },
   { field: "classification", headerName: "Why", flex: 1.5, minWidth: 200 },
   { field: "reason", headerName: "Claim", width: 170, valueFormatter: (p) => reasonLabel(String(p.value ?? "")) },
@@ -56,8 +65,10 @@ const columns: ColDef<QueueRow>[] = [
   { field: "note", headerName: "Note", hide: true },
 ];
 
-function LightsCell({ data }: ICellRendererParams<QueueRow>) {
-  return data ? <LightDots lights={data.lights} /> : null;
+// One light per column, under its group's name.
+function LightCell({ data, colDef }: ICellRendererParams<QueueRow>) {
+  const light = data?.lights.find((l) => l.group === colDef?.colId);
+  return light ? <LightDots lights={[light]} /> : null;
 }
 
 function IdCell({ data }: ICellRendererParams<QueueRow>) {
