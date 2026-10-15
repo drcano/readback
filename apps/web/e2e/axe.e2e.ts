@@ -8,8 +8,8 @@ const PAGES: [string, string | null][] = [
   ["/", null],
   ["/shopper", null],
   ["/investigator", "text=PP-D-HERO1"],
-  ["/investigator/fixture-hero", "text=Re-verified locally"],
-  ["/investigator/fixture-twist", "text=Re-verified locally"],
+  ["/investigator/fixture-hero", "text=Re-verified in your browser"],
+  ["/investigator/fixture-twist", "text=Re-verified in your browser"],
   ["/judge", null],
   ["/ap2", "text=Agent's signature on the closed mandate"],
 ];
