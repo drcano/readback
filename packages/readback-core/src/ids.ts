@@ -1,5 +1,6 @@
 // The labels Readback puts on every PayPal order (SPEC §4.4), plus deterministic request IDs.
-// Labels are cross-checks: the link PayPal itself attests is the vault echo (check 2a).
+// PayPal doesn't echo which saved agreement paid an order (spike step 3), so the labels name it;
+// check 2a only accepts that name if PayPal shows the agreement belongs to the payer charged.
 import { z } from "zod";
 
 export const TokenIdSchema = z.string().regex(/^[0-9A-Za-z_-]{1,36}$/);
@@ -39,4 +40,15 @@ export function parseCustomId(value: string): CustomId | null {
 export function requestIds(mandateHash: string) {
   const base = `rb-${mandateHash.slice(0, 40)}`;
   return { create: base, capture: `${base}-capture`, track: `${base}-track` };
+}
+
+// The agreement a charge's labels name, or null if none does or they disagree. One label is enough:
+// the name is only a lead, accepted if PayPal shows the agreement belongs to the payer charged, and
+// it can only count for the merchant together with her agent's signature for that same agreement.
+// Any RB-<tokenId>-… invoice counts, including the demo's RB-<tokenId>-DIRECT.
+export function agreementFromLabels(custom: string | undefined, invoice: string | undefined): string | null {
+  const c = custom ? parseCustomId(custom)?.tokenId : undefined;
+  const i = invoice ? new RegExp(`^RB-(${TOKEN})-[A-Z0-9]+$`).exec(invoice)?.[1] : undefined;
+  if (c && i && c !== i) return null;
+  return c ?? i ?? null;
 }

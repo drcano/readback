@@ -25,7 +25,7 @@ const mutations: fc.Arbitrary<Mutation> = fc.oneof(
   fc.tuple(fc.nat(), fc.constantFrom(...ALPHABET)).map(([i, ch]): Mutation => ({ field: "items[0].description (JWS)", apply: (b) => { pu(b).items![0]!.description = flip(pu(b).items![0]!.description!, i, ch); } })),
   fc.tuple(fc.nat(), fc.constantFrom(...ALPHABET)).map(([i, ch]): Mutation => ({ field: "custom_id", apply: (b) => { pu(b).custom_id = flip(pu(b).custom_id!, i, ch); } })),
   fc.tuple(fc.nat(), fc.constantFrom(...ALPHABET)).map(([i, ch]): Mutation => ({ field: "invoice_id", apply: (b) => { pu(b).invoice_id = flip(pu(b).invoice_id!, i, ch); } })),
-  fc.tuple(fc.nat(), fc.constantFrom(...ALPHABET)).map(([i, ch]): Mutation => ({ field: "vault.id", apply: (b) => { const v = b.order.payment_source!.paypal!.attributes!.vault!; v.id = flip(v.id!, i, ch); } })),
+  fc.tuple(fc.nat(), fc.constantFrom(...ALPHABET)).map(([i, ch]): Mutation => ({ field: "token payer_id", apply: (b) => { const p = b.token!.payment_source.paypal; p.payer_id = flip(p.payer_id!, i, ch); } })),
   fc.tuple(fc.nat(), fc.constantFrom(...ALPHABET)).map(([i, ch]): Mutation => ({ field: "payer_id", apply: (b) => { b.order.payer!.payer_id = flip(b.order.payer!.payer_id!, i, ch); } })),
   fc.integer({ min: 1, max: 999_999 }).map((c): Mutation => ({ field: "amount.value", apply: (b) => { pu(b).amount.value = (c / 100).toFixed(2); } })),
   fc.integer({ min: 1, max: 999_999 }).map((c): Mutation => ({ field: "capture.amount", apply: (b) => { b.capture.amount.value = (c / 100).toFixed(2); } })),

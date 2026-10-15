@@ -37,7 +37,7 @@ export async function tamperSample(n: number, seed: number) {
     (b) => { pu(b).items![0]!.description = flip(pu(b).items![0]!.description!); },
     (b) => { pu(b).custom_id = flip(pu(b).custom_id!); },
     (b) => { pu(b).invoice_id = flip(pu(b).invoice_id!); },
-    (b) => { const v = b.order.payment_source!.paypal!.attributes!.vault!; v.id = flip(v.id!); },
+    (b) => { const p = b.token!.payment_source.paypal; p.payer_id = flip(p.payer_id!); },
     (b) => { b.order.payer!.payer_id = flip(b.order.payer!.payer_id!); },
     (b) => { pu(b).amount.value = money(); },
     (b) => { b.capture.amount.value = money(); },

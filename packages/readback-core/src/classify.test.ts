@@ -42,10 +42,24 @@ describe("classification rows", () => {
     }
   });
 
-  it("row 1: no PayPal vault echo → not an agent-agreement charge", async () => {
+  it("row 1: no vault echo and labels stripped → not an agent-agreement charge", async () => {
     const b = clone();
-    delete b.order.payment_source!.paypal!.attributes;
+    delete b.order.purchase_units[0]!.custom_id;
+    delete b.order.purchase_units[0]!.invoice_id;
     expect(await outcome(b)).toMatchObject({ row: 1, suggestion: null });
+  });
+
+  it("row 1: labels name two different agreements → no link", async () => {
+    const b = clone();
+    b.order.purchase_units[0]!.invoice_id = "RB-otheragreement-P001";
+    expect((await outcome(b)).row).toBe(1);
+  });
+
+  it("an echo, when PayPal sends one, links the charge even if the token is gone", async () => {
+    const b = clone();
+    b.order.payment_source!.paypal!.attributes = { vault: { id: b.token!.id } };
+    b.token = null;
+    expect((await outcome(b)).row).not.toBe(1);
   });
 
   it("row 1: the agreement was approved by a different PayPal account", async () => {
@@ -98,7 +112,7 @@ describe("classification rows", () => {
     expect((await outcome(b)).row).toBe(3);
   });
 
-  it("row 3: labels stripped", async () => {
+  it("row 3: custom_id stripped (invoice_id still names the agreement)", async () => {
     const b = clone();
     delete pu(b).custom_id;
     expect(await outcome(b)).toMatchObject({ row: 3, failed: expect.arrayContaining(["2b"]) });

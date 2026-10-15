@@ -3,7 +3,7 @@
 // (THREAT-MODEL "design rule"); merchant-attested inputs are labeled where they're used.
 import type { Address, CaseBundle } from "./case.ts";
 import { sha256Hex } from "./hash.ts";
-import { invoiceId, parseCustomId, parseInvoiceId } from "./ids.ts";
+import { agreementFromLabels, invoiceId, parseCustomId, parseInvoiceId } from "./ids.ts";
 import { CLOCK_SKEW_SEC, type VerifiedMandate, verifyMandate } from "./mandate.ts";
 import { formatCents, parseCents } from "./money.ts";
 import type { Failure } from "./result.ts";
@@ -35,7 +35,8 @@ const toSec = (iso: string): number => Date.parse(iso) / 1000;
 
 // Everything the checks share, derived once from the bundle.
 export type CaseFacts = {
-  tokenId: string | null; // from the PayPal-attested vault echo only
+  tokenId: string | null; // PayPal's vault echo if present, else the agreement both labels name
+  echoed: boolean; // tokenId came from PayPal itself, not from the labels
   terms: Terms | null;
   termsText: string | null;
   termsHash: string | null;
@@ -48,7 +49,8 @@ export type CaseFacts = {
 
 export async function deriveFacts(b: CaseBundle): Promise<CaseFacts> {
   const pu = b.order.purchase_units[0]!;
-  const tokenId = b.order.payment_source?.paypal?.attributes?.vault?.id ?? null;
+  const echo = b.order.payment_source?.paypal?.attributes?.vault?.id ?? null;
+  const tokenId = echo ?? agreementFromLabels(pu.custom_id, pu.invoice_id);
   // Primary terms come from PayPal's token. Only if the token is GONE (deleted) do we fall back to
   // the copy the merchant wrote onto the charge, labeled secondary (THREAT-MODEL T10). A token that
   // exists but carries no terms is "no terms": the merchant's copy must never stand in for PayPal's.
@@ -59,6 +61,7 @@ export async function deriveFacts(b: CaseBundle): Promise<CaseFacts> {
   const captureSec = toSec(b.capture.create_time);
   return {
     tokenId,
+    echoed: echo !== null,
     terms: parsed?.ok ? parsed.value : null,
     termsText,
     termsHash: termsText === null ? null : await sha256Hex(termsText),
@@ -97,10 +100,13 @@ export async function runChecks(b: CaseBundle): Promise<{ facts: CaseFacts; chec
       return { failures: out, secondary: facts.secondaryTerms };
     }],
 
-    ["2a", "Consent", "PayPal-attested link", () => {
-      if (tokenId === null) return { failures: [f("NO_VAULT_ECHO", "PayPal doesn't show this charge used a saved agreement.")] };
+    ["2a", "Consent", "Agreement link", () => {
+      if (tokenId === null) return { failures: [f("NO_AGREEMENT_LINK", "Nothing links this charge to a saved agreement.")] };
       if (b.token && b.token.id !== tokenId) return { failures: [f("VAULT_MISMATCH", "PayPal shows a different agreement paid for this charge.")] };
-      return { failures: [] };
+      // Without PayPal's echo the link rests on the labels plus PayPal's payer match (check 1). If the
+      // agreement is gone, the payer can't be matched: the link stands only as secondary evidence,
+      // which can count against the merchant but never for it (no seller-favor suggestion).
+      return { failures: [], secondary: !facts.echoed && !b.token };
     }],
 
     ["2b", "Agent", "Labels present", () => {
@@ -140,7 +146,7 @@ export async function runChecks(b: CaseBundle): Promise<{ facts: CaseFacts; chec
 
     ["4", "Consent", "Active at charge", () => {
       const out: Failure[] = [];
-      if (tokenId === null) out.push(f("NO_VAULT_ECHO", "PayPal doesn't show this charge used a saved agreement."));
+      if (tokenId === null) out.push(f("NO_AGREEMENT_LINK", "Nothing links this charge to a saved agreement."));
       if (!COMPLETED_CAPTURE.has(b.capture.status)) out.push(f("CAPTURE_NOT_COMPLETED", "PayPal didn't complete this charge."));
       if (b.tokenDeletedAt !== null && toSec(b.tokenDeletedAt) <= facts.captureSec) {
         out.push(f("CHARGED_AFTER_REVOCATION", "The charge happened after the agreement was cancelled."));

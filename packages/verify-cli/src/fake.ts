@@ -92,7 +92,8 @@ export function fakePayPal(): FakePayPal {
           id,
           status: "COMPLETED",
           payer: { payer_id: payerId },
-          payment_source: { paypal: { attributes: { vault: { id: vaultId } } } },
+          // No vault echo: the sandbox doesn't return one (spike step 3).
+          payment_source: { paypal: {} },
           purchase_units: [{ ...pu, payments: { captures: [capture] } }],
         };
         orders.set(id, order);

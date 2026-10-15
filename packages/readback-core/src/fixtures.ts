@@ -79,7 +79,7 @@ export async function heroCase(opts: HeroOptions = {}): Promise<HeroCase> {
       payment_source: {
         paypal: {
           account_id: "FAKEPAYER0001",
-          attributes: { vault: { id: HERO_TOKEN_ID } },
+          // No attributes.vault: PayPal doesn't echo the agreement on orders (spike step 3).
           stored_credential: { payment_initiator: "MERCHANT", usage: "SUBSEQUENT" },
         },
       },

@@ -1,8 +1,12 @@
 // Builds the case bundle for /api/cases/[id] (SPEC §5.5, §5.6), live from PayPal, storing nothing.
-// The chain is followed through PayPal, never through merchant labels (CLAUDE.md §5):
-//   dispute → seller_transaction_id → capture → order → payment_source.paypal.attributes.vault.id → token
+// The chain is followed through PayPal as far as PayPal goes:
+//   dispute → seller_transaction_id → capture → order → token
+// The last hop uses PayPal's vault echo if present; the sandbox doesn't send one (spike step 3), so
+// the agreement both labels name is used instead, and check 2a only accepts it if PayPal shows that
+// agreement belongs to the payer charged.
 import {
   type Address,
+  agreementFromLabels,
   type CaseBundle,
   CaptureSchema,
   DisputeSchema,
@@ -11,6 +15,7 @@ import {
   parseTerms,
   PaymentTokenSchema,
   sha256Hex,
+  verifyMandate,
 } from "@readback/core";
 import { z } from "zod";
 import type { PayPalClient } from "./paypal-client.ts";
@@ -72,7 +77,8 @@ export async function buildCaseBundle(id: string, paypal: PayPalClient, now: Dat
   if (owner < 0) return { ok: false, status: 422, message: "PayPal's order doesn't contain this charge." };
   const orderData = { ...order.data, purchase_units: [order.data.purchase_units[owner]!] as typeof order.data.purchase_units };
 
-  const tokenId = orderData.payment_source?.paypal?.attributes?.vault?.id;
+  const pu0 = orderData.purchase_units[0]!;
+  const tokenId = orderData.payment_source?.paypal?.attributes?.vault?.id ?? agreementFromLabels(pu0.custom_id, pu0.invoice_id);
   let token: CaseBundle["token"] = null;
   if (tokenId) {
     const t = await paypal.get(`/v3/vault/payment-tokens/${encodeURIComponent(tokenId)}`, PaymentTokenSchema);
@@ -85,7 +91,7 @@ export async function buildCaseBundle(id: string, paypal: PayPalClient, now: Dat
   const terms = termsText ? parseTerms(termsText) : null;
   const payerId = token?.payment_source.paypal.payer_id ?? orderData.payer?.payer_id ?? orderData.payment_source?.paypal?.account_id;
   const history = tokenId && terms?.ok
-    ? await findHistory(paypal, tokenId, new Date(`${terms.value.start}T00:00:00Z`), now, { checkDisputes: true, verifyPayer: payerId, before: cap.data.create_time })
+    ? await findHistory(paypal, tokenId, new Date(`${terms.value.start}T00:00:00Z`), now, { checkDisputes: true, verifyPayer: payerId, fingerprint: terms.value.fingerprint, before: cap.data.create_time })
     : { entries: [], complete: true };
 
   const { supplementary_data: _s, ...capture } = cap.data;
@@ -119,7 +125,7 @@ export async function findHistory(
   tokenId: string,
   start: Date,
   now: Date,
-  opts: { checkDisputes: boolean; verifyPayer?: string | undefined; before?: string },
+  opts: { checkDisputes: boolean; verifyPayer?: string | undefined; fingerprint?: string; before?: string },
 ): Promise<{ entries: HistoryEntry[]; complete: boolean }> {
   const prefix = `rb1:${tokenId}:`;
   const entries: HistoryEntry[] = [];
@@ -155,19 +161,31 @@ export async function findHistory(
       h.disputed = !d.ok || (d.data.items?.length ?? 0) > 0;
     }
     if (opts.verifyPayer && !h.disputed) {
-      h.verified = await paidWithThisAgreement(paypal, h.captureId, tokenId, opts.verifyPayer);
+      h.verified = await paidWithThisAgreement(paypal, h.captureId, tokenId, opts.verifyPayer, opts.fingerprint);
       if (h.verified && ++qualified >= 2) break;
     }
   }
   return { entries, complete: true };
 }
 
-async function paidWithThisAgreement(paypal: PayPalClient, captureId: string, tokenId: string, payerId: string): Promise<boolean> {
+// Labels alone are merchant-written, so a history entry counts only if PayPal shows the same payer
+// and either PayPal's echo names this agreement or the order carries a request signed by the
+// approved agent key for this agreement (which only her agent can produce).
+async function paidWithThisAgreement(paypal: PayPalClient, captureId: string, tokenId: string, payerId: string, fingerprint: string | undefined): Promise<boolean> {
   const cap = await paypal.get(`/v2/payments/captures/${encodeURIComponent(captureId)}`, CaptureWithOrder);
   const orderId = cap.ok ? cap.data.supplementary_data?.related_ids?.order_id : undefined;
   if (!cap.ok || !orderId || !COMPLETED.has(cap.data.status)) return false;
-  const order = await paypal.get(`/v2/checkout/orders/${encodeURIComponent(orderId)}`, OrderSchema);
-  if (!order.ok) return false;
+  const raw = await paypal.get(`/v2/checkout/orders/${encodeURIComponent(orderId)}`, z.unknown());
+  const order = raw.ok ? OrderSchema.safeParse(raw.data) : null;
+  const owners = raw.ok ? OrderCaptures.safeParse(raw.data) : null;
+  if (!order?.success || !owners?.success) return false;
   const o = order.data;
-  return o.payment_source?.paypal?.attributes?.vault?.id === tokenId && (o.payer?.payer_id ?? o.payment_source?.paypal?.account_id) === payerId;
+  if ((o.payer?.payer_id ?? o.payment_source?.paypal?.account_id) !== payerId) return false;
+  const echo = o.payment_source?.paypal?.attributes?.vault?.id;
+  if (echo !== undefined) return echo === tokenId;
+  const pu = o.purchase_units[owners.data.purchase_units.findIndex((p) => p.payments?.captures?.some((c) => c.id === captureId))];
+  const jws = pu?.items?.[0]?.description;
+  if (!fingerprint || !jws) return false;
+  const m = await verifyMandate(jws);
+  return m.ok && m.value.fingerprint === fingerprint && m.value.payload.agr === tokenId;
 }
