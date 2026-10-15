@@ -33,7 +33,7 @@ The full product spec, demo script, and milestone detail live in `docs/SPEC.md`.
    - Claude never holds or sees a key.
    - Every decision is deterministic TypeScript in `packages/readback-core`, covered by tests.
 2. **Readback stores nothing; PayPal is the system of record.**
-   - **Consent:** the approved terms, including the agent's key fingerprint, live in the payment token's `description`. It can't be edited after approval. `billing_plan` is sent for display on PayPal's approval page only; PayPal does not return it.
+   - **Consent:** the approved terms, including the agent's key fingerprint, live in the payment token's `description`. It can't be edited after approval. `billing_plan` is sent for display on PayPal's approval page only (the page shows just its `name`, which carries the grouped fingerprint); PayPal does not return it. Agreements use `usage_pattern: RECURRING_PREPAID`.
    - **Purchases:** each lives in a PayPal order, made with `vault_id` and `stored_credential` and carrying:
      - the agent-signed closed mandate (compact JWS) in `purchase_units[0].items[0].description`;
      - `invoice_id = RB-<tokenId>-P<NNN>`, so PayPal rejects a second charge in the same period;
@@ -109,7 +109,7 @@ readback/
 **Security and correctness**
 - Secrets only in environment variables on the server. Never in the browser, the repo, or logs. Keep `.env.example` current.
 - Every PayPal POST sends a **deterministic** `PayPal-Request-Id` derived from the operation, so retries are no-ops. Order create uses `rb-<first 40 hex of mandateHash>`; capture and track IDs are derived from it. Never use a random ID for a retryable operation.
-- Find a disputed charge through PayPal, not through merchant labels: dispute → `seller_transaction_id` → capture → order → `payment_source.paypal.attributes.vault.id`. Labels (`custom_id`, `invoice_id`) are cross-checks.
+- Find a disputed charge through PayPal as far as PayPal goes: dispute → `seller_transaction_id` → capture → order. PayPal sends no vault echo (spike step 3), so the agreement is the one `custom_id`/`invoice_id` name, accepted only with PayPal's payer match. Labels can count against the merchant, never for it: only a signature by the agreement's key can favor the merchant (SPEC §5.6 check 2a).
 - Money is parsed into integer cents and never compared as strings. USD only. Shipping, tax, and discounts are zero.
 - Verify webhooks with PayPal's verify-webhook-signature endpoint before acting. Unverified events are dropped.
 - **Untrusted content stays untrusted.** Product pages, buyer dispute messages, and web content reach Claude only inside clearly delimited data blocks framed as data, not instructions. Nothing Claude reads can widen what the gate allows.
@@ -123,7 +123,7 @@ readback/
   - any check failure.
 - The agent runtime fails closed too. It signs only requests that pass `readback-core`'s constraint check, and it refuses to operate under an agreement whose terms don't contain its own fingerprint (THREAT-MODEL T21).
 - **The agent's private key** lives only in the agent runtime's environment. It is never sent to Claude, never put in a tool result, never logged, and never present in `apps/web` (the judge-mode tab key, THREAT-MODEL T31, is the only exception).
-- Every charge carries the signed mandate, the terms copy, `custom_id`, and the period `invoice_id` exactly as SPEC §4 defines them. Map PayPal errors to denials: `DUPLICATE_INVOICE_ID` means already ordered this period; `AGREEMENT_ALREADY_CANCELLED` or `INVALID_VAULT_ID` means agreement not active.
+- Every charge carries the signed mandate, the terms copy, `custom_id`, and the period `invoice_id` exactly as SPEC §4 defines them. Map PayPal errors to denials: `DUPLICATE_INVOICE_ID` means already ordered this period; `AGREEMENT_ALREADY_CANCELLED`, `INVALID_VAULT_ID`, or `PERMISSION_DENIED` (what the sandbox returns for a deleted token) means agreement not active.
 - All date math is UTC.
 - **Never claim more than the evidence shows.** The investigator view labels secondary evidence. It gives no suggested ruling when consent authenticity is unverified, and it never asserts Seller Protection eligibility; show the capture's `seller_protection` field instead.
 - **Merchant write actions** (send, accept, offer, evidence, track) require `MERCHANT_ADMIN_TOKEN`, compared server-side. On the public deployment, the Merchant toggle is view-only.

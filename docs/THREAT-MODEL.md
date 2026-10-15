@@ -54,12 +54,13 @@ Where only merchant-attested data is available, the result is labeled. A `SELLER
 
 **Mitigation:**
 - Readback cannot stop a merchant who holds a vault token. No client-side tool can.
-- **It finds the charge through PayPal, not through the merchant's labels.** The pipeline goes from the dispute's `seller_transaction_id` to the capture, then the order, then the **PayPal-attested vault echo** (`attributes.vault.id`), which gives the token. Check 2a passes on the echo alone, so stripping labels or omitting `stored_credential` (which is merchant-declared) doesn't hide the link.
+- **It finds the charge through PayPal as far as PayPal goes.** The pipeline goes from the dispute's `seller_transaction_id` to the capture, then the order. PayPal doesn't echo which agreement paid (spike step 3, no `attributes.vault.id`), so the last hop uses the agreement named by `custom_id` or `invoice_id` (one is enough; labels naming different agreements give no link). Check 2a accepts it only if PayPal shows that agreement belongs to the payer charged (check 1).
+- **Labels can count against the merchant, never for it.** A label is only a lead: a seller-favor result also needs a mandate signed by the key in that agreement's PayPal-stored terms, naming that agreement (check 3). If the named agreement has been deleted, the link is secondary and can't support a seller-favor suggestion (T10). The demo's direct charge (`RB-<tokenId>-DIRECT`) stays linked this way.
 - **No valid agent request:** missing labels (check 2b), or a missing, invalid, or unpinned mandate (check 3). The suggestion is `BUYER_FAVOR`, **even if every term was respected.**
 - **Terms broken:** an amount, item, period, date, or terms-binding failure (checks 5–9) also gives `BUYER_FAVOR`.
 - The merchant can't forge a mandate without the agent's private key.
 
-**Not stopped:** if the spike shows PayPal doesn't echo the vault ID, a label-stripping merchant's charge can't be linked to the agreement from merchant-side data, and is classified "not an agent-agreement charge." This is documented. PayPal internally can always link it.
+**Not stopped:** PayPal doesn't echo the vault ID (confirmed, spike step 3). A merchant who strips **both** labels and the mandate leaves nothing merchant-side data can link to the agreement. The charge is classified "not an agent-agreement charge," with no suggestion, and goes through PayPal's ordinary dispute handling. PayPal internally can always link it.
 
 **Evals:** 5 gate violations, 7 signature attacks, and 4 disputes the merchant should lose (one a stripped-labels direct charge). Target: 100% `BUYER_FAVOR`. Judges can also reproduce this live with "Be a dishonest merchant" (T32).
 
@@ -224,8 +225,9 @@ Where the dispute opens in inquiry, Readback first sends her the terms she appro
 
 **Not stopped by code.** In AP2, the agent key goes onto a trusted surface the merchant doesn't author. Here, the merchant authors the open-mandate content.
 - The runtime's per-call terms fetch and `my_agent_card()` go through the merchant's endpoint (`/api/agreements/[tokenId]`). They therefore detect **misconfiguration only**, not a lying merchant.
-- **The only independent check is Maya's.** She compares the full 16-character fingerprint shown by her own runtime, inside her own Claude, with what PayPal's approval page shows. The shopper page deliberately does not display the fingerprint, so the comparison has to use the runtime's display. Fingerprints are never truncated on screen.
-- **Production fix:** PayPal stores an agent-key field natively and fetches the key from the agent itself, closing this gap. See `docs/PROPOSAL-agent-terms.md`.
+- **Maya's comparison is the only check outside the merchant, and it is weaker than it looks.** She compares the full 16-character fingerprint shown by her own runtime, inside her own Claude, with what PayPal's approval page shows. The shopper page deliberately does not display the fingerprint, so the comparison has to use the runtime's display. Fingerprints are never truncated on screen.
+- **PayPal's page shows only `billing_plan.name`** (spike step 2), and that's where the grouped fingerprint goes ("…, agent qX7m P2vL 9cRt 4sYb"). The plan name is merchant-supplied and **not stored**; the stored `description` is never shown. So the comparison catches an honest merchant's misconfiguration and makes Maya's approval of a specific key explicit, but **a lying merchant can show her fingerprint in the plan name and store his own in `description`**. Nothing in PayPal's records afterwards reveals the difference.
+- **Production fix:** PayPal shows the stored `description` on its approval page, or stores an agent-key field natively and fetches the key from the agent itself, closing this gap. See `docs/PROPOSAL-agent-terms.md`.
 - **UX mitigation in this build:** the agent presents its fingerprint as one guided step ("Does PayPal's page show qX7m P2vL 9cRt 4sYb? Reply yes."), in large grouped monospace. The shopper page never shows it.
 
 ### T22. The agent runtime itself is compromised
@@ -244,7 +246,7 @@ Where the dispute opens in inquiry, Readback first sends her the terms she appro
 - Cross-connector misuse is outside Readback's control and is out of scope; the README says so.
 
 ### T24. The merchant omits the mandate or the labels
-This is T3's stripped-labels case. With the vault echo, the link is PayPal-attested, and the missing mandate or labels fail checks 2b and 3, giving `BUYER_FAVOR`.
+This is T3's stripped-labels case. With either label left, the agreement is linked (with PayPal's payer match), and the missing mandate or label fails checks 3 and 2b, giving `BUYER_FAVOR`. With both labels and the mandate stripped, see T3's "Not stopped": no link from merchant-side data, no suggestion.
 
 ### T25. Denial of service on the gate or webhooks
 
@@ -349,7 +351,7 @@ This is T3's stripped-labels case. With the vault echo, the link is PayPal-attes
 |---|---|---|
 | Terms approved, including agent fingerprint | Payment token `description` (PayPal) | No (but see T21 for setup) |
 | Who approved | Token `payer_id` (PayPal) | No |
-| This charge used that agreement | Order `payment_source.paypal.attributes.vault.id` (PayPal) | No |
+| This charge used that agreement | Order `attributes.vault.id` (PayPal) if sent; the sandbox doesn't, so the agreement the labels name, confirmed by PayPal's payer match | Can strip or mislabel the labels; a mislabel to another payer's agreement fails check 1, and only a signature by the agreement's key can favor the merchant |
 | Merchant-initiated declaration | Order `stored_credential` (merchant-declared) | Yes. Shown, never decisive |
 | The agent asked for this purchase | JWS in order `items[0].description`, verified against the fingerprint | Can delete or alter it, which fails check 3; **cannot forge** a valid one |
 | Charge amount, time, status, payer | Capture (PayPal) | No |

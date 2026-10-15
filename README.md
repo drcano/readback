@@ -38,7 +38,7 @@ Diagrams and where each rule lives: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 | AP2 v0.2 import: checks AP2's own published mandate chain (disclosures, agent signature, binding, amount, payee, dates) | Built; try it at `/ap2` |
 | Independent security review (fresh Fable 5.1 session, Oct 15) | Two high findings, both seller-leaning, proven with probes, fixed, and kept as regression tests ([ADR 0005](docs/decisions/0005-independent-audit-oct15.md), scope and date stated) |
 | Neutrality: one standard of evidence for both sides | [ADR 0004](docs/decisions/0004-neutrality.md); evals measure errors in both directions |
-| Sandbox spike (does PayPal behave as the design assumes?) | *Pending*: step 9 (crypto) passed; steps 1–8 need sandbox credentials |
+| Sandbox spike (does PayPal behave as the design assumes?) | Run Oct 15: steps 1, 2, 4, 8 and 9 pass. Step 3's charge passes but PayPal sends no vault echo; the labels-plus-payer fallback is in place. Step 5 merchant side done. Steps 6, 7 and buyer-side cancel *pending*. ([record](docs/decisions/0001-sandbox-spike.md)) |
 
 ## Run it locally
 

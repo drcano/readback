@@ -4,15 +4,17 @@
 
 ## Why
 
-Readback runs on today's rails. Three gaps remain because the merchant, not PayPal, carries some facts:
+Readback runs on today's rails. Four gaps remain because the merchant, not PayPal, carries some facts. Each was measured against the sandbox (`docs/decisions/0001-sandbox-spike.md`, 2026-10-15):
 
 | Gap | Today | Threat |
 |---|---|---|
 | The agent key fingerprint is written into the terms by the merchant's setup flow | A dishonest merchant could insert its own key | T21 |
+| PayPal's approval page shows only the merchant-supplied `billing_plan.name`, never the stored `description` | The buyer can't see the terms PayPal actually stores; a merchant can show her fingerprint and store its own | T21 |
+| Orders don't say which saved agreement paid (no `attributes.vault.id` on a vault charge) | The link rests on merchant labels plus PayPal's payer match; a charge with labels and mandate stripped can't be linked from merchant-side data | T3 |
 | Terms disappear from the merchant's view when the shopper deletes the agreement | Readback falls back to merchant-written copies and withholds seller-favor outcomes | T10 |
 | The signed mandate rides in a merchant-written order field | A merchant can omit it; Readback detects that after the fact | T3, T24 |
 
-Each gap closes if PayPal holds the agent terms itself, fetches the agent's key itself, and records whether each charge was signed.
+Each gap closes if PayPal holds the agent terms itself, fetches the agent's key itself, records whether each charge was signed, and **shows the stored terms on its approval page**. The last part needs no new field: displaying the existing `description` (or echoing `vault.id` on vault orders) would already narrow T21 and T3 today.
 
 ## The change
 
@@ -100,7 +102,7 @@ agent_verification:
 
 | Readback check or threat | Today (merchant-side build) | With `agent_terms` |
 |---|---|---|
-| T21: key swap at setup | Shopper compares fingerprints by eye | **Mostly closed.** PayPal fetches and displays the key and the agent's domain; a merchant-chosen `jwk_uri` remains an open question |
+| T21: key swap at setup | Shopper compares fingerprints by eye against a merchant-supplied plan name that isn't stored | **Mostly closed.** PayPal fetches and displays the key and the agent's domain; a merchant-chosen `jwk_uri` remains an open question |
 | T10: terms after revocation | Merchant-written copy, seller-favor withheld | **Closed.** `deleted_at` retained, terms still returned |
 | T3/T24: unsigned direct charges | Detected after the fact, suggested for the buyer | **Prevented** at charge time |
 | Check 3: requested by her agent | Re-derived from a merchant-written field | **PayPal-attested** (`agent_verification`) |

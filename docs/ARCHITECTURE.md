@@ -16,7 +16,7 @@ flowchart LR
   end
   subgraph PayPal["PayPal (system of record)"]
     T[("Payment token<br/>approved terms + agent fingerprint")]
-    O[("Order + capture<br/>signed mandate, labels, vault link")]
+    O[("Order + capture<br/>signed mandate, labels, payer")]
     D[("Dispute")]
   end
   R -- "signed closed mandate (ES256 JWS)" --> G
@@ -57,7 +57,7 @@ sequenceDiagram
 ```mermaid
 flowchart TD
   D["Dispute (PayPal)"] --> S["seller_transaction_id"] --> C["Capture"] --> O["Order"]
-  O --> V["payment_source.paypal.attributes.vault.id<br/>(PayPal-attested link)"] --> T["Payment token → approved terms"]
+  O --> V["Agreement named by custom_id / invoice_id<br/>(PayPal sends no vault echo; confirmed by PayPal's payer match)"] --> T["Payment token → approved terms"]
   O --> J["Signed mandate in items[0].description"]
   T & J & O & C --> K["Eleven checks<br/>Consent · Agent · Terms · Delivery"]
   H["Transaction Search history<br/>+ per-charge dispute status"] --> K

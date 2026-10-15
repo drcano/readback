@@ -1,6 +1,6 @@
 # 0001 — Sandbox spike (go/no-go)
 
-Status: in progress (started 2026-10-14). Public record, linked from the README.
+Status: in progress (started 2026-10-14). Steps 1–4 and 8 done, 5 merchant side done; remaining: step 6 (Transaction Search, after its ~3 h lag), step 7 (a UI-opened dispute) and step 5's buyer-side cancel and webhook. Public record, linked from the README.
 
 Each row is filled from a real sandbox run against a **standard merchant REST app** (not a platform app). Failures are recorded, not hidden. Scrubbed responses are saved under `evals/fixtures/spike/`. Steps are defined in `docs/SPEC.md` §8.
 
@@ -88,11 +88,12 @@ Fixtures from step 3 on are signed with throwaway keys that don't match step 2's
 
 **Step 8 (PASS).** `/track` → 201; GET order shows `trackers[]` with `SHIPPED` and the item SKU.
 
-**Open decisions (for Dante; nothing changed in core yet beyond the error mapping):**
-1. **Usage pattern:** switch `setup.ts`/`gate.ts` from `UNSCHEDULED_PREPAID` to `RECURRING_PREPAID` (format-freeze item).
-2. **Check 2a without the echo:** SPEC's fallback (§12): the payer match (PayPal-attested) plus labels identify the agreement; the signature decides. A charge with stripped labels can't be tied to an agreement from merchant-side data (THREAT-MODEL T3 "not stopped" case).
-3. **T21 (key swap at setup):** the plan name is merchant-supplied and never stored, so the approval page can't prove which fingerprint is in `description`. The real defense is the runtime refusing terms without its own fingerprint, which Maya notices immediately. THREAT-MODEL T21, ADR 0002 and runbook step 13 need rewording.
+**Decisions (2026-10-15, Dante: proceed):**
+1. **Usage pattern:** agreements use `RECURRING_PREPAID`, and the billing cycle carries `start_date` (without it PayPal wants a first payment now). Core's request was re-sent to the sandbox and accepted (commit 4af9012).
+2. **Check 2a without the echo:** the echo still wins if PayPal ever sends one. Otherwise the agreement named by `custom_id` and/or `invoice_id` is used (labels naming different agreements = no link), accepted only with PayPal's payer match. Labels can count against the merchant, never for it: a deleted agreement makes the link secondary (no seller-favor suggestion), and history entries count only with the payer match plus a mandate signed by the approved key for that agreement. A charge with both labels and the mandate stripped can't be linked from merchant-side data (THREAT-MODEL T3). Commit c1b1019.
+3. **T21 (key swap at setup):** the plan name now ends with the grouped fingerprint, and agent keys are drawn until the fingerprint has no `_`. The plan name is merchant-supplied and not stored, so the comparison on PayPal's page can't prove which fingerprint is in `description`; T21 stays "not stopped by code," and the proposal to PayPal asks it to show the stored terms (commit 4af9012; THREAT-MODEL T21, ADR 0002).
+4. **Revoked agreements:** `PERMISSION_DENIED` maps to "agreement not active" (commit 149ecf8).
 
 ## Decision
 
-TBD once the go/no-go rows are in.
+Go, with the changes above. Steps 1, 2 and 4 pass; step 3's charge passes and its echo fails, with the fallback in place; step 7 (disputes) is the remaining go/no-go.

@@ -101,10 +101,10 @@ Full sourcing in `docs/WHY-PAYPAL.md`. The essentials:
 | Fact | PayPal object | Field(s) | Editable by merchant later? |
 |---|---|---|---|
 | The terms the shopper approved, including her agent's key fingerprint | Payment token (Vault v3) | `payment_source.paypal.description` (≤128): the canonical terms string, shown to the payer at approval | **No** (Vault v3 has no update operation) |
-| Agreement type | Payment token | `usage_pattern: UNSCHEDULED_PREPAID`, `usage_type: MERCHANT`, `customer_type: CONSUMER`, `permit_multiple_payment_tokens: true` | No |
+| Agreement type | Payment token | `usage_pattern: RECURRING_PREPAID` (PayPal refuses a `billing_plan` with `UNSCHEDULED_PREPAID`; spike step 2), `usage_type: MERCHANT`, `customer_type: CONSUMER`, `permit_multiple_payment_tokens: true` | No |
 | Who approved | Payment token | `payer_id`, `email_address`, `customer.id` | No |
-| Terms shown on PayPal's approval page | Setup token request | `billing_plan` (display only; **not returned** on GET) | n/a |
-| Which agreement a charge used (PayPal-attested) | Order | `payment_source.paypal.attributes.vault.id` **[spike: go/no-go]** (`stored_credential` is merchant-declared, shown but never decisive) | No |
+| Terms shown on PayPal's approval page | Setup token request | `billing_plan.name` only, prefixed "to <brand>:" (display only; merchant-supplied; **not returned** on GET). The stored `description` is never shown to the buyer (spike step 2) | n/a |
+| Which agreement a charge used | Order | PayPal's `payment_source.paypal.attributes.vault.id` if present; **the sandbox never sends it** (spike step 3). Otherwise the agreement the labels (`custom_id`, `invoice_id`) name, accepted only with PayPal's payer match (check 2a). `stored_credential` is merchant-declared, shown but never decisive | No |
 | The agent's signed request | Order | `purchase_units[0].items[0].description` (≤2048 retained): the compact JWS | Merchant writes it, but can't forge it without the agent's private key |
 | Each charge | Order and capture | amounts and `amount.breakdown`; `items[]` (`name`, `sku`, `quantity`, `unit_amount`); `invoice_id`; `custom_id`; `purchase_units[0].description` | Merchant sets labels; PayPal records amounts, payer, time, and payment source |
 | One charge per period | Order | Canonical `invoice_id = RB-<tokenId>-P<NNN>`; PayPal rejects duplicates (`DUPLICATE_INVOICE_ID`) by default | — |
@@ -186,12 +186,13 @@ rb1:<tokenId>:<termsHash first 16 hex>:p003:<mandateHash first 16 hex>
 ```
 
 ### 4.5 billing_plan (display only)
-Sent on the setup token so PayPal's approval page shows the plan.
-- `name`: at most 127 characters; letters, digits, spaces, and `() + ' , . : -` only.
-- One REGULAR cycle, with VARIABLE pricing at the cap and a frequency matching the period.
+Sent on the setup token so PayPal's approval page shows the plan. The page shows only `name`, prefixed "to <brand_name>:" (spike step 2).
+- `name`: at most 127 characters; letters, digits, spaces, and `() + ' , . : -` only (PayPal rejects `_`). Format: `GBP-SR24, up to 1 per order every 30 days, max USD 65.00 each, until 2027-03-31, agent qX7m P2vL 9cRt 4sYb`. The merchant isn't repeated, since PayPal adds the brand. Agent keys are generated until the fingerprint contains no `_`.
+- One REGULAR cycle, with VARIABLE pricing at the cap, a frequency matching the period, and `start_date` = the terms' start (without it PayPal wants a first payment now).
 - The required `one_time_charges.total_amount: 0.00`.
+- Accepted only with `usage_pattern: RECURRING_PREPAID` (spike step 2).
 
-**[spike]:** the exact frequency shape, whether it's accepted with `UNSCHEDULED_PREPAID`, and what the page shows.
+The plan name is merchant-supplied and not stored, so it can't prove which fingerprint is in `description` (THREAT-MODEL T21).
 
 ### 4.6 AP2 alignment (v0.2, autonomous mode)
 
@@ -311,7 +312,7 @@ payload: { "tokenId": "<tokenId>", "purpose": "revoke" | "direct-charge", "iat":
 
    PayPal errors map to plain-language denials:
    - `DUPLICATE_INVOICE_ID` → "already ordered this period (refused by PayPal)."
-   - `INVALID_VAULT_ID` or `AGREEMENT_ALREADY_CANCELLED` → "agreement not active."
+   - `INVALID_VAULT_ID`, `AGREEMENT_ALREADY_CANCELLED`, or `PERMISSION_DENIED` (what the sandbox returns for a deleted token; spike step 5) → "agreement not active."
    - A failed capture is a denial; the order is left uncaptured.
 7. **Track:** add the tracker when Sam ships (`/v2/checkout/orders/{id}/track`, `notify_payer: true`).
 8. **Rate limiting:** delegated to the platform, or kept in ephemeral per-instance counters.
@@ -335,7 +336,7 @@ Sam can:
 
 ### 5.5 Dispute pipeline (`apps/web/lib/disputes`, stateless, idempotent)
 1. A verified webhook or a poll triggers it.
-2. **GET** the dispute. Find the capture by `seller_transaction_id`, then the order (`supplementary_data.related_ids.order_id` **[spike]**), then the token **through the PayPal-attested vault echo**. `custom` and `invoice_number` are cross-checks.
+2. **GET** the dispute. Find the capture by `seller_transaction_id`, then the order (`supplementary_data.related_ids.order_id` **[spike]**), then the token: PayPal's vault echo if present, else the agreement the order's labels name (the sandbox sends no echo; spike step 3). Check 2a accepts a label-named agreement only with PayPal's payer match. `custom` and `invoice_number` on the dispute are cross-checks.
 3. Fetch the token (or the secondary terms copy), the trackers, and the history.
 4. Run the eleven checks and classify (§5.6).
 5. Read `dispute.evidences[]` and `messages[]` before sending, so retries never double-submit.
@@ -368,7 +369,7 @@ Sam can:
 | # | Group | Check | Pass means |
 |---|---|---|---|
 | 1 | Consent | **Consent on PayPal** | A payment token exists, its `payer_id` matches the order's `payer.payer_id`, and its terms parse. If the token was deleted, the secondary copy from the charges is used and labeled. |
-| 2a | Consent | **PayPal-attested link** | The order's `payment_source.paypal.attributes.vault.id` equals the token ID. This alone decides the check. `stored_credential` is shown as merchant-declared and never decides a check. |
+| 2a | Consent | **Agreement link** | PayPal's vault echo (`attributes.vault.id`) if present; otherwise the agreement named by `custom_id` and/or `invoice_id` (labels that name different agreements = no link). A label-named agreement counts only with PayPal's payer match (check 1). If the agreement is gone and there's no echo, the link is secondary, which withholds a seller-favor suggestion only. Rule: merchant-written labels can count against the merchant, never for it; the signature by the approved key for that agreement (check 3) is what can favor the merchant. History entries (check 11) count only with PayPal's payer match plus a mandate signed by the approved key naming this agreement. `stored_credential` is merchant-declared and never decides a check. |
 | 2b | Agent | **Labels present** | `custom_id` and `invoice_id` parse and name that token. |
 | 3 | Agent | **Requested by her agent** | The JWS passes hygiene and verifies. Its key's thumbprint prefix equals the approved fingerprint. Its payload matches the order (`agr`, SKU, quantity, unit, amount, `p`). The capture time is within `[iat − 60s, exp + 60s]`. No other capture under the token carries the same mandateHash. |
 | 4 | Consent | **Active at charge** | The capture completed with the saved wallet, which PayPal refuses on cancelled agreements. No deletion event before the capture time, if events are retrievable. |
@@ -542,12 +543,12 @@ Scripts live in `scripts/spike/`. Results go in `docs/decisions/0001-sandbox-spi
    - a matching `breakdown.item_total`.
 
    Confirm everything round-trips on GET order, and note what the buyer's receipt shows. *(Must pass.)*
-2. **Agreement with terms:** create a setup token (`UNSCHEDULED_PREPAID`; also try `RECURRING_PREPAID`) with the terms in `description`, a `billing_plan` with `one_time_charges.total_amount`, and `permit_multiple_payment_tokens: true`.
+2. **Agreement with terms:** create a setup token (`UNSCHEDULED_PREPAID`; also try `RECURRING_PREPAID`. **Result:** only `RECURRING_PREPAID` is accepted with a `billing_plan`) with the terms in `description`, a `billing_plan` with `one_time_charges.total_amount`, and `permit_multiple_payment_tokens: true`.
    - Approve as the sandbox buyer and **screenshot what PayPal shows**.
    - Confirm `description` round-trips.
    - Confirm a second agreement for the same buyer gets a distinct token.
 3. **Charge without the shopper:** create an order with `vault_id` and `stored_credential`.
-   - **Go/no-go:** the order echoes `attributes.vault.id`.
+   - **Go/no-go:** the order echoes `attributes.vault.id`. **Result (10-15): no echo.** The labels-plus-payer fallback (§12) is in place.
    - Also record auto-completion and `seller_protection`.
 4. **Duplicate-period guard:** confirm "block accidental payments" is on and expect `DUPLICATE_INVOICE_ID` on a second charge. Test whether a declined attempt consumes the ID. Test that a reused `PayPal-Request-Id` returns the original order.
 5. **Revocation:**
@@ -722,8 +723,8 @@ Test the cut on three cold viewers. Each must restate the problem and the twist 
 
 | Risk | Mitigation |
 |---|---|
-| No vault echo on orders | Spike step 3 is go/no-go. Fallback: link by payer plus labels, and document the label-stripping gap |
-| PayPal's approval page shows little of the terms | The readback card and the runtime's fingerprint display are the disclosure; document the risk |
+| No vault echo on orders | **Happened (spike step 3, 10-15).** Fallback in place: labels name the agreement, PayPal's payer match confirms it (check 2a). The label-stripping gap is documented (THREAT-MODEL T3) |
+| PayPal's approval page shows little of the terms | **Confirmed:** only `billing_plan.name`. The plan name carries the readable terms and grouped fingerprint; the readback card and the runtime's fingerprint display are the disclosure; the plan name isn't bound to the stored terms (T21) |
 | Item description awkward on the receipt | Move the JWS to a second line item ("Agent authorization record"), or keep only `mandateHash` and document it |
 | Duplicate blocking off, or failed attempts consume IDs | The gate still enforces cadence; check 7's fallback |
 | Seed agreement late, so the hero case can't be recorded | Seed by Oct 21: signed by `apps/agent`'s seed signer, submitted by `pnpm seed:charge` (§2). It's a dated milestone |

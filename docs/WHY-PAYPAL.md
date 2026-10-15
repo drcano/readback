@@ -186,7 +186,7 @@ We don't claim a dollar figure for losses avoided. PayPal doesn't break out agen
    - **Closed mandates:** ES256-signed requests stored inside each PayPal order.
    - **Reuse without state:** AP2 handles reuse across purchases with constructs that require tracking previous presentations. Readback reuses one approval across periods statelessly, because PayPal's invoice uniqueness enforces one purchase per period.
    - No agent platform, network, or new credential issuer has to adopt anything.
-2. **Once the agreement is approved, a merchant can't fabricate the shopper's agent.** The signing key lives only with the shopper's agent. A charge with no valid signed request is therefore suggested for the buyer, even if it fits every term. Readback finds that charge through PayPal's own record of which saved wallet paid, so stripping labels doesn't hide it (this requires PayPal's vault echo on orders, spike step 3). Terms alone can't catch this case, and signatures alone can't decide it without PayPal's records. (Setup-time key substitution is a separate, documented risk; see the hard questions below.)
+2. **Once the agreement is approved, a merchant can't fabricate the shopper's agent.** The signing key lives only with the shopper's agent. A charge with no valid signed request is therefore suggested for the buyer, even if it fits every term. Readback finds that charge through its labels, confirmed by PayPal's record of who paid; PayPal doesn't echo which saved wallet paid (spike step 3), so a merchant who strips both labels and the mandate leaves the charge unlinked from merchant-side data (no suggestion either way). Terms alone can't catch this case, and signatures alone can't decide it without PayPal's records. (Setup-time key substitution is a separate, documented risk; see the hard questions below.)
 3. **Terms that can't be edited.** The Vault API has no update operation for payment tokens. [A1] Once the shopper approves, the terms and the agent fingerprint are fixed. Changing them takes a new approval.
 4. **PayPal enforces two of the limits itself.**
    - **One charge per period.** Each charge's invoice ID encodes its billing period, so PayPal rejects a second charge in the same period. This invoice-ID uniqueness is on by default but merchant-configurable. [A3]
@@ -237,7 +237,7 @@ You don't have to.
 - Where only merchant-written data is available (for example, terms read from charge copies after the shopper deletes the agreement), Readback labels it and withholds any seller-favor suggestion.
 - **What remains, stated honestly:**
   - In this build, the investigator page is served by the merchant's deployment, so results are re-derivable but not independent. PayPal hosting it would make it independent.
-  - A dishonest merchant's shopper page could insert its own key fingerprint at setup. Code can't stop that here. The shopper's defense is comparing the fingerprint her own agent shows her with the one on PayPal's page. In production, PayPal would fetch the agent key itself. (Threat model T21.)
+  - A dishonest merchant's shopper page could insert its own key fingerprint at setup. Code can't stop that here. The shopper's defense is comparing the fingerprint her own agent shows her with the one on PayPal's page. That page shows only the merchant-supplied plan name, not the stored terms (sandbox spike, step 2), so a lying merchant could show her fingerprint and store its own. In production, PayPal would show the stored terms or fetch the agent key itself. (Threat model T21.)
 
 **"What can a dishonest merchant still fake?"**
 What ships. The SKU on an order and on a tracker is merchant-reported, which is true of every PayPal transaction today. Readback shows that the charged SKU matches both the approved SKU and the SKU the agent signed. It cannot prove what was in the box. Not-as-described claims stay with PayPal's normal process.
@@ -300,8 +300,8 @@ That closes the remaining gaps (setup-time key swap, terms after revocation, uns
 - **Demo cadence.** The live demo uses one-day periods, labeled on screen, so that history exists before the deadline. Disputes are a hand-opened pool, and judge mode shows recorded adjudications rather than creating new ones.
 - **Terms after revocation.** If a shopper deletes the agreement, the merchant-side API can no longer read the token. Readback then falls back to the copy of the terms carried on every charge, labels it secondary, and withholds any seller-favor suggestion based on it. PayPal internally would not have this gap.
 - **Spike-dependent behavior.** These are tested in the spike (`docs/decisions/0001-sandbox-spike.md`), and the design has a fallback for each if it doesn't hold:
-  - whether PayPal's order shows which saved wallet paid;
-  - what PayPal's approval page displays;
+  - whether PayPal's order shows which saved wallet paid (it doesn't; the fallback is in place);
+  - what PayPal's approval page displays (only the plan name, which now carries the fingerprint);
   - merchant-initiated charges on the saved wallet;
   - duplicate-invoice blocking;
   - whether unauthorized disputes open as inquiries;
