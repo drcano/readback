@@ -36,19 +36,20 @@ export function paypalClient(env: Env = process.env, fetchImpl: typeof fetch = f
     method: "GET" | "POST" | "DELETE",
     path: string,
     schema: z.ZodType<T>,
-    opts: { requestId?: string; body?: unknown } = {},
+    opts: { requestId?: string; body?: unknown; form?: FormData } = {},
   ): Promise<PayPalResult<T>> {
     const headers: Record<string, string> = { Authorization: `Bearer ${await accessToken()}` };
     if (method === "POST") {
       if (!opts.requestId) throw new Error(`POST ${path} needs a PayPal-Request-Id`);
       headers["PayPal-Request-Id"] = opts.requestId;
-      headers["Content-Type"] = "application/json";
+      // A multipart body gets no Content-Type here: fetch adds it with the boundary.
+      if (!opts.form) headers["Content-Type"] = "application/json";
       headers["Prefer"] = "return=representation";
     }
     const res = await fetchImpl(`${base}${path}`, {
       method,
       headers,
-      body: opts.body === undefined ? undefined : JSON.stringify(opts.body),
+      body: opts.form ?? (opts.body === undefined ? undefined : JSON.stringify(opts.body)),
     });
     const debugId = res.headers.get("paypal-debug-id");
     console.info(`paypal ${method} ${path.split("?")[0]} ${res.status} ${debugId ?? ""}`);
@@ -76,6 +77,8 @@ export function paypalClient(env: Env = process.env, fetchImpl: typeof fetch = f
   return {
     get: <T>(path: string, schema: z.ZodType<T>) => call("GET", path, schema),
     post: <T>(path: string, requestId: string, body: unknown, schema: z.ZodType<T>) => call("POST", path, schema, { requestId, body }),
+    // Disputes' evidence and supporting-info endpoints take multipart (spike step 7).
+    postForm: <T>(path: string, requestId: string, form: FormData, schema: z.ZodType<T>) => call("POST", path, schema, { requestId, form }),
     delete: <T>(path: string, schema: z.ZodType<T>) => call("DELETE", path, schema),
   };
 }
