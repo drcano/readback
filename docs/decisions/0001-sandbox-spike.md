@@ -1,6 +1,6 @@
 # 0001 — Sandbox spike (go/no-go)
 
-Status: in progress (started 2026-10-14). Steps 1–4 and 8 done, 5 merchant side done; remaining: step 6 (Transaction Search, after its ~3 h lag), step 7 (a UI-opened dispute) and step 5's buyer-side cancel and webhook. Public record, linked from the README.
+Status: in progress (started 2026-10-14). Steps 1–4, 6 and 8 done, 5 merchant side done, 7 partial; remaining: step 7's `UNAUTHORISED` dispute and an adjudicated one, and step 5's buyer-side cancel and webhook. Public record, linked from the README.
 
 Each row is filled from a real sandbox run against a **standard merchant REST app** (not a platform app). Failures are recorded, not hidden. Scrubbed responses are saved under `evals/fixtures/spike/`. Steps are defined in `docs/SPEC.md` §8.
 
@@ -11,7 +11,7 @@ Each row is filled from a real sandbox run against a **standard merchant REST ap
 | 3 | Charge without the shopper; order echoes `attributes.vault.id` | **yes** | `03-vault-charge.ts` | charge **PASS**; vault echo **FAIL** (10-15) | `03-*.json` |
 | 4 | Duplicate-period guard (`DUPLICATE_INVOICE_ID`), request-ID replay | **yes** | `04-duplicate-guard.ts` | **PASS** (10-15) | `04-*.json` |
 | 5 | Revocation: merchant DELETE, buyer-side cancel, webhooks | no | `05-revocation.ts` | merchant DELETE done (10-15); buyer cancel and webhook pending | `05-*.json` |
-| 6 | History: Transaction Search, `:` in `custom_field`, lag | no | `06-history.ts` | pending | `06-*.json` |
+| 6 | History: Transaction Search, `:` in `custom_field`, lag | no | `06-history.ts` | PASS (10-17) | `06-*.json` |
 | 7 | Disputes: UI-opened, lifecycle to `adjudicate` | **yes** | `07-disputes.ts` | API reachable; needs a UI-opened dispute | `07-*.json` |
 | 8 | Tracking: `/track` round-trips | no | `08-tracking.ts` | **PASS** (10-15) | `08-*.json` |
 | 9 | Crypto (ES256 + thumbprint, Node and browser) / connector | **crypto: yes** | `09-crypto.ts`, `packages/readback-core` browser test | **crypto: PASS** (2026-10-15) | — |
@@ -101,6 +101,11 @@ Fixtures from step 3 on are signed with throwaway keys that don't match step 2's
 - **The chain works on a real dispute:** `seller_transaction_id` → capture → order; `custom` and `invoice_number` equal the capture's labels.
 - In this state PayPal offers only `provide_supporting_info`. `require-evidence`, `provide-evidence` and sandbox `adjudicate` all return `ACTION_NOT_ALLOWED_IN_CURRENT_DISPUTE_STATE`. **`provide-supporting-info` accepts a multipart `input` JSON part → 200.** So the merchant actions route must follow the dispute's own `links`, not assume `provide-evidence`.
 - Not yet done: an `UNAUTHORISED` dispute (the "my AI bought that" claim; the closest buyer option is "I suspect the subscription or recurring payment was set up by someone else"), and a dispute that reaches `adjudicate`. Unauthorized claims may restrict the buyer account in the sandbox, so they go on separate agreements as CLAUDE.md §8 plans, not on Maya's hero.
+
+**Step 6 (PASS, 2026-10-17).** Run by the daily seed job at 16:00Z; `06-transactions-page1.json` holds the page. All 12 transactions from the last 30 days came back on one page.
+- **`:` survives.** Every `rb1:` `custom_field` keeps the full SPEC §4.4 shape, and each one has its `RB-…` `invoice_id`.
+- **Lag:** `last_refreshed_datetime` was 14:29:59Z, about 90 minutes behind the request. P002 (charged 10-16 16:00Z) was there; P003 (charged 2 s before the search) was not. History is for prior charges, so the lag doesn't matter to check 11, but a charge made minutes ago won't show up yet.
+- **Event codes:** vault charges are `T0003`; the step 1 buyer-present order is `T0006`. The step 7 dispute added a `T1110` hold row and then a `T1111` row, and both carry the disputed charge's `custom_field` and `invoice_id`. History drops the whole `T11xx` family, so a hold doesn't count as a second charge. The code comment that called these refunds was wrong and is fixed.
 
 **Hero agreement (2026-10-15).** Production agent key generated into `apps/agent/.env` (never printed): fingerprint `GAX4 1xq- rZuP w9cM`. Hero agreement `5td85928ph747680n`, 1-day cadence from 2026-10-15, approved as Maya; PayPal's page showed "agent GAX4 1xq- rZuP w9cM", and the terms round-tripped byte-for-byte. The first seed charge (P001) was signed by `apps/agent`, allowed by core's gate, and charged; `@readback/verify` on its capture passes checks 1–9 with no vault echo, and check 10 after tracking. Two findings from that run:
 - A vault charge doesn't copy the buyer's address onto the order, so check 10 failed. The gate now sends the agreement's shipping address (accepted and round-tripped; commit 1a08a1e), and `seed:charge` adds a tracker.

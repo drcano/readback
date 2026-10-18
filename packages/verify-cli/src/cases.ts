@@ -139,7 +139,8 @@ export async function findHistory(
       // so missing history can never pass a check by accident (audit finding 3).
       if (!res.ok) return { entries, complete: false };
       for (const { transaction_info: t } of res.data.transaction_details ?? []) {
-        // ponytail: excludes refunds by event-code family (T11xx); confirm codes in spike step 6.
+        // T11xx are holds and reversals, not charges: a dispute adds T1110/T1111 rows carrying the
+        // disputed charge's labels (spike step 6). Charges are T0003 (vault) and T0006.
         if (t.custom_field?.startsWith(prefix) && !t.transaction_event_code?.startsWith("T11")) {
           entries.push({ captureId: t.transaction_id, captureTime: t.transaction_initiation_date, customId: t.custom_field, disputed: false, verified: false });
         }
