@@ -70,5 +70,5 @@ On screen throughout: a role chip (Shopper / Agent / PayPal / Investigator), cap
 | AG Studio queue | Trial starts Nov 1; until then it's AG Grid Community |
 | Agent Toolkit change | Prepared locally; it can be called a PR only once it's actually opened |
 | Eval numbers | 59/59 scenarios and a 2,000-mutation tamper sample with 0 kept (`evals/results/latest.json`); re-read them on recording day |
-| Assistant interface on screen | Check the Rules on third-party trademarks first (CLAUDE.md §8) |
+| Assistant interface on screen | The Official Rules bar third-party trademarks without permission. Show the agent through the judge-mode chat panel or MCP Inspector, not a branded assistant app, unless permission is in hand |
 | Three cold viewers | Each must restate the problem and the twist in one sentence |
