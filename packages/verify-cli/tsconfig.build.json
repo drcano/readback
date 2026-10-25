@@ -1,0 +1,12 @@
+{
+  // Emits dist/ for npm (pnpm pack/publish). The workspace keeps importing src/*.ts directly.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": "dist",
+    "rootDir": "src",
+    "declaration": true,
+    "rewriteRelativeImportExtensions": true
+  },
+  "exclude": ["src/**/*.test.ts", "src/test-helpers.ts"]
+}

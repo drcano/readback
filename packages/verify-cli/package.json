@@ -13,7 +13,9 @@
   },
   "scripts": {
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.build.json",
+    "prepack": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
     "@readback/core": "workspace:*",
@@ -21,5 +23,34 @@
   },
   "devDependencies": {
     "vitest": "^5.0.4"
+  },
+  "files": [
+    "dist",
+    "CHANGELOG.md",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/drcano/readback.git",
+    "directory": "packages/verify-cli"
+  },
+  "engines": {
+    "node": ">=22.18"
+  },
+  "publishConfig": {
+    "access": "public",
+    "bin": {
+      "readback-verify": "./dist/cli.js"
+    },
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js"
+      },
+      "./fake": {
+        "types": "./dist/fake.d.ts",
+        "import": "./dist/fake.js"
+      }
+    }
   }
 }

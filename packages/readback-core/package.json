@@ -12,7 +12,9 @@
   "scripts": {
     "test": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
-    "test:browser": "vitest run --config vitest.browser.config.ts"
+    "test:browser": "vitest run --config vitest.browser.config.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "prepack": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
     "jose": "^6.2.12",
@@ -24,5 +26,35 @@
     "fast-check": "^4.10.2",
     "playwright": "^1.64.0",
     "vitest": "^5.0.4"
+  },
+  "files": [
+    "dist",
+    "CHANGELOG.md",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/drcano/readback.git",
+    "directory": "packages/readback-core"
+  },
+  "engines": {
+    "node": ">=22.18"
+  },
+  "publishConfig": {
+    "access": "public",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js"
+      },
+      "./fixtures": {
+        "types": "./dist/fixtures.d.ts",
+        "import": "./dist/fixtures.js"
+      },
+      "./catalog": {
+        "types": "./dist/catalog.d.ts",
+        "import": "./dist/catalog.js"
+      }
+    }
   }
 }
