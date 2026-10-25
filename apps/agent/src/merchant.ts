@@ -8,7 +8,7 @@ export const AgreementViewSchema = z.object({
   active: z.boolean(),
   terms: z.string().nullable(),
   fingerprint: z.string().nullable(),
-  charges: z.array(z.object({ captureId: z.string(), time: z.string(), period: z.number().nullable() })),
+  charges: z.array(z.object({ captureId: z.string(), time: z.string(), period: z.number().nullable(), amount: z.string().nullable().optional() })),
 });
 export type AgreementView = z.infer<typeof AgreementViewSchema>;
 

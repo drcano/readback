@@ -28,7 +28,7 @@ const CaptureWithOrder = CaptureSchema.extend({
 const Search = z.object({
   total_pages: z.number().optional(),
   transaction_details: z
-    .array(z.object({ transaction_info: z.object({ transaction_id: z.string(), transaction_initiation_date: z.string(), custom_field: z.string().optional(), transaction_event_code: z.string().optional() }) }))
+    .array(z.object({ transaction_info: z.object({ transaction_id: z.string(), transaction_initiation_date: z.string(), custom_field: z.string().optional(), transaction_event_code: z.string().optional(), transaction_amount: z.object({ value: z.string() }).optional() }) }))
     .optional(),
 });
 const DisputeList = z.object({ items: z.array(z.object({ dispute_id: z.string() })).optional() });
@@ -142,7 +142,7 @@ export async function findHistory(
         // T11xx are holds and reversals, not charges: a dispute adds T1110/T1111 rows carrying the
         // disputed charge's labels (spike step 6). Charges are T0003 (vault) and T0006.
         if (t.custom_field?.startsWith(prefix) && !t.transaction_event_code?.startsWith("T11")) {
-          entries.push({ captureId: t.transaction_id, captureTime: t.transaction_initiation_date, customId: t.custom_field, disputed: false, verified: false });
+          entries.push({ captureId: t.transaction_id, captureTime: t.transaction_initiation_date, customId: t.custom_field, amount: t.transaction_amount?.value, disputed: false, verified: false });
         }
       }
       if (page >= (res.data.total_pages ?? 1)) break;

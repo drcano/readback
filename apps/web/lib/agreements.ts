@@ -73,7 +73,7 @@ export type AgreementView = {
   active: boolean;
   terms: string | null;
   fingerprint: string | null;
-  charges: { captureId: string; time: string; period: number | null }[];
+  charges: { captureId: string; time: string; period: number | null; amount: string | null }[];
 };
 
 // GET /api/agreements/[tokenId] (SPEC §5.3a). Merchant-served, so it's never evidence. No personal data.
@@ -87,6 +87,7 @@ export async function readAgreement(paypal: PayPalClient, tokenId: string, now: 
         captureId: h.captureId,
         time: h.captureTime,
         period: h.customId ? (parseCustomId(h.customId)?.period ?? null) : null,
+        amount: h.amount ?? null,
       }))
     : [];
   return { tokenId, active: res.ok, terms, fingerprint: parsed?.ok ? parsed.value.fingerprint : null, charges };

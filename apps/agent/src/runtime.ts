@@ -48,7 +48,7 @@ export function buildServer(profile: Profile, deps: Deps): McpServer {
       const t = await myTerms(agreement, profile, deps);
       if ("content" in t) return t;
       const view = await deps.merchant.agreement(agreement);
-      const bought = view?.charges.map((c) => `- ${c.time.slice(0, 10)}: period ${c.period ?? "?"} (receipt ${c.captureId})`).join("\n") || "- nothing yet";
+      const bought = view?.charges.map((c) => `- ${c.time.slice(0, 10)}: ${c.amount ? `$${c.amount}, ` : ""}period ${c.period ?? "?"} (PayPal transaction ${c.captureId})`).join("\n") || "- nothing yet";
       return text(
         [
           `What this agent may buy: up to ${t.terms.qty} × ${t.terms.sku} from ${t.terms.merchant}, once every ${t.terms.periodDays} day(s), max USD ${(t.terms.capCents / 100).toFixed(2)} per order, ${t.terms.start} to ${t.terms.end}.`,

@@ -146,6 +146,7 @@ export const HistoryEntrySchema = z.object({
   captureId: z.string(),
   captureTime: z.string(),
   customId: z.string().optional(),
+  amount: z.string().optional(), // USD as PayPal reports it; for display, never compared
   disputed: z.boolean(),
   // PayPal-verified: this capture's order was paid with THIS agreement's saved wallet (vault echo),
   // by the same payer, and completed. Labels alone are merchant-written, so only verified entries

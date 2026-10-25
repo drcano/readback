@@ -35,7 +35,8 @@ The response limits are why SPEC says "retained": PayPal accepts more than it gi
 - **Node (`node scripts/spike/09-crypto.ts`, Node 26):** 17/17 checks pass. RFC 7638 §3.1 thumbprint test vector matches; ES256 compact JWS with embedded `jwk` signs and verifies; tampered payload, swapped key, `alg: none`, ES384 and a `jwk` carrying `d` are all rejected.
 - **Finding:** `jose` itself accepts an extra `kid` header member and `typ: "JWT"`. Only Readback's own exact-header check rejects them, so that check in `readback-core` (`jws.ts`) is load-bearing, and is covered by tests.
 - **Browser (`pnpm test:browser`, headless Chromium via Playwright):** readback-core signs with a **non-extractable** P-256 key (it can't be exported), verifies, and re-runs both verdicts (row 13 `SELLER_FAVOR`, row 3 `BUYER_FAVOR`) in well under a second.
-- Not yet tested: the Claude connector calling the runtime (needs the MCP runtime, week 2).
+- **MCP Inspector (v2.11.0, CLI mode) against the runtime, 2026-10-25,** on the hero path with the web app on localhost and the live sandbox. `tools/list` returns the four tools (`09-mcp-tools-list.json`). `my_agent_card` lists all 11 hero charges with amounts. `browse_catalog` returns the catalog inside an `<untrusted_data>` block, attack pages included. `request_reorder` went agent → gate → PayPal and came back "Already ordered this period (refused by PayPal)", because P011 was already charged. `revoke_agreement` was deliberately not called on the hero.
+- Not yet tested: the Claude app's custom connector calling the hosted runtime (needs the Render deploy).
 
 ## Discrepancies between SPEC.md and PayPal's OpenAPI specs
 
