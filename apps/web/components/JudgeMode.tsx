@@ -3,9 +3,10 @@
 // only in memory (gone when the tab closes), approves terms carrying its fingerprint on PayPal in a
 // popup (so the tab, and its key, never navigate away), then signs a purchase itself.
 // Labeled demo affordance (THREAT-MODEL T31): the one place a private key lives outside the runtime.
-import { type AgentKey, buildMandate, generateAgentKey, groupFingerprint, parseTerms, sha256Hex, signActionProof, signMandate } from "@readback/core";
-import { CATALOG } from "@readback/core/catalog";
+import { type AgentKey, generateAgentKey, groupFingerprint, signActionProof } from "@readback/core";
 import { type ReactNode, useEffect, useState } from "react";
+import { signAndBuy } from "@/lib/tab-agent";
+import { AgentChat } from "./AgentChat";
 import { YourVerdicts } from "./VerdictPair";
 
 const DRAFT = { sku: "GBP-SR24", qty: 1, periodDays: 1, capCents: 6500, end: "2027-03-31" };
@@ -68,14 +69,9 @@ export function JudgeMode() {
 
   async function buy() {
     if (!key || !tokenId) return;
-    const view = await (await fetch(`/api/agreements/${encodeURIComponent(tokenId)}`)).json() as { terms?: string };
-    const terms = view.terms ? parseTerms(view.terms) : null;
-    if (!terms?.ok) return setStatus("Couldn't read your agreement's terms from PayPal.");
-    const built = buildMandate({ sku: DRAFT.sku, qty: 1, unitCents: CATALOG[DRAFT.sku]!.unitCents }, { tokenId, terms: terms.value, termsHash: await sha256Hex(view.terms!) }, Math.floor(Date.now() / 1000), crypto.randomUUID());
-    if (!built.ok) return setStatus(built.error.message);
-    const r = await post("/api/checkout", { mandate: await signMandate(built.value, key.privateKey, key.publicJwk) });
-    if (!r.ok) return setStatus(reason(r));
-    setBought(String(r["captureId"]));
+    const r = await signAndBuy(key, tokenId, DRAFT.sku, 1);
+    if (r.outcome !== "charged") return setStatus(r.message);
+    setBought(r.captureId);
     setStatus("Charged. Your tab signed it; the gate verified it; PayPal recorded it.");
   }
 
@@ -101,7 +97,8 @@ export function JudgeMode() {
           <button type="button" className="btn btn-primary" onClick={approve} disabled={Boolean(tokenId)}>Create my key and approve on PayPal</button>
         </Step>
         <Step n={2} title="Buy" s={state(Boolean(bought), Boolean(tokenId))}>
-          <p>Your tab signs one in-terms purchase. The merchant&apos;s gate verifies it and charges the saved wallet.</p>
+          <p>Ask Claude to shop: it asks your agent (this tab) to sign, and only what fits your terms gets signed. Or buy in one click.</p>
+          <AgentChat agentKey={key} tokenId={tokenId} onCharged={(id) => setBought((b) => b ?? id)} />
           <button type="button" className="btn" onClick={buy} disabled={!tokenId || Boolean(bought)}>Sign and buy one bag</button>
           {bought && <p><a href={`/investigator/${bought}`}>Check this charge</a>: Consent, Agent and Terms pass; Delivery doesn&apos;t yet (nothing shipped, no history), so there&apos;s no suggestion.</p>}
         </Step>

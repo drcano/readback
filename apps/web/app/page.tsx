@@ -1,5 +1,4 @@
 // Judge mode: a guided rail through the demo, each step live against the PayPal sandbox (SPEC §5.7).
-import { AgentChat } from "@/components/AgentChat";
 import { JudgeMode } from "@/components/JudgeMode";
 import { TwoVerdicts } from "@/components/TwoVerdicts";
 import { AppFooter, AppHeader } from "@/components/ui";
@@ -21,7 +20,6 @@ export default function Home() {
           signs every purchase, and a dispute is checked against both.
         </p>
         <TwoVerdicts heroId={caseId(process.env["HERO_DISPUTE_ID"])} twistId={caseId(process.env["TWIST_DISPUTE_ID"])} />
-        <AgentChat />
         <JudgeMode />
         <section className="more-links" aria-labelledby="more-h">
           <h2 id="more-h">More to check</h2>

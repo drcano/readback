@@ -22,7 +22,7 @@ On screen throughout: a role chip (Shopper / Agent / PayPal / Investigator), cap
 
 ## 0:32–0:55 · Buy · chip: Agent
 
-**Shot:** the home page's **"Ask the agent to shop"** panel (no third-party assistant UI): "Biscuit's low." The `request_reorder` tool runs. Cut to the order in the PayPal sandbox: the signed request in the item, the terms copy, `invoice_id RB-…-P0NN`. Ask again: *"Already ordered this period (refused by PayPal)."* Four-second flash: the injected "premium bundle" page, refused. Then `my_agent_card`: dates, amounts, receipts.
+**Shot:** judge mode's **"Ask Claude to shop"** (no third-party assistant UI; the tab is the agent): "Biscuit's low." The `request_reorder` tool runs. Cut to the order in the PayPal sandbox: the signed request in the item, the terms copy, `invoice_id RB-…-P0NN`. Ask again: *"Already ordered this period (refused by PayPal)."* Four-second flash: the injected "premium bundle" page, refused. Then `my_agent_card`: dates, amounts, receipts.
 
 **VO:** When she asks, her agent signs one exact order, and the store charges it under her agreement. Ask twice, and PayPal itself says no. A poisoned product page can't talk it into more, because the agent won't sign it and the store won't charge it.
 

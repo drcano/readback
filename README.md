@@ -69,7 +69,7 @@ Deterministic `PayPal-Request-Id` on every POST (retries are no-ops; timeouts re
 
 | Where | What Claude does | What decides |
 |---|---|---|
-| Shopper's assistant | Drives the agent runtime's MCP tools (agent card, catalog, reorder, revoke). Try it in **"Ask the agent to shop"** on the home page, or from any MCP client | The runtime signs only in-terms requests; the gate re-checks; PayPal refuses a second charge per period |
+| Shopper's assistant | Chooses what to ask for: agent card, catalog, reorder. Try **"Ask Claude to shop"** in judge mode, where your browser tab is the agent, or drive the agent runtime from any MCP client | The agent (your tab, or the runtime) signs only in-terms requests; the gate re-checks; PayPal refuses a second charge per period |
 | Terms compiler | Drafts structured terms from Maya's sentence | Code validates them and writes the readback card |
 | Investigator brief | Explains a case in plain English | A validator rejects any sentence without a citation to a check or a PayPal record |
 | Ask the queue | Picks one of nine named filters from a question | Code does the filtering |
@@ -99,7 +99,7 @@ The investigator queue (AG Grid) shows each dispute's evidence at a glance; the 
 
 ![Investigator queue](docs/assets/queue.png)
 
-**Ask the agent to shop** on the home page puts Claude in the shopper's seat, driving the demo's shared agent under the demo agreement (on a deployment that has one): ask it to reorder, to buy what a poisoned product page recommends, or to order three bags, and watch which requests the agent signs and PayPal charges.
+**Ask Claude to shop**, in judge mode, puts Claude in the shopper's seat with **your browser tab as her agent**: ask it to reorder, to buy what a poisoned product page recommends, or to order three bags, and watch which requests your tab signs and PayPal charges.
 
 **Judge mode** on the home page lets you be the agent: your browser tab generates a non-extractable key, you approve its terms on PayPal's sandbox page, sign a purchase, then press **"Be a dishonest merchant"**, and see **your own two charges side by side**: your agent's, and the store's with the Agent light red and "Refund the buyer", against the store running the tool.
 

@@ -346,19 +346,21 @@ main.console.narrow { max-width: 56rem; }
 .readback { border-top: 4px solid var(--accent); }
 .readback-card { margin: 0; font-size: 1.25rem; line-height: 1.45; font-weight: 700; color: var(--uphold); }
 
-/* Ask the agent to shop */
-.chat { margin-top: 2.5rem; padding: 1.5rem 1.75rem; }
-.chat-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; }
-.chat-head h2 { margin: 0; font-size: 1.25rem; }
-.chat > p.muted { margin: 0.5rem 0 0; }
-.chat-log { list-style: none; padding: 0; margin: 1rem 0 0; display: grid; gap: 0.75rem; }
-.chat-turn { padding: 0.875rem 1rem; border-radius: 16px; background: var(--paper); max-width: 46rem; }
-.chat-turn[data-role="user"] { justify-self: end; background: var(--uphold-bg); }
-.chat-turn p { margin: 0.25rem 0 0; }
-.chat-steps { list-style: none; padding: 0; margin: 0.5rem 0 0; display: flex; gap: 0.375rem; flex-wrap: wrap; }
-.chat-suggest { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem; }
+/* Ask Claude to shop (inside judge-mode step 2) */
+.chat { margin: 0.25rem 0 1rem; padding: 1rem; border: 1px solid var(--rule); border-radius: 16px; background: var(--paper); }
+.chat-locked { margin: 0 0 0.875rem; }
+.chat-log { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.625rem; }
+.chat-log:empty { display: none; }
+.chat-turn { padding: 0.75rem 0.875rem; border-radius: 14px; background: var(--surface); max-width: 46rem; border: 1px solid var(--rule); }
+.chat-turn[data-role="user"] { justify-self: end; background: var(--uphold-bg); border-color: var(--uphold-rule); }
+.chat-turn[data-role="agent"] { border-left: 4px solid var(--pass); }
+.chat-turn[data-role="agent"][data-outcome="refused"], .chat-turn[data-role="agent"][data-outcome="denied"] { border-left-color: var(--fail); }
+.chat-turn p { margin: 0.25rem 0 0; color: var(--ink); }
+.chat-turn .step { margin-top: 0.375rem; }
+.chat-steps { list-style: none; padding: 0; margin: 0.375rem 0 0; display: flex; gap: 0.375rem; flex-wrap: wrap; }
+.chat-suggest { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 .chat-suggest .chip { white-space: normal; text-align: left; }
-.chat-form { display: flex; gap: 0.5rem; margin-top: 1rem; }
+.chat-form { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
 .chat-form .field { height: 44px; border-radius: 999px; padding: 0 1rem; }
 
 /* Attack lab */

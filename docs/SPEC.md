@@ -445,7 +445,10 @@ Sam can:
 
 **Reset demo** creates a fresh setup token and approval link, since every agreement needs a human approval on PayPal. Charges are re-signed after approval. Each judge gets a fresh agreement, so periods never collide.
 
-**A built-in chat panel** drives the agent runtime for judges without a connector. Judges don't need an Anthropic key; all API keys stay server-side.
+**"Ask Claude to shop": Claude asks, the judge's tab signs.** Step 2 holds a chat panel where Claude is the shopper's assistant and **the judge's own tab is her agent**:
+- `POST /api/chat` runs Claude with three tools. `my_agent_card` (the judge's agreement as PayPal holds it) and `browse_catalog` (the store's pages, attack pages included, as untrusted data) run on the server. `request_reorder` **pauses the loop** and returns the request to the browser.
+- The tab does what the agent runtime does before signing: it refuses terms that don't carry its own fingerprint (T21) and anything outside them, signs with its non-extractable key, and posts to `/api/checkout`. The outcome (signed and charged, refused to sign, or signed and then refused by the gate or PayPal) is shown by code, not by Claude, and goes back to Claude on the next turn as a delimited `<agent_result>` block.
+- So the AI moment and "it's my key" are the same moment, and the chat needs no judge agreement on the server and no MCP secret in the web app. Judges don't need an Anthropic key; all API keys stay server-side. The agent runtime and its judge path stay for MCP clients (the Claude connector, MCP Inspector).
 
 ### 5.8 Developer surfaces: the "we need this" layer
 - **`@readback/core` on npm.** Typed, browser-safe, zod schemas exported. Versioned, with a changelog.
@@ -488,7 +491,7 @@ Every route is stateless.
 | POST | `/api/cases/[id]/draft` | Public (draft only) | none (Claude only) | Cited draft response or inquiry message |
 | POST | `/api/cases/[id]/actions` | Admin | `send-message`, `accept-claim`, `make-offer`, `escalate`, `provide-evidence` or `provide-supporting-info`, whichever the dispute's `links` offer (spike step 7; after reading `evidences[]`/`messages[]`) | PayPal's response |
 | POST | `/api/studio-agent` | Public | none (deterministic filters over `/api/queue` results; Claude phrases them) | Answer plus a filter spec |
-| POST | `/api/chat` | Public; rate-limited; Claude budget (T34) | none directly; calls the runtime's **judge path** only (`AGENT_RUNTIME_URL` + `JUDGE_MCP_SECRET`) | The assistant's reply plus a trace of the tools the agent ran. Stateless: the browser sends the visible conversation (≤ 12 short messages) each time |
+| POST | `/api/chat` | Public; rate-limited; Claude budget (T34) | `GET /v3/vault/payment-tokens/{id}` and Transaction Search for `my_agent_card` (via `readAgreement`) | Claude's reply, a trace of the tools it used, and, when it calls `request_reorder`, the pending order for the judge's tab to check, sign and submit. Never signs. Stateless: the browser sends its agreement ID and the visible conversation (≤ 16 short messages) each time |
 | POST | `/api/webhooks/paypal` | PayPal signature, verified first | `POST /v1/notifications/verify-webhook-signature`, then re-fetches | 200 |
 | GET | `/api/health` | Public | none | Status |
 

@@ -24,6 +24,13 @@ await page.waitForSelector("text=Approved on PayPal", { timeout: 20_000 });
 const fp = await page.textContent(".fp");
 console.log("PASS  step 1: approved via popup; tab key fingerprint", fp);
 
+// "Ask Claude to shop" unlocks once the tab is the approved agent. This server has no Anthropic key,
+// so a message gets the designed "not connected" state (Claude's side is covered by unit tests).
+await page.getByLabel("Message to Claude, your shopping assistant").fill("Reorder Biscuit's food");
+await page.getByRole("button", { name: "Send" }).click();
+await page.waitForSelector("text=The AI assistant isn't connected", { timeout: 20_000 });
+console.log("PASS  ask Claude to shop: unlocked after approval; no key → designed state");
+
 await page.getByRole("button", { name: "Sign and buy one bag" }).click();
 await page.waitForSelector("text=Charged.", { timeout: 20_000 });
 console.log("PASS  step 2: tab signed, gate verified, charged");
