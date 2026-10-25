@@ -31,7 +31,7 @@ export function EvidenceChain({ bundle, result, groups, verify }: { bundle: Case
       <div className="chain-head">
         <h2 id="chain-h">How we know, from PayPal&apos;s records</h2>
         <span role="status" className="verified" data-match={verify.matchesServer === false ? "false" : "true"}>
-          {verify.matchesServer === false ? `✕ Re-checked in your browser: does NOT match the server` : `✓ Re-checked in your browser in ${verify.ms} ms${verify.matchesServer ? " · matches" : ""}`}
+          {verify.matchesServer === false ? `✕ Re-checked in your browser: does NOT match the server` : `✓ Re-checked in your browser in ${verify.ms < 1 ? "under 1" : verify.ms} ms${verify.matchesServer ? " · matches" : ""}`}
         </span>
       </div>
       <ol>

@@ -11,7 +11,8 @@
     "start": "next start",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "test:e2e": "node e2e/run.ts"
+    "test:e2e": "node e2e/run.ts",
+    "screenshots": "node e2e/run.ts e2e/screenshots.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",
