@@ -44,6 +44,32 @@ describe("checkout gate", () => {
     expect(pp.orders.size).toBe(1);
   });
 
+  it("a dropped order create is retried once with the same request ID, and PayPal makes one order", async () => {
+    let dropped = false;
+    const flaky: typeof fetch = async (input, init) => {
+      const res = await pp.fetch(input, init); // PayPal acts, then the answer is lost (seed runs, Oct 23 and 25)
+      if (!dropped && String(input).endsWith("/v2/checkout/orders") && init?.method === "POST") {
+        dropped = true;
+        throw new TypeError("fetch failed");
+      }
+      return res;
+    };
+    const r = await checkout(await mandate(), paypalClient(ENV, flaky), NOW);
+    expect(r.ok).toBe(true);
+    expect(pp.orders.size).toBe(1);
+    const creates = pp.posts.filter((p) => p.path === "/v2/checkout/orders");
+    expect(creates).toHaveLength(2);
+    expect(creates[0]!.requestId).toBe(creates[1]!.requestId);
+  });
+
+  it("PayPal still unreachable after the retry is a plain-language denial, not a crash", async () => {
+    const down: typeof fetch = async (input, init) => {
+      if (String(input).endsWith("/v2/checkout/orders")) throw new TypeError("fetch failed");
+      return pp.fetch(input, init);
+    };
+    expect(codes(await checkout(await mandate(), paypalClient(ENV, down), NOW))).toEqual(["PAYPAL_UNAVAILABLE"]);
+  });
+
   it("a second request in the same period is refused by PayPal's duplicate-invoice block", async () => {
     await run(await mandate({ jti: "jti-first-001" }));
     expect(codes(await run(await mandate({ jti: "jti-second-01" })))).toEqual(["ALREADY_ORDERED_THIS_PERIOD"]);

@@ -58,7 +58,10 @@ export async function paypalRaw(req: PayPalRequest): Promise<PayPalResponse> {
     }
   }
 
-  const res = await fetch(`${BASE}${req.path}`, { method: req.method, headers, body });
+  // Time out at 25 s and retry once with the same PayPal-Request-Id (PayPal replays it). Without
+  // this, the seed job waited out undici's 300 s default on Oct 23 and 25 and lost both charges' fixtures.
+  const send = () => fetch(`${BASE}${req.path}`, { method: req.method, headers, body, signal: AbortSignal.timeout(25_000) });
+  const res = await send().catch(send);
   const text = await res.text();
   let json: unknown = {};
   try {

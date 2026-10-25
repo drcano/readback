@@ -124,6 +124,7 @@ describe("authorizeCharge", () => {
     expect(denialFromPayPalIssue("INVALID_VAULT_ID").code).toBe("AGREEMENT_NOT_ACTIVE");
     expect(denialFromPayPalIssue("AGREEMENT_ALREADY_CANCELLED").code).toBe("AGREEMENT_NOT_ACTIVE");
     expect(denialFromPayPalIssue("PERMISSION_DENIED").code).toBe("AGREEMENT_NOT_ACTIVE");
+    expect(denialFromPayPalIssue("PAYPAL_UNREACHABLE").code).toBe("PAYPAL_UNAVAILABLE");
     expect(denialFromPayPalIssue("INSTRUMENT_DECLINED")).toEqual({ code: "PAYPAL_REFUSED", message: "PayPal refused the charge (INSTRUMENT_DECLINED)." });
   });
 });

@@ -11,18 +11,35 @@ export type PayPalResult<T> = PayPalOk<T> | PayPalErr;
 
 type Env = Record<string, string | undefined>;
 
+// Without a timeout a hung connection waits undici's 300 s default; two seed charges did
+// (Oct 23 and 25), and PayPal had created both orders while the script waited.
+const TIMEOUT_MS = 25_000;
+// fetch rejects with a TypeError when the network fails, and a TimeoutError when the signal fires.
+const isNetworkError = (e: unknown) => e instanceof TypeError || (e instanceof Error && e.name === "TimeoutError");
+
 export function paypalClient(env: Env = process.env, fetchImpl: typeof fetch = fetch) {
   const base = env["PAYPAL_API_BASE"] ?? "https://api-m.sandbox.paypal.com";
   // ponytail: a fresh OAuth token per request keeps "stores nothing" literal; cache it per
   // instance if PayPal rate limits or latency ever matter (the token holds no customer data).
   let token: string | undefined;
 
+  // One retry after a network error or timeout. Safe for every POST: it resends the same
+  // PayPal-Request-Id, and PayPal replays the first result instead of acting twice (spike step 4).
+  async function send(url: string, init: RequestInit): Promise<Response> {
+    try {
+      return await fetchImpl(url, { ...init, signal: AbortSignal.timeout(TIMEOUT_MS) });
+    } catch (e) {
+      if (!isNetworkError(e)) throw e;
+      return fetchImpl(url, { ...init, signal: AbortSignal.timeout(TIMEOUT_MS) });
+    }
+  }
+
   async function accessToken(): Promise<string> {
     if (token) return token;
     const id = env["PAYPAL_CLIENT_ID"];
     const secret = env["PAYPAL_CLIENT_SECRET"];
     if (!id || !secret) throw new Error("PAYPAL_CLIENT_ID / PAYPAL_CLIENT_SECRET are not set");
-    const res = await fetchImpl(`${base}/v1/oauth2/token`, {
+    const res = await send(`${base}/v1/oauth2/token`, {
       method: "POST",
       headers: { Authorization: `Basic ${btoa(`${id}:${secret}`)}`, "Content-Type": "application/x-www-form-urlencoded" },
       body: "grant_type=client_credentials",
@@ -38,19 +55,27 @@ export function paypalClient(env: Env = process.env, fetchImpl: typeof fetch = f
     schema: z.ZodType<T>,
     opts: { requestId?: string; body?: unknown; form?: FormData } = {},
   ): Promise<PayPalResult<T>> {
-    const headers: Record<string, string> = { Authorization: `Bearer ${await accessToken()}` };
-    if (method === "POST") {
-      if (!opts.requestId) throw new Error(`POST ${path} needs a PayPal-Request-Id`);
-      headers["PayPal-Request-Id"] = opts.requestId;
-      // A multipart body gets no Content-Type here: fetch adds it with the boundary.
-      if (!opts.form) headers["Content-Type"] = "application/json";
-      headers["Prefer"] = "return=representation";
+    if (method === "POST" && !opts.requestId) throw new Error(`POST ${path} needs a PayPal-Request-Id`);
+    let res: Response;
+    try {
+      const headers: Record<string, string> = { Authorization: `Bearer ${await accessToken()}` };
+      if (method === "POST") {
+        headers["PayPal-Request-Id"] = opts.requestId!;
+        // A multipart body gets no Content-Type here: fetch adds it with the boundary.
+        if (!opts.form) headers["Content-Type"] = "application/json";
+        headers["Prefer"] = "return=representation";
+      }
+      res = await send(`${base}${path}`, {
+        method,
+        headers,
+        body: opts.form ?? (opts.body === undefined ? undefined : JSON.stringify(opts.body)),
+      });
+    } catch (e) {
+      // Still unreachable after the retry: a failure like any other, so callers deny.
+      if (!isNetworkError(e)) throw e;
+      console.warn(`paypal ${method} ${path.split("?")[0]} unreachable`);
+      return { ok: false, status: 504, issues: ["PAYPAL_UNREACHABLE"], debugId: null };
     }
-    const res = await fetchImpl(`${base}${path}`, {
-      method,
-      headers,
-      body: opts.form ?? (opts.body === undefined ? undefined : JSON.stringify(opts.body)),
-    });
     const debugId = res.headers.get("paypal-debug-id");
     console.info(`paypal ${method} ${path.split("?")[0]} ${res.status} ${debugId ?? ""}`);
     const text = await res.text();

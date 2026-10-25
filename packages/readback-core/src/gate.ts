@@ -145,6 +145,10 @@ export function denialFromPayPalIssue(issue: string): Failure {
     // What the sandbox really returns for a revoked token (spike step 5, 2026-10-15): 403 PERMISSION_DENIED.
     case "PERMISSION_DENIED":
       return { code: "AGREEMENT_NOT_ACTIVE", message: "Your agreement isn't active (refused by PayPal)." };
+    // Our client's code, not PayPal's: no answer after one retry. The charge may or may not have
+    // gone through, but asking again can't charge twice: PayPal refuses a second invoice_id.
+    case "PAYPAL_UNREACHABLE":
+      return { code: "PAYPAL_UNAVAILABLE", message: "PayPal didn't answer in time. Asking again is safe: PayPal refuses a second charge this period." };
     default:
       return { code: "PAYPAL_REFUSED", message: `PayPal refused the charge (${issue}).` };
   }
