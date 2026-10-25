@@ -485,7 +485,7 @@ Every route is stateless.
 | POST | `/api/cases/[id]/draft` | Public (draft only) | none (Claude only) | Cited draft response or inquiry message |
 | POST | `/api/cases/[id]/actions` | Admin | `send-message`, `accept-claim`, `make-offer`, `escalate`, `provide-evidence` or `provide-supporting-info`, whichever the dispute's `links` offer (spike step 7; after reading `evidences[]`/`messages[]`) | PayPal's response |
 | POST | `/api/studio-agent` | Public | none (deterministic filters over `/api/queue` results; Claude phrases them) | Answer plus a filter spec |
-| POST | `/api/chat` | Public; rate-limited | none directly; calls the runtime's **judge path** only | Chat turns |
+| POST | `/api/chat` | Public; rate-limited; Claude budget (T34) | none directly; calls the runtime's **judge path** only (`AGENT_RUNTIME_URL` + `JUDGE_MCP_SECRET`) | The assistant's reply plus a trace of the tools the agent ran. Stateless: the browser sends the visible conversation (≤ 12 short messages) each time |
 | POST | `/api/webhooks/paypal` | PayPal signature, verified first | `POST /v1/notifications/verify-webhook-signature`, then re-fetches | 200 |
 | GET | `/api/health` | Public | none | Status |
 

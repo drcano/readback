@@ -69,7 +69,7 @@ Deterministic `PayPal-Request-Id` on every POST (retries are no-ops; timeouts re
 
 | Where | What Claude does | What decides |
 |---|---|---|
-| Shopper's assistant | Drives the agent runtime's MCP tools (agent card, catalog, reorder, revoke) | The runtime signs only in-terms requests; the gate re-checks |
+| Shopper's assistant | Drives the agent runtime's MCP tools (agent card, catalog, reorder, revoke). Try it in **"Ask the agent to shop"** on the home page, or from any MCP client | The runtime signs only in-terms requests; the gate re-checks; PayPal refuses a second charge per period |
 | Terms compiler | Drafts structured terms from Maya's sentence | Code validates them and writes the readback card |
 | Investigator brief | Explains a case in plain English | A validator rejects any sentence without a citation to a check or a PayPal record |
 | Ask the queue | Picks one of nine named filters from a question | Code does the filtering |
@@ -94,6 +94,8 @@ One product, three roles, one design system: the shopper delegates, the agent bu
 The investigator queue (AG Grid) shows each dispute's evidence at a glance; the case view walks the evidence chain, each step tied to a PayPal record, re-checked in the browser.
 
 ![Investigator queue](docs/assets/queue.png)
+
+**Ask the agent to shop** on the home page puts Claude in the shopper's seat: ask it to reorder, to buy what a poisoned product page recommends, or to order three bags, and watch which requests the agent signs and PayPal charges.
 
 **Judge mode** on the home page lets you be the agent: your browser tab generates a non-extractable key, you approve its terms on PayPal's sandbox page, sign a purchase, then press **"Be a dishonest merchant"** and watch the Agent light go red on your own charge.
 

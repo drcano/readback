@@ -27,7 +27,9 @@ check(Boolean(agent["AGENT_PRIVATE_KEY"]), "AGENT_PRIVATE_KEY set (apps/agent/.e
 check((agent["HERO_MCP_SECRET"] ?? "").length >= 16 && (agent["JUDGE_MCP_SECRET"] ?? "").length >= 16, "MCP path secrets are at least 16 characters");
 check(Boolean(web["PAYPAL_WEBHOOK_ID"]), "PAYPAL_WEBHOOK_ID set (webhook verification)");
 check(Boolean(web["MERCHANT_ADMIN_TOKEN"] && web["MERCHANT_ADMIN_TOKEN"].length >= 24), "MERCHANT_ADMIN_TOKEN set (24+ chars)");
-check(Boolean(web["ANTHROPIC_API_KEY"]), "ANTHROPIC_API_KEY set (terms compiler)");
+check(Boolean(web["ANTHROPIC_API_KEY"]), "ANTHROPIC_API_KEY set (terms compiler, brief, chat panel)");
+check(Boolean(web["JUDGE_MCP_SECRET"]) && web["JUDGE_MCP_SECRET"] === agent["JUDGE_MCP_SECRET"], "JUDGE_MCP_SECRET in .env matches apps/agent/.env (chat panel)");
+check(!web["HERO_MCP_SECRET"], "HERO_MCP_SECRET is NOT in the merchant .env (only Dante's connector uses it)");
 
 // Live checks: OAuth works, and the app can see Vault (a bogus token must 404, not 403).
 if (web["PAYPAL_CLIENT_ID"] && web["PAYPAL_CLIENT_SECRET"]) {

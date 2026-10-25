@@ -30,6 +30,8 @@ services:
         sync: false
       - key: AGENT_RUNTIME_URL # the agent service's public https URL
         sync: false
+      - key: JUDGE_MCP_SECRET # same as the agent service's; the chat panel uses the judge path, never the hero one
+        sync: false
       - key: HERO_AGREEMENT_ID
         sync: false
       - key: JUDGE_AGREEMENT_ID
