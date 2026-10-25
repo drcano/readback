@@ -11,7 +11,7 @@ const NEXT: Record<Rec["key"], string> = {
   review: "The records don't settle it either way. Read the brief, then decide.",
 };
 
-export function CaseActions({ id, rec, amount }: { id: string; rec: Rec; amount: string }) {
+export function CaseActions({ id, rec, amount, closed }: { id: string; rec: Rec; amount: string; closed: boolean }) {
   const [brief, setBrief] = useState<{ sentences: { text: string; cites: string[] }[]; by: string } | null>(null);
   const [draft, setDraft] = useState<{ kind: string; text: string } | null>(null);
 
@@ -30,11 +30,11 @@ export function CaseActions({ id, rec, amount }: { id: string; rec: Rec; amount:
   return (
     <section className="card side-card" aria-labelledby="next-h">
       <h2 id="next-h">Next step</h2>
-      <p>{NEXT[rec.key]}</p>
+      <p>{closed ? "PayPal has closed this case, so there is nothing left to send." : NEXT[rec.key]}</p>
       <div className="side-actions">
         <button type="button" className="btn btn-primary" onClick={explain}>Explain this case in plain English</button>
-        <button type="button" className="btn" onClick={loadDraft}>Draft a reply to the shopper</button>
-        {rec.key === "refund" && <button type="button" className="btn" disabled>Refund ${amount} (admin only)</button>}
+        {!closed && <button type="button" className="btn" onClick={loadDraft}>Draft a reply to the shopper</button>}
+        {!closed && rec.key === "refund" && <button type="button" className="btn" disabled>Refund ${amount} (admin only)</button>}
       </div>
       <p className="side-note">Every sentence in the brief cites a check or a PayPal record. A person approves before anything is sent; sending is off on the public demo.</p>
       {brief && (

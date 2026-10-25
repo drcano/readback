@@ -125,6 +125,9 @@ export const DisputeSchema = z.object({
   dispute_life_cycle_stage: z.string(),
   create_time: z.string().optional(),
   seller_response_due_date: z.string().optional(),
+  update_time: z.string().optional(),
+  // Present once PayPal has decided (status RESOLVED). Shown, never used by the checks.
+  dispute_outcome: z.object({ outcome_code: z.string(), outcome_reason: z.string().optional() }).optional(),
   disputed_transactions: z
     .array(
       z.object({

@@ -38,6 +38,27 @@ export function recommendation(s: "BUYER_FAVOR" | "SELLER_FAVOR" | null): Rec {
   return { key: "review", label: "Needs review" };
 }
 
+const humanize = (code: string) => code.toLowerCase().replaceAll("_", " ");
+
+// A dispute PayPal has already decided: its ruling leads, and Readback's suggestion is shown as a
+// check against it. null while the dispute is open (or has no outcome yet).
+export type Ruling = { favors: "seller" | "buyer" | null; label: string; reason: string | null; check: string };
+export function paypalRuling(
+  outcome: { outcome_code: string; outcome_reason?: string | undefined } | undefined,
+  suggestion: "BUYER_FAVOR" | "SELLER_FAVOR" | null,
+): Ruling | null {
+  if (!outcome) return null;
+  const favors = outcome.outcome_code === "RESOLVED_SELLER_FAVOUR" ? "seller" : outcome.outcome_code === "RESOLVED_BUYER_FAVOUR" ? "buyer" : null;
+  const label = favors ? `PayPal ruled for the ${favors}` : `PayPal closed the case: ${humanize(outcome.outcome_code)}`;
+  const ours = suggestion === "SELLER_FAVOR" ? "seller" : suggestion === "BUYER_FAVOR" ? "buyer" : null;
+  const check =
+    ours === null ? "Readback makes no recommendation here, so it neither confirms nor questions PayPal's ruling."
+    : favors === null ? `Readback's evidence favors the ${ours}; PayPal's outcome isn't a ruling for either side.`
+    : ours === favors ? `Readback's evidence agrees: it favors the ${ours} too.`
+    : `Readback's evidence disagrees: it favors the ${ours}. PayPal may have decided on grounds these checks don't cover.`;
+  return { favors, label, reason: outcome.outcome_reason ? humanize(outcome.outcome_reason) : null, check };
+}
+
 // The four evidence steps, short (queue chips) and long (case view headings).
 const STEP: Record<Light["group"], { short: string; pass: string; fail: string; caution: string }> = {
   Consent: { short: "She approved", pass: "She approved her agent's limits on PayPal", fail: "Her approval doesn't cover this charge", caution: "Her approval is only partly verified" },

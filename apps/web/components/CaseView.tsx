@@ -5,11 +5,13 @@
 import { type CaseBundle, type CaseResult, evaluateCase, lights } from "@readback/core";
 import { fixtureCases } from "@readback/core/fixtures";
 import { useCallback, useEffect, useState } from "react";
-import { claimQuote, reasonLabel, recommendation, stageLabel } from "@/lib/labels";
+import { claimQuote, paypalRuling, reasonLabel, recommendation, stageLabel } from "@/lib/labels";
 import { CaseActions, CaseFacts } from "./CaseSide";
 import { EvidenceChain } from "./EvidenceChain";
 import { CheckTable } from "./CheckTable";
 import { Tape } from "./Tape";
+
+const fmtDate = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
 
 type Loaded = { bundle: CaseBundle; server: CaseResult | null; fixture: boolean };
 type Verify = { result: CaseResult; ms: number; matchesServer: boolean | null };
@@ -63,6 +65,7 @@ export function CaseView({ id }: { id: string }) {
   const { result } = verify;
   const c = result.classification;
   const rec = recommendation(c.suggestion);
+  const ruling = paypalRuling(bundle.dispute?.dispute_outcome, c.suggestion);
   const groups = lights(result.checks);
   const lead = groups.find((g) => g.state === "fail") ?? groups.find((g) => g.state === "caution");
   const why = rec.key === "uphold" ? UPHOLD_WHY : rec.key === "refund" && lead ? lead.summary : `${c.label}. The evidence doesn't support a recommendation either way, so a person should look.`;
@@ -80,13 +83,22 @@ export function CaseView({ id }: { id: string }) {
           ${bundle.capture.amount.value}
           {terms ? ` to ${terms.merchant}` : ""}
           {bundle.order.purchase_units[0]?.items?.[0] ? ` for ${bundle.order.purchase_units[0].items[0].quantity} × ${bundle.order.purchase_units[0].items[0].name}` : ""}
-          , charged {new Date(bundle.capture.create_time).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })}.
+          , charged {fmtDate(bundle.capture.create_time)}.
         </p>
 
-        <section className="card rec-banner" data-rec={rec.key} aria-labelledby="rec-h">
-          <p className="cap">Readback recommends</p>
-          <h2 id="rec-h">{rec.label}</h2>
-          <p>{why}</p>
+        {ruling && (
+          <section className="card ruling-banner" aria-labelledby="ruling-h">
+            <p className="cap">PayPal's decision{bundle.dispute?.update_time ? ` · ${fmtDate(bundle.dispute.update_time)}` : ""}</p>
+            <h2 id="ruling-h">{ruling.label}</h2>
+            {ruling.reason && <p>Reason PayPal gives: {ruling.reason}.</p>}
+            <p className="muted">This case is closed. Below, Readback re-checks it against PayPal's records.</p>
+          </section>
+        )}
+
+        <section className="card rec-banner" data-rec={rec.key} data-closed={ruling ? "true" : undefined} aria-labelledby="rec-h">
+          <p className="cap">{ruling ? "Readback's check against it" : "Readback recommends"}</p>
+          <h2 id="rec-h">{ruling ? ruling.check : rec.label}</h2>
+          <p>{ruling ? `Readback would have recommended: ${rec.label.toLowerCase()}. ${why}` : why}</p>
           {c.notes.map((n) => <p key={n} className="muted">{n}</p>)}
         </section>
 
@@ -106,7 +118,7 @@ export function CaseView({ id }: { id: string }) {
       </div>
 
       <aside className="case-side" aria-label="Case actions and facts">
-        <CaseActions id={id} rec={rec} amount={bundle.capture.amount.value} />
+        <CaseActions id={id} rec={rec} amount={bundle.capture.amount.value} closed={ruling !== null} />
         <CaseFacts bundle={bundle} result={result} stage={bundle.dispute ? stageLabel(bundle.dispute.dispute_life_cycle_stage) : null} />
       </aside>
     </div>
