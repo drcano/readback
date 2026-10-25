@@ -340,7 +340,8 @@ This is T3's stripped-labels case. With either label left, the agreement is link
 
 **Mitigation:**
 - Per-IP rate limits (ephemeral, per instance) and capped `max_tokens`.
-- An `ANTHROPIC_DAILY_BUDGET` circuit breaker, enforced per instance in memory, after which these routes return a labeled "demo budget reached" state.
+- An `ANTHROPIC_DAILY_CALLS` circuit breaker, enforced per instance in memory, after which these routes return a labeled "demo budget reached" state.
+- `/api/chat` also caps the conversation (12 messages of up to 1,000 characters) and the tool loop (6 turns per request), and talks only to the runtime's judge path, which has no revoke tool. Whatever a visitor types, the runtime signs only in-terms requests and the gate re-checks them (`apps/web/lib/agent-chat.test.ts`, the Claude harness).
 - A billing alert set on the Anthropic account.
 
 **Not stopped:** a distributed burst within the limits. The cost is bounded by the account's spend limit.

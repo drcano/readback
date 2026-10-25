@@ -95,7 +95,7 @@ The investigator queue (AG Grid) shows each dispute's evidence at a glance; the 
 
 ![Investigator queue](docs/assets/queue.png)
 
-**Ask the agent to shop** on the home page puts Claude in the shopper's seat: ask it to reorder, to buy what a poisoned product page recommends, or to order three bags, and watch which requests the agent signs and PayPal charges.
+**Ask the agent to shop** on the home page puts Claude in the shopper's seat, driving the demo's shared agent under the demo agreement (on a deployment that has one): ask it to reorder, to buy what a poisoned product page recommends, or to order three bags, and watch which requests the agent signs and PayPal charges.
 
 **Judge mode** on the home page lets you be the agent: your browser tab generates a non-extractable key, you approve its terms on PayPal's sandbox page, sign a purchase, then press **"Be a dishonest merchant"** and watch the Agent light go red on your own charge.
 
@@ -176,7 +176,7 @@ Tests: `pnpm test` · browser: `pnpm test:browser` · evals: `pnpm eval` · end 
 | Piece | State |
 |---|---|
 | `packages/readback-core`: terms grammar, ES256 mandates, fingerprints, labels, gate decision, eleven checks, classification, AP2 import | Built and tested (see above) |
-| `apps/agent`: MCP agent runtime, stateless, two secret paths | Built; tested over MCP, with MCP Inspector, and by the Claude harness |
+| `apps/agent`: MCP agent runtime, stateless, two secret paths | Built; tested over MCP, with MCP Inspector, by the Claude harness, and live through the home page chat panel |
 | `apps/web`: shopper flow, judge mode, investigator queue and case view, checkout gate, agreements, webhooks | Built; tested against an in-memory PayPal fake and end to end in Chromium |
 | Sandbox spike | Steps 1, 2, 4, 6, 8 and 9 pass. Step 3's charge passes, but PayPal sends no vault echo; the labels-plus-payer fallback is in place. Step 5's merchant side is done; buyer-side cancel is *pending*. Step 7: a real dispute reads end to end, and the sandbox adjudicated it alone overnight; an unauthorized-claim dispute is *pending*. ([record](docs/decisions/0001-sandbox-spike.md)) |
 
