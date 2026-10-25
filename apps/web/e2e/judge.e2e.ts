@@ -28,6 +28,15 @@ await page.getByRole("button", { name: "Sign and buy one bag" }).click();
 await page.waitForSelector("text=Charged.", { timeout: 20_000 });
 console.log("PASS  step 2: tab signed, gate verified, charged");
 
+// "Your two verdicts": the judge's own signed charge, read back from PayPal and re-checked here.
+// (Step 5's direct charge needs the real sandbox: the demo route refuses any other PayPal base.)
+await page.waitForSelector(".your-verdicts .verdict-card[data-rec='review']", { timeout: 20_000 });
+const yours = (await page.textContent(".your-verdicts")) ?? "";
+// Pass, or Caution while Transaction Search catches up (it lags; spike step 6). Never Fail.
+const agentPass = /Agent\s*(✓\s*Pass|!\s*Caution)/.test(yours);
+console.log(`${agentPass ? "PASS" : "FAIL"}  your two verdicts: own signed charge shown, Agent light not failed${agentPass ? "" : ` — ${yours.slice(0, 400)}`}`);
+if (!agentPass) process.exitCode = 1;
+
 await page.getByRole("link", { name: "Check this charge" }).first().click();
 await page.waitForSelector("text=Re-checked in your browser", { timeout: 20_000 });
 const verdict = await page.textContent(".rec-banner");
@@ -36,4 +45,4 @@ const ok = /Needs review/.test(verdict ?? "");
 console.log(`${ok ? "PASS" : "FAIL"}  step 4: own charge in preview has no suggestion yet — ${verdict?.replace(/\s+/g, " ").slice(0, 120)}`);
 console.log(errors.length ? `FAIL  page errors: ${errors.join(" | ")}` : "PASS  no page errors");
 await b.close();
-process.exit(ok && errors.length === 0 ? 0 : 1);
+process.exit(ok && errors.length === 0 && !process.exitCode ? 0 : 1);

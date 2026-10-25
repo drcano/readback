@@ -36,6 +36,10 @@ services:
         sync: false
       - key: JUDGE_AGREEMENT_ID
         sync: false
+      - key: HERO_DISPUTE_ID # the home page's live pair, once the disputes exist
+        sync: false
+      - key: TWIST_DISPUTE_ID
+        sync: false
       - key: DEMO_MODE
         value: "true"
 

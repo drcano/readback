@@ -6,6 +6,7 @@
 import { type AgentKey, buildMandate, generateAgentKey, groupFingerprint, parseTerms, sha256Hex, signActionProof, signMandate } from "@readback/core";
 import { CATALOG } from "@readback/core/catalog";
 import { type ReactNode, useEffect, useState } from "react";
+import { YourVerdicts } from "./VerdictPair";
 
 const DRAFT = { sku: "GBP-SR24", qty: 1, periodDays: 1, capCents: 6500, end: "2027-03-31" };
 const post = async (url: string, body: unknown) => {
@@ -119,6 +120,7 @@ export function JudgeMode() {
         </Step>
       </ol>
       <p role="status" aria-live="polite">{status}</p>
+      {(bought || dishonest) && <YourVerdicts signed={bought} direct={dishonest} />}
     </section>
   );
 }

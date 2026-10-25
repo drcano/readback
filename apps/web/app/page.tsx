@@ -4,6 +4,9 @@ import { JudgeMode } from "@/components/JudgeMode";
 import { TwoVerdicts } from "@/components/TwoVerdicts";
 import { AppFooter, AppHeader } from "@/components/ui";
 
+// The real hero and twist disputes, once opened in the sandbox; otherwise the landing uses fixtures.
+const caseId = (v: string | undefined) => (v && /^[A-Za-z0-9-]{1,64}$/.test(v) ? v : undefined);
+
 export default function Home() {
   return (
     <>
@@ -17,7 +20,7 @@ export default function Home() {
           let her agent buy. Readback puts that record on PayPal&apos;s own rails: she approves her agent&apos;s limits once on PayPal, her agent
           signs every purchase, and a dispute is checked against both.
         </p>
-        <TwoVerdicts />
+        <TwoVerdicts heroId={caseId(process.env["HERO_DISPUTE_ID"])} twistId={caseId(process.env["TWIST_DISPUTE_ID"])} />
         <AgentChat />
         <JudgeMode />
         <section className="more-links" aria-labelledby="more-h">

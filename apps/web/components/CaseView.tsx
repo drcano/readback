@@ -2,9 +2,9 @@
 // The case view (SPEC §5.6). Fetches the case bundle from /api/cases/[id] (live PayPal data), then
 // re-runs every check, including the agent's signature, here in the browser with readback-core.
 // Fixture IDs (fixture-hero, fixture-twist) build the case in the browser and are labeled as such.
-import { type CaseBundle, type CaseResult, evaluateCase, lights } from "@readback/core";
-import { fixtureCases } from "@readback/core/fixtures";
+import { type CaseResult, evaluateCase, lights } from "@readback/core";
 import { useCallback, useEffect, useState } from "react";
+import { type Loaded, loadCase as load } from "@/lib/case-client";
 import { claimQuote, paypalRuling, reasonLabel, recommendation, stageLabel } from "@/lib/labels";
 import { CaseActions, CaseFacts } from "./CaseSide";
 import { EvidenceChain } from "./EvidenceChain";
@@ -13,21 +13,7 @@ import { Tape } from "./Tape";
 
 const fmtDate = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
 
-type Loaded = { bundle: CaseBundle; server: CaseResult | null; fixture: boolean };
 type Verify = { result: CaseResult; ms: number; matchesServer: boolean | null };
-
-async function load(id: string): Promise<Loaded> {
-  if (id.startsWith("fixture-")) {
-    const wanted = { "fixture-hero": "PP-D-HERO1", "fixture-twist": "PP-D-TWIST" }[id] ?? id.slice("fixture-".length);
-    const found = (await fixtureCases()).find((f) => f.id === wanted);
-    if (!found) throw new Error("No such fixture.");
-    return { bundle: found.bundle, server: null, fixture: true };
-  }
-  const res = await fetch(`/api/cases/${encodeURIComponent(id)}`);
-  const body = (await res.json()) as { ok: boolean; bundle?: CaseBundle; result?: CaseResult; message?: string };
-  if (!body.ok || !body.bundle) throw new Error(body.message ?? `Couldn't load this case (HTTP ${res.status}).`);
-  return { bundle: body.bundle, server: body.result ?? null, fixture: false };
-}
 
 const UPHOLD_WHY = "Her own AI agent asked for this exact order, inside the limits she approved on PayPal. The charge was authorized, even if she doesn't remember it.";
 

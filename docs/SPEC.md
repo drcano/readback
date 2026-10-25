@@ -439,6 +439,8 @@ Sam can:
   - A fixed in-terms amount, no mandate, no `custom_id`, rate-limited (THREAT-MODEL T32).
   - The non-canonical invoice also fails check 2b. Either way, the result is row 3, `BUYER_FAVOR`.
 
+**"Your two verdicts."** As soon as the judge has bought (step 2) or played the dishonest merchant (step 5), judge mode shows their own charges side by side in the same card as the home page pair, each read from PayPal and re-checked in the browser. The signed charge shows no ruling yet (nothing shipped, no history, and Transaction Search lags), labeled as such; the direct charge shows the red Agent light and `BUYER_FAVOR`.
+
 **Disputes are a fixed, hand-opened pool** that can't be recreated by API. Judge mode is **read-only for adjudication**: it shows recorded adjudications, labeled as recorded.
 
 **Reset demo** creates a fresh setup token and approval link, since every agreement needs a human approval on PayPal. Charges are re-signed after approval. Each judge gets a fresh agreement, so periods never collide.
