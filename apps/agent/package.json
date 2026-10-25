@@ -12,7 +12,8 @@
     "typecheck": "tsc --noEmit",
     "pubkey": "node --env-file=.env src/pubkey.ts",
     "dev": "node --env-file=.env src/server.ts",
-    "start": "node src/server.ts"
+    "start": "node src/server.ts",
+    "harness": "node --env-file=../../.env harness/run.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/node": "2.1.1",
@@ -22,6 +23,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@anthropic-ai/sdk": "^0.133.0",
     "vitest": "^5.0.4"
   }
 }
