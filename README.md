@@ -81,6 +81,10 @@ Claude never holds a key and never makes an allow/deny or ruling decision. Produ
 
 **Interoperability.** Readback runs AP2 v0.2's autonomous-purchase model on PayPal's existing rails, and `/ap2` verifies AP2's own published mandate chain in the browser.
 
+**Try to break it.** `/judge` runs eight attacks through the product's real layers in your browser and shows where each one dies: a poisoned product page stops at the agent runtime; a forged key, an edited request and a fake sale price stop at the checkout gate; a second bag and a charge after cancelling stop at PayPal; and the store charging her wallet itself gets past all three and is caught by the investigator.
+
+![Attack lab: where each attack was stopped](docs/assets/attack-lab.png)
+
 **Tested.** `@readback/core`: 153 tests at about 98% coverage, property-based tamper fuzzing, and a headless-browser run. 59 labeled eval scenarios. End-to-end judge flow in Chromium. An independent security review found two seller-leaning issues; both are fixed and kept as regression tests ([ADR 0005](docs/decisions/0005-independent-audit-oct15.md)). Threats T1–T34 and their mitigations: [docs/THREAT-MODEL.md](docs/THREAT-MODEL.md).
 
 ## Design
@@ -97,7 +101,7 @@ The investigator queue (AG Grid) shows each dispute's evidence at a glance; the 
 
 **Ask the agent to shop** on the home page puts Claude in the shopper's seat, driving the demo's shared agent under the demo agreement (on a deployment that has one): ask it to reorder, to buy what a poisoned product page recommends, or to order three bags, and watch which requests the agent signs and PayPal charges.
 
-**Judge mode** on the home page lets you be the agent: your browser tab generates a non-extractable key, you approve its terms on PayPal's sandbox page, sign a purchase, then press **"Be a dishonest merchant"** and watch the Agent light go red on your own charge.
+**Judge mode** on the home page lets you be the agent: your browser tab generates a non-extractable key, you approve its terms on PayPal's sandbox page, sign a purchase, then press **"Be a dishonest merchant"**, and see **your own two charges side by side**: your agent's, and the store's with the Agent light red and "Refund the buyer", against the store running the tool.
 
 ## Potential impact
 

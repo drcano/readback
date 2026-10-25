@@ -1,4 +1,5 @@
 // /judge — "Judge it yourself": every labeled scenario, run live in the visitor's browser.
+import { AttackLab } from "@/components/AttackLab";
 import { JudgeItYourself } from "@/components/JudgeItYourself";
 import { AppFooter, AppHeader } from "@/components/ui";
 
@@ -14,6 +15,8 @@ export default function JudgePage() {
           evidence supports the seller, the buyer, or neither, and guards) plus 1,000 random tamper attempts, against the same code the product
           runs. Wrong suggestions are counted in both directions.
         </p>
+        <AttackLab />
+        <h2 className="section-h">Every labeled scenario</h2>
         <JudgeItYourself />
       </main>
       <AppFooter />

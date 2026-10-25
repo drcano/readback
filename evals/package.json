@@ -19,6 +19,7 @@
   },
   "exports": {
     ".": "./scenarios.ts",
-    "./tamper": "./tamper.ts"
+    "./tamper": "./tamper.ts",
+    "./lab": "./lab.ts"
   }
 }
