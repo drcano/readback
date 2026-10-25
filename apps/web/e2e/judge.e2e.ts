@@ -29,10 +29,10 @@ await page.waitForSelector("text=Charged.", { timeout: 20_000 });
 console.log("PASS  step 2: tab signed, gate verified, charged");
 
 await page.getByRole("link", { name: "Check this charge" }).first().click();
-await page.waitForSelector("text=Re-verified in your browser", { timeout: 20_000 });
-const verdict = await page.textContent(".verdict-banner");
+await page.waitForSelector("text=Re-checked in your browser", { timeout: 20_000 });
+const verdict = await page.textContent(".rec-banner");
 // A fresh judge charge has no tracker and no history: a no-suggestion row (11 or 12), never a verdict.
-const ok = /No suggestion/.test(verdict ?? "");
+const ok = /Needs review/.test(verdict ?? "");
 console.log(`${ok ? "PASS" : "FAIL"}  step 4: own charge in preview has no suggestion yet — ${verdict?.replace(/\s+/g, " ").slice(0, 120)}`);
 console.log(errors.length ? `FAIL  page errors: ${errors.join(" | ")}` : "PASS  no page errors");
 await b.close();

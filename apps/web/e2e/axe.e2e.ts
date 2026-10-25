@@ -8,8 +8,8 @@ const PAGES: [string, string | null][] = [
   ["/", null],
   ["/shopper", null],
   ["/investigator", "text=PP-D-HERO1"],
-  ["/investigator/fixture-hero", "text=Re-verified in your browser"],
-  ["/investigator/fixture-twist", "text=Re-verified in your browser"],
+  ["/investigator/fixture-hero", "text=Re-checked in your browser"],
+  ["/investigator/fixture-twist", "text=Re-checked in your browser"],
   ["/judge", null],
   ["/ap2", "text=Agent's signature on the closed mandate"],
 ];
@@ -24,7 +24,7 @@ for (const scheme of ["light", "dark"] as const) {
     if (ready) await page.waitForSelector(ready, { timeout: 20_000 });
     const { violations } = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
     failures += violations.length;
-    console.log(`${violations.length ? "FAIL" : "PASS"}  axe ${scheme} ${path}${violations.map((v) => `\n      ${v.id}: ${v.help} (${v.nodes.length})`).join("")}`);
+    console.log(`${violations.length ? "FAIL" : "PASS"}  axe ${scheme} ${path}${violations.map((v) => `\n      ${v.id}: ${v.help} (${v.nodes.length})${v.nodes.map((n) => `\n        ${n.target.join(" ")}: ${n.any[0]?.message ?? ""}`).join("")}`).join("")}`);
   }
   await context.close();
 }
