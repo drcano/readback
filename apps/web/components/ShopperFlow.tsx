@@ -52,7 +52,7 @@ export function ShopperFlow({ agreement, notice }: { agreement: string | null; n
 
   if (agreement) {
     return (
-      <section aria-labelledby="agr-h">
+      <section aria-labelledby="agr-h" className="card flow-step">
         <h2 id="agr-h">Your agreement</h2>
         <p className="mono">{agreement}</p>
         {error && <p role="alert">{error}</p>}
@@ -84,30 +84,34 @@ export function ShopperFlow({ agreement, notice }: { agreement: string | null; n
 
   return (
     <>
-      {error && <p role="alert">{error}</p>}
-      <section aria-labelledby="step1">
+      {error && <p role="alert" className="banner">{error}</p>}
+      <section aria-labelledby="step1" className="card flow-step">
         <h2 id="step1">1. Tell your agent what it may buy</h2>
         <label htmlFor="instruction">Your instruction</label>
         <textarea id="instruction" rows={3} maxLength={500} value={instruction} onChange={(e) => setInstruction(e.target.value)} className="field" />
-        <p>
-          <button type="button" onClick={compile} disabled={busy || instruction.trim().length < 3}>Read it back to me</button>{" "}
-          <button type="button" onClick={() => setCompiled({ draft: STORY_DRAFT, card: readbackCard(STORY_DRAFT), questions: [] })} disabled={busy}>
+        <div className="flow-actions">
+          <button type="button" className="btn btn-primary" onClick={compile} disabled={busy || instruction.trim().length < 3}>
+            {busy && !compiled ? "Reading it back…" : "Read it back to me"}
+          </button>
+          <button type="button" className="btn" onClick={() => setCompiled({ draft: STORY_DRAFT, card: readbackCard(STORY_DRAFT), questions: [] })} disabled={busy}>
             Use the example terms
           </button>
-        </p>
+        </div>
+        <p className="muted small">Claude drafts the terms; code checks them and writes the card below, so it always says exactly what PayPal will hold.</p>
       </section>
 
       {compiled && (
-        <section aria-labelledby="step2" className="verdict">
+        <section aria-labelledby="step2" className="card flow-step readback">
           <h2 id="step2">2. Is this what you mean?</h2>
-          <p><strong>{compiled.card}</strong></p>
+          <p className="readback-card">{compiled.card}</p>
           {compiled.questions.map((q) => <p key={q} className="muted">To confirm: {q}</p>)}
-          <h3>3. Check your agent's fingerprint</h3>
+          <h3>3. Check your agent&apos;s fingerprint</h3>
           <p>
-            Your agent will show you its fingerprint: 16 characters in four groups. PayPal's approval page will show
-            the same 16 characters at the end of the terms. Approve only if they match.
+            Ask your agent for its agent card: it shows its fingerprint, 16 characters in four groups. PayPal&apos;s approval page shows the same
+            16 characters at the end of the terms. Approve only if they match. This page doesn&apos;t show it, because the shop isn&apos;t the one to
+            vouch for your agent.
           </p>
-          <button type="button" onClick={() => approve(compiled.draft)} disabled={busy}>Approve on PayPal</button>
+          <button type="button" className="btn btn-primary" onClick={() => approve(compiled.draft)} disabled={busy}>Approve on PayPal</button>
         </section>
       )}
     </>

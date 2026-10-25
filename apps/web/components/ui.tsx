@@ -3,7 +3,17 @@
 import type { Light } from "@readback/core";
 import { recommendation, stepShort } from "@/lib/labels";
 
-export function AppHeader({ current }: { current?: "queue" }) {
+// The same header on every page. `section` names whose view this is (the video's role chip).
+const NAV = [
+  { id: "demo", href: "/", label: "Try it" },
+  { id: "shopper", href: "/shopper", label: "Shopper" },
+  { id: "queue", href: "/investigator", label: "Investigator" },
+  { id: "judge", href: "/judge", label: "Judge it yourself" },
+  { id: "ap2", href: "/ap2", label: "AP2" },
+] as const;
+type NavId = (typeof NAV)[number]["id"];
+
+export function AppHeader({ current, section }: { current?: NavId; section: string }) {
   return (
     <header className="app-header">
       <div className="app-header-inner">
@@ -11,11 +21,9 @@ export function AppHeader({ current }: { current?: "queue" }) {
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true"><path d="M3 12h4l3-8 4 16 3-8h4" /></svg>
           Readback
         </a>
-        <span className="app-section">Dispute investigator</span>
+        <span className="app-section">{section}</span>
         <nav aria-label="Main" className="app-nav">
-          <a href="/investigator" aria-current={current === "queue" ? "page" : undefined}>Queue</a>
-          <a href="/judge">Judge it yourself</a>
-          <a href="/ap2">AP2</a>
+          {NAV.map((n) => <a key={n.id} href={n.href} aria-current={current === n.id ? "page" : undefined}>{n.label}</a>)}
         </nav>
         <span className="env-badge">Live · PayPal sandbox</span>
       </div>

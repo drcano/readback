@@ -5,7 +5,7 @@
 // Labeled demo affordance (THREAT-MODEL T31): the one place a private key lives outside the runtime.
 import { type AgentKey, buildMandate, generateAgentKey, groupFingerprint, parseTerms, sha256Hex, signActionProof, signMandate } from "@readback/core";
 import { CATALOG } from "@readback/core/catalog";
-import { useEffect, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 
 const DRAFT = { sku: "GBP-SR24", qty: 1, periodDays: 1, capCents: 6500, end: "2027-03-31" };
 const post = async (url: string, body: unknown) => {
@@ -14,6 +14,26 @@ const post = async (url: string, body: unknown) => {
 };
 const reason = (r: Record<string, unknown>) =>
   ((r["failures"] as { message: string }[] | undefined)?.map((f) => f.message).join(" ") ?? (r["failure"] as { message: string } | undefined)?.message) || "Something went wrong.";
+
+// Each step says where it stands in words, not only in color.
+const STATE_WORD = { done: "Done", ready: "Ready", waiting: "After step 1" } as const;
+type StepState = keyof typeof STATE_WORD;
+const state = (done: boolean, ready: boolean): StepState => (done ? "done" : ready ? "ready" : "waiting");
+
+function Step({ n, title, s, children }: { n: number; title: string; s: StepState; children: ReactNode }) {
+  return (
+    <li className="card rail-step" data-state={s}>
+      <span className="rail-n" aria-hidden="true">{s === "done" ? "✓" : n}</span>
+      <div>
+        <div className="rail-head">
+          <h3>{n}. {title}</h3>
+          <span className="rail-state">{STATE_WORD[s]}</span>
+        </div>
+        {children}
+      </div>
+    </li>
+  );
+}
 
 export function JudgeMode() {
   const [key, setKey] = useState<AgentKey | null>(null);
@@ -68,41 +88,37 @@ export function JudgeMode() {
   }
 
   return (
-    <>
-      <p className="banner">
-        Demo affordance: in step 1 this browser tab holds a temporary agent key that can't be exported and disappears when you close the tab. In production the key lives only in the shopper's agent runtime.
+    <section className="try" aria-labelledby="try-h">
+      <h2 id="try-h">Try it yourself</h2>
+      <p className="muted small">
+        Demo affordance: in step 1 this browser tab holds a temporary agent key that can&apos;t be exported and disappears when you close the tab. In production the key lives only in the shopper&apos;s agent runtime.
       </p>
       <ol className="rail">
-        <li>
-          <h2>1. Approve</h2>
-          <p>Your tab becomes the agent. You approve its terms on PayPal's own page.</p>
-          {key && <p>Your agent's fingerprint: <span className="fp">{groupFingerprint(key.fingerprint)}</span>. PayPal's page should show the same 16 characters.</p>}
-          <button type="button" onClick={approve} disabled={Boolean(tokenId)}>Create my key and approve on PayPal</button>
-        </li>
-        <li>
-          <h2>2. Buy</h2>
-          <p>Your tab signs one in-terms purchase. The merchant's gate verifies it and charges the saved wallet.</p>
-          <button type="button" onClick={buy} disabled={!tokenId || Boolean(bought)}>Sign and buy one bag</button>
-          {bought && <p><a href={`/investigator/${bought}`}>Check this charge</a>: Consent, Agent and Terms pass; Delivery doesn't yet (nothing shipped, no history), so there's no suggestion.</p>}
-        </li>
-        <li>
-          <h2>3. Dispute</h2>
+        <Step n={1} title="Approve" s={state(Boolean(tokenId), true)}>
+          <p>Your tab becomes the agent. You approve its terms on PayPal&apos;s own page.</p>
+          {key && <p>Your agent&apos;s fingerprint: <span className="fp">{groupFingerprint(key.fingerprint)}</span>. PayPal&apos;s page should show the same 16 characters.</p>}
+          <button type="button" className="btn btn-primary" onClick={approve} disabled={Boolean(tokenId)}>Create my key and approve on PayPal</button>
+        </Step>
+        <Step n={2} title="Buy" s={state(Boolean(bought), Boolean(tokenId))}>
+          <p>Your tab signs one in-terms purchase. The merchant&apos;s gate verifies it and charges the saved wallet.</p>
+          <button type="button" className="btn" onClick={buy} disabled={!tokenId || Boolean(bought)}>Sign and buy one bag</button>
+          {bought && <p><a href={`/investigator/${bought}`}>Check this charge</a>: Consent, Agent and Terms pass; Delivery doesn&apos;t yet (nothing shipped, no history), so there&apos;s no suggestion.</p>}
+        </Step>
+        <Step n={3} title="Dispute" s="ready">
           <p>Disputes are a fixed sandbox pool opened by hand (creating them by API is limited-release at PayPal). Open the seeded hero case instead.</p>
-          <a href="/investigator">Open the investigator queue</a>
-        </li>
-        <li>
-          <h2>4. Investigate</h2>
-          <p>The hero case: signed by the approved agent, in terms, delivered, with history. Suggested: seller's favor.</p>
-          <a href="/investigator/fixture-hero">Open the hero case</a>
-        </li>
-        <li>
-          <h2>5. Be a dishonest merchant</h2>
+          <a className="btn" href="/investigator">Open the investigator queue</a>
+        </Step>
+        <Step n={4} title="Investigate" s="ready">
+          <p>The hero case: signed by the approved agent, in terms, delivered, with history. Suggested: seller&apos;s favor.</p>
+          <a className="btn" href="/investigator/fixture-hero">Open the hero case</a>
+        </Step>
+        <Step n={5} title="Be a dishonest merchant" s={state(Boolean(dishonest), Boolean(tokenId))}>
           <p>Charge your own agreement directly, every term respected, but with no request from your agent.</p>
-          <button type="button" onClick={beDishonest} disabled={!tokenId || Boolean(dishonest)}>Charge my wallet without my agent</button>
+          <button type="button" className="btn btn-refund" onClick={beDishonest} disabled={!tokenId || Boolean(dishonest)}>Charge my wallet without my agent</button>
           {dishonest && <p><a href={`/investigator/${dishonest}`}>Check this charge</a>: every term was respected, but the Agent light is red and the evidence supports the buyer. Readback follows the evidence, whoever runs it.</p>}
-        </li>
+        </Step>
       </ol>
       <p role="status" aria-live="polite">{status}</p>
-    </>
+    </section>
   );
 }

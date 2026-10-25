@@ -7,7 +7,7 @@ export default async function CasePage({ params }: { params: Promise<{ id: strin
   const { id } = await params;
   return (
     <>
-      <AppHeader />
+      <AppHeader current="queue" section="Dispute investigator" />
       <main className="console">
         <a href="/investigator" className="crumb">← All disputes</a>
         <CaseView id={id} />

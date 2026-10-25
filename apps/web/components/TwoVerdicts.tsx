@@ -5,7 +5,9 @@
 import { type CaseResult, evaluateCase, groupFingerprint, lights } from "@readback/core";
 import { fixtureCases } from "@readback/core/fixtures";
 import { useEffect, useState } from "react";
+import { recommendation } from "@/lib/labels";
 import { FourLights } from "./FourLights";
+import { RecPill } from "./ui";
 
 type Side = { id: string; amount: string; result: CaseResult };
 
@@ -27,20 +29,25 @@ export function TwoVerdicts() {
   }, []);
 
   return (
-    <section className="verdicts" aria-labelledby="verdicts-h">
-      <p className="claim">“I didn't buy this. My AI did.”</p>
-      <h2 id="verdicts-h">Same claim, two verdicts</h2>
+    <section className="card pair verdicts" aria-labelledby="verdicts-h">
+      <div className="pair-head">
+        <h2 id="verdicts-h">Same claim, two verdicts</h2>
+        <span className="muted">Both say: <em>“I didn&apos;t buy this. My AI did.”</em></span>
+      </div>
       {!sides ? (
         <p aria-busy="true">Verifying both cases in your browser…</p>
       ) : (
         <>
-          <div className="verdict-pair">
+          <div className="pair-grid">
             {sides.map((s, i) => {
               const c = s.result.classification;
               const m = s.result.facts.mandate;
               return (
-                <article key={s.id} className="verdict-card" data-outcome={c.suggestion ?? "none"}>
-                  <p className="eyebrow">{i === 0 ? "Charge A" : "Charge B"} · USD {s.amount}</p>
+                <article key={s.id} className="verdict-card" data-rec={recommendation(c.suggestion).key}>
+                  <div className="pair-top">
+                    <RecPill suggestion={c.suggestion} />
+                    <span className="mono muted">{i === 0 ? "Charge A" : "Charge B"} · ${s.amount}</span>
+                  </div>
                   <h3>{i === 0 ? "Her agent asked, within her terms" : "The merchant charged her wallet directly"}</h3>
                   <p className="muted">
                     {m ? (
@@ -50,11 +57,8 @@ export function TwoVerdicts() {
                     )}
                   </p>
                   <FourLights lights={lights(s.result.checks)} />
-                  <p className="outcome">
-                    {c.suggestion === "SELLER_FAVOR" ? "Seller's favor" : c.suggestion === "BUYER_FAVOR" ? "Buyer's favor" : "No suggestion"}
-                    <span className="muted"> · {c.label}</span>
-                  </p>
-                  <a href={`/investigator/fixture-${i === 0 ? "hero" : "twist"}`}>Open the case</a>
+                  <p className="muted small">{c.label}</p>
+                  <a className="btn" href={`/investigator/fixture-${i === 0 ? "hero" : "twist"}`}>Open the case</a>
                 </article>
               );
             })}

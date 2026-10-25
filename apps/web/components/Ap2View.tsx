@@ -23,8 +23,8 @@ export function Ap2View() {
       <label htmlFor="ap2-chain">AP2 payment mandate chain (open ~~ closed, SD-JWT)</label>
       <textarea id="ap2-chain" className="field mono" rows={5} value={chain} onChange={(e) => setChain(e.target.value)} />
       <p>
-        <button type="button" onClick={() => evaluateAp2Chain(chain).then(setResult)}>Check in my browser</button>{" "}
-        <button type="button" onClick={() => { setChain(AP2_EXAMPLE_CHAIN); void evaluateAp2Chain(AP2_EXAMPLE_CHAIN).then(setResult); }}>Use AP2's official example</button>
+        <button type="button" className="btn btn-primary" onClick={() => evaluateAp2Chain(chain).then(setResult)}>Check in my browser</button>{" "}
+        <button type="button" className="btn" onClick={() => { setChain(AP2_EXAMPLE_CHAIN); void evaluateAp2Chain(AP2_EXAMPLE_CHAIN).then(setResult); }}>Use AP2's official example</button>
       </p>
       {result && (
         <div className="verdict-pair">

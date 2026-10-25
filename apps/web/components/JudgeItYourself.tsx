@@ -36,7 +36,7 @@ export function JudgeItYourself() {
   return (
     <>
       <p>
-        <button type="button" onClick={run} disabled={running}>{running ? "Running in your browser…" : "Run every scenario in my browser"}</button>
+        <button type="button" className="btn btn-primary" onClick={run} disabled={running}>{running ? "Running in your browser…" : "Run every scenario in my browser"}</button>
       </p>
       {board && (
         <section aria-labelledby="board-h" aria-live="polite">

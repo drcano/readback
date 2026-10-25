@@ -5,7 +5,7 @@ import { AppFooter, AppHeader } from "@/components/ui";
 export default function QueuePage() {
   return (
     <>
-      <AppHeader current="queue" />
+      <AppHeader current="queue" section="Dispute investigator" />
       <main className="console">
         <p className="cap">Proposed workflow for PayPal investigators</p>
         <h1>“My AI bought that.” Who&apos;s right?</h1>
