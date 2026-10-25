@@ -1,6 +1,6 @@
 # 0001 — Sandbox spike (go/no-go)
 
-Status: in progress (started 2026-10-14). Steps 1–4, 6 and 8 done, 5 merchant side done, 7 partial; remaining: step 7's `UNAUTHORISED` dispute and an adjudicated one, and step 5's buyer-side cancel and webhook. Public record, linked from the README.
+Status: in progress (started 2026-10-14). Steps 1–4, 6 and 8 done, 5 merchant side done, 7 partial (one dispute, adjudicated by PayPal itself); remaining: step 7's `UNAUTHORISED` dispute and one we drive to `adjudicate`, and step 5's buyer-side cancel and webhook. Public record, linked from the README.
 
 Each row is filled from a real sandbox run against a **standard merchant REST app** (not a platform app). Failures are recorded, not hidden. Scrubbed responses are saved under `evals/fixtures/spike/`. Steps are defined in `docs/SPEC.md` §8.
 
@@ -100,6 +100,7 @@ Fixtures from step 3 on are signed with throwaway keys that don't match step 2's
 - **The list endpoint lagged a few minutes** behind the GET, then returned it under every filter (`start_time`, `dispute_state=UNDER_PAYPAL_REVIEW`, `disputed_transaction_id`, `update_time_after`).
 - **The chain works on a real dispute:** `seller_transaction_id` → capture → order; `custom` and `invoice_number` equal the capture's labels.
 - In this state PayPal offers only `provide_supporting_info`. `require-evidence`, `provide-evidence` and sandbox `adjudicate` all return `ACTION_NOT_ALLOWED_IN_CURRENT_DISPUTE_STATE`. **`provide-supporting-info` accepts a multipart `input` JSON part → 200.** So the merchant actions route must follow the dispute's own `links`, not assume `provide-evidence`.
+- **PayPal decided it alone (checked 2026-10-25).** With no merchant response, the sandbox adjudicated about 14 hours after filing: `DENY_BUYER` at 2026-10-16T03:34Z, status `RESOLVED`, outcome `RESOLVED_SELLER_FAVOUR` / `INELIGIBLE_BUYER_PROTECTION_POLICY`, and only a `self` link left (`07-dispute-resolved.json`). So a hand-opened dispute can close overnight. Open the demo's disputes close to recording, and expect the case view to show resolved cases. `@readback/verify` still reads it end to end: dispute → capture → order → agreement, row 3 (`BUYER_FAVOR` suggestion), because the spike charge was signed by a throwaway spike key, not the agreement's. PayPal's ruling and Readback's suggestion differ here for that reason; this charge is not product-shaped.
 - Not yet done: an `UNAUTHORISED` dispute (the "my AI bought that" claim; the closest buyer option is "I suspect the subscription or recurring payment was set up by someone else"), and a dispute that reaches `adjudicate`. Unauthorized claims may restrict the buyer account in the sandbox, so they go on separate agreements as CLAUDE.md §8 plans, not on Maya's hero.
 
 **Step 6 (PASS, 2026-10-17).** Run by the daily seed job at 16:00Z; `06-transactions-page1.json` holds the page. All 12 transactions from the last 30 days came back on one page.
