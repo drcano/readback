@@ -26,7 +26,7 @@ export default function Home() {
         <section className="more-links" aria-labelledby="more-h">
           <h2 id="more-h">More to check</h2>
           <ul className="link-cards">
-            <li><a className="card link-card" href="/judge"><strong>Judge it yourself</strong><span>Run every labeled scenario and a tamper sample in your browser.</span></a></li>
+            <li><a className="card link-card" href="/judge"><strong>Try to break it</strong><span>Eight attacks through the real layers, in your browser, and every labeled scenario.</span></a></li>
             <li><a className="card link-card" href="/investigator"><strong>Investigator queue</strong><span>Live sandbox disputes, each rebuilt from PayPal&apos;s records.</span></a></li>
             <li><a className="card link-card" href="/shopper"><strong>Shopper flow</strong><span>Say it once; your agent reads it back as exact terms.</span></a></li>
             <li><a className="card link-card" href="/ap2"><strong>An AP2 mandate, checked</strong><span>AP2&apos;s own published example, verified on PayPal-rails logic.</span></a></li>

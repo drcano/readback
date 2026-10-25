@@ -456,6 +456,7 @@ Sam can:
 ### 5.9 Proof surfaces
 - **Public spike record.** `docs/decisions/0001-sandbox-spike.md` holds every request and response (scrubbed) and a screenshot of the PayPal approval page, linked from the README's Tech section.
 - **"Judge it yourself."** A button runs the full eval suite on recorded fixtures in the visitor's browser and shows the scoreboard live.
+- **"Try to break it."** The attack lab (`evals/lab.ts`) runs eight attacks through the product's real layers in the browser and shows where each one is stopped: agent runtime, checkout gate, PayPal, or investigator. Each attack's stopping layer is a test.
 - **CI.** Evals, fast-check tamper fuzzing, and axe-core accessibility checks (zero violations), with badges and results committed under `evals/results/`.
 - **Deploy to Render.** A `render.yaml` Blueprint and a `doctor` script that checks the env, app features, and sandbox reachability.
 
