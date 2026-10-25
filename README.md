@@ -27,18 +27,18 @@ Diagrams and where each rule lives: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
 **Principles:** LLMs propose; cryptography and deterministic checks decide. Readback stores nothing; PayPal is the only system of record.
 
-## Status (Oct 15)
+## Status (Oct 25)
 
 | Piece | State |
 |---|---|
-| `packages/readback-core`: terms grammar, ES256 mandates with header hygiene, fingerprints, labels, gate decision, eleven checks, classification, AP2 import | Built; 147 tests, ~98% coverage, 10,000-mutation tamper fuzz, runs in headless Chromium |
+| `packages/readback-core`: terms grammar, ES256 mandates with header hygiene, fingerprints, labels, gate decision, eleven checks, classification, AP2 import | Built; 153 tests, ~98% coverage, 10,000-mutation tamper fuzz, runs in headless Chromium |
 | `apps/agent`: MCP agent runtime (stateless, two secret paths) | Built; tested over the MCP protocol |
 | `apps/web`: shopper flow, judge mode, investigator queue + case view, checkout gate, agreements, webhooks | Built; tested against an in-memory PayPal fake and end to end in Chromium |
 | `evals/`: 59 labeled scenarios, also runnable in your browser at `/judge` | 59/59 as labeled; dispute suggestions 5/5 seller-side, 6/6 buyer-side, 4/4 no suggestion; 0 wrong in either direction ([results](evals/results/latest.json)) |
 | AP2 v0.2 import: checks AP2's own published mandate chain (disclosures, agent signature, binding, amount, payee, dates) | Built; try it at `/ap2` |
 | Independent security review (fresh Fable 5.1 session, Oct 15) | Two high findings, both seller-leaning, proven with probes, fixed, and kept as regression tests ([ADR 0005](docs/decisions/0005-independent-audit-oct15.md), scope and date stated) |
 | Neutrality: one standard of evidence for both sides | [ADR 0004](docs/decisions/0004-neutrality.md); evals measure errors in both directions |
-| Sandbox spike (does PayPal behave as the design assumes?) | Run Oct 15: steps 1, 2, 4, 8 and 9 pass. Step 3's charge passes but PayPal sends no vault echo; the labels-plus-payer fallback is in place. Step 5 merchant side done. Steps 6, 7 and buyer-side cancel *pending*. ([record](docs/decisions/0001-sandbox-spike.md)) |
+| Sandbox spike (does PayPal behave as the design assumes?) | Steps 1, 2, 4, 6, 8 and 9 pass. Step 3's charge passes but PayPal sends no vault echo; the labels-plus-payer fallback is in place. Step 5 merchant side done; buyer-side cancel *pending*. Step 7: a real dispute reads end to end, and the sandbox adjudicated it alone overnight; an unauthorized-claim dispute is *pending*. ([record](docs/decisions/0001-sandbox-spike.md)) |
 
 ## Run it locally
 
