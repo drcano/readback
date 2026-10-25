@@ -40,6 +40,30 @@ Diagrams and where each rule lives: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 | Neutrality: one standard of evidence for both sides | [ADR 0004](docs/decisions/0004-neutrality.md); evals measure errors in both directions |
 | Sandbox spike (does PayPal behave as the design assumes?) | Steps 1, 2, 4, 6, 8 and 9 pass. Step 3's charge passes but PayPal sends no vault echo; the labels-plus-payer fallback is in place. Step 5 merchant side done; buyer-side cancel *pending*. Step 7: a real dispute reads end to end, and the sandbox adjudicated it alone overnight; an unauthorized-claim dispute is *pending*. ([record](docs/decisions/0001-sandbox-spike.md)) |
 
+## Quick-start: an existing PayPal merchant, about 10 lines
+
+If you already charge a vaulted PayPal wallet, Readback adds one decision and a different order body. Runnable offline in [`examples/existing-paypal-merchant`](examples/existing-paypal-merchant/index.ts):
+
+```ts
+const decision = await authorizeCharge({ jws, token: await getToken(tokenId), merchant: MERCHANT, itemName, nowSec });
+if (!decision.allow) throw new Error(decision.failures.map((f) => f.message).join("; ")); // fail closed
+const res = await fetch(`${PAYPAL}/v2/checkout/orders`, {
+  method: "POST",
+  headers: { ...auth, "PayPal-Request-Id": decision.requestIds.create }, // retries are no-ops
+  body: JSON.stringify(decision.orderRequest), // vault_id, signed mandate, terms copy, invoice_id, custom_id
+});
+```
+
+`jws` is the agent's signed request, and `getToken` is your existing `GET /v3/vault/payment-tokens/{id}`. When a dispute arrives, `npx @readback/verify <disputeId>` (or `buildCaseBundle` + `evaluateCase`) rebuilds the case from PayPal alone:
+
+```bash
+pnpm --filter existing-paypal-merchant start
+# Charged: order ORDER2 COMPLETED, invoice RB-8kd73hs9ab-P001
+# Dispute PP-D-4: Authorized by terms; fulfillment not shown → no suggestion
+```
+
+No suggestion is the honest answer there: nothing was shipped, and there's no history of undisputed charges yet.
+
 ## Run it locally
 
 ```bash

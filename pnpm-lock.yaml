@@ -266,6 +266,15 @@ importers:
         specifier: ^5.0.4
         version: 5.0.4(@types/node@26.6.5)(@vitest/browser-playwright@5.0.4)(@vitest/coverage-v8@5.0.4)(@vitest/ui@5.0.4)(vite@8.3.4(@types/node@26.6.5))
 
+  examples/existing-paypal-merchant:
+    dependencies:
+      '@readback/core':
+        specifier: workspace:*
+        version: link:../../packages/readback-core
+      '@readback/verify':
+        specifier: workspace:*
+        version: link:../../packages/verify-cli
+
   packages/readback-core:
     dependencies:
       jose:

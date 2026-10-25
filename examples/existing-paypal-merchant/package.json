@@ -1,0 +1,14 @@
+{
+  "name": "existing-paypal-merchant",
+  "private": true,
+  "type": "module",
+  "description": "Readback's 10-line quick-start, runnable offline against an in-memory PayPal",
+  "scripts": {
+    "start": "node index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@readback/core": "workspace:*",
+    "@readback/verify": "workspace:*"
+  }
+}
