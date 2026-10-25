@@ -42,7 +42,7 @@ const humanize = (code: string) => code.toLowerCase().replaceAll("_", " ");
 
 // A dispute PayPal has already decided: its ruling leads, and Readback's suggestion is shown as a
 // check against it. null while the dispute is open (or has no outcome yet).
-export type Ruling = { favors: "seller" | "buyer" | null; label: string; reason: string | null; check: string };
+export type Ruling = { favors: "seller" | "buyer" | null; label: string; reason: string | null; check: string; agrees: boolean | null };
 export function paypalRuling(
   outcome: { outcome_code: string; outcome_reason?: string | undefined } | undefined,
   suggestion: "BUYER_FAVOR" | "SELLER_FAVOR" | null,
@@ -56,7 +56,8 @@ export function paypalRuling(
     : favors === null ? `Readback's evidence favors the ${ours}; PayPal's outcome isn't a ruling for either side.`
     : ours === favors ? `Readback's evidence agrees: it favors the ${ours} too.`
     : `Readback's evidence disagrees: it favors the ${ours}. PayPal may have decided on grounds these checks don't cover.`;
-  return { favors, label, reason: outcome.outcome_reason ? humanize(outcome.outcome_reason) : null, check };
+  const agrees = ours === null || favors === null ? null : ours === favors;
+  return { favors, label, reason: outcome.outcome_reason ? humanize(outcome.outcome_reason) : null, check, agrees };
 }
 
 // The four evidence steps, short (queue chips) and long (case view headings).

@@ -55,8 +55,19 @@ function ClaimCell({ data }: ICellRendererParams<QueueRow>) {
   );
 }
 const StepsCell = ({ data }: ICellRendererParams<QueueRow>) => (data ? <Steps lights={data.lights} /> : null);
-const RecCell = ({ data }: ICellRendererParams<QueueRow>) => (data ? <RecPill suggestion={data.suggestion} /> : null);
+function RecCell({ data }: ICellRendererParams<QueueRow>) {
+  if (!data) return null;
+  if (!data.ruling || data.ruling.agrees === null) return <RecPill suggestion={data.suggestion} />;
+  // Closed by PayPal: Readback's recommendation is a check against PayPal's ruling.
+  return (
+    <span className="claim-cell">
+      <RecPill suggestion={data.suggestion} />
+      <small>{data.ruling.agrees ? "Agrees with PayPal" : "Disagrees with PayPal"}</small>
+    </span>
+  );
+}
 function DueCell({ data }: ICellRendererParams<QueueRow>) {
+  if (data?.ruling) return <span><strong>Closed</strong> · {data.ruling.label.replace(/^PayPal /, "")}</span>;
   if (!data?.due) return <span className="muted">{data?.stage === "CHARGEBACK" ? "Under PayPal review" : "—"}</span>;
   const due = new Date(data.due);
   const days = Math.ceil((due.getTime() - Date.now()) / 86_400_000);
@@ -67,9 +78,9 @@ function DueCell({ data }: ICellRendererParams<QueueRow>) {
 const columns: ColDef<QueueRow>[] = [
   { field: "reason", headerName: "Dispute", cellRenderer: ClaimCell, flex: 2.2, minWidth: 260, getQuickFilterText: (p) => `${p.data?.id} ${reasonLabel(String(p.value))} ${claimQuote(String(p.value))}` },
   { headerName: "Evidence from PayPal", cellRenderer: StepsCell, flex: 2.6, minWidth: 420, sortable: false, filter: false, getQuickFilterText: (p) => p.data?.lights.map(stepTitle).join(" ") ?? "" },
-  { field: "suggestion", headerName: "Recommendation", cellRenderer: RecCell, width: 200, getQuickFilterText: (p) => recommendation(p.value).label },
+  { field: "suggestion", headerName: "Recommendation", cellRenderer: RecCell, width: 200, getQuickFilterText: (p) => `${recommendation(p.value).label} ${p.data?.ruling?.label ?? ""}` },
   { field: "amount", headerName: "Amount", width: 120, type: "rightAligned", filter: "agNumberColumnFilter", valueFormatter: (p) => (typeof p.value === "number" ? `$${p.value.toFixed(2)}` : ""), cellStyle: { fontWeight: 700 } },
-  { field: "due", headerName: "Respond by", cellRenderer: DueCell, width: 190 },
+  { field: "due", headerName: "Respond by", cellRenderer: DueCell, width: 220 },
 ];
 
 const CHIPS: { id: FilterId; label: string }[] = [
@@ -148,7 +159,7 @@ export function QueueGrid() {
 
       <section aria-labelledby="queue-h">
         <div className="queue-head">
-          <h2 id="queue-h">All open disputes</h2>
+          <h2 id="queue-h">All disputes</h2>
           <span className="muted">{rows ? `${rows.length} cases` : "Loading…"}</span>
           <div className="chips" role="group" aria-label="Filter by recommendation">
             {CHIPS.map((c) => (

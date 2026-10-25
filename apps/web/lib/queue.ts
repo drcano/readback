@@ -4,6 +4,7 @@ import { type CaseBundle, evaluateCase, type Light, lights } from "@readback/cor
 import { fixtureCases } from "@readback/core/fixtures";
 import { z } from "zod";
 import { buildCaseBundle } from "./cases";
+import { paypalRuling, type Ruling } from "./labels";
 import type { PayPalClient } from "./paypal/client";
 
 export type QueueRow = {
@@ -18,6 +19,7 @@ export type QueueRow = {
   classification: string;
   row: number;
   suggestion: "BUYER_FAVOR" | "SELLER_FAVOR" | null;
+  ruling: Ruling | null; // PayPal's own outcome, once it has decided
   failed: string;
   lights: Light[];
   evidence: "PayPal terms" | "Merchant copy (secondary)";
@@ -37,6 +39,7 @@ async function toRow(id: string, href: string, source: QueueRow["source"], note:
     classification: r.classification.label,
     row: r.classification.row,
     suggestion: r.classification.suggestion,
+    ruling: paypalRuling(bundle.dispute?.dispute_outcome, r.classification.suggestion),
     failed: r.failed.join(", "),
     lights: lights(r.checks),
     evidence: r.facts.secondaryTerms ? "Merchant copy (secondary)" : "PayPal terms",
