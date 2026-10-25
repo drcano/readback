@@ -2,7 +2,7 @@
 
 Status: **draft, Oct 25.** Built from SPEC §11. The story is Dante's; this only turns it into lines and shots. Lock by **Nov 4**, record **Nov 8–9**, under 3:00.
 
-Voiceover is about 410 words, roughly 2:45 at a calm 150 words a minute, which leaves room for the music sting and the close card. Every shot below names the real screen or command it comes from. Nothing is mocked.
+Voiceover is about 255 words, roughly 1:45 at a calm 150 words a minute. That leaves about a minute of shots with no voice (the lights turning green, PayPal's refusal, the red light), which is where the demo should speak for itself. Every shot below names the real screen or command it comes from. Nothing is mocked.
 
 On screen throughout: a role chip (Shopper / Agent / PayPal / Investigator), captions burned in, every PayPal object ID captioned, and "demo cadence: 1 day = 1 month" wherever a date shows.
 
