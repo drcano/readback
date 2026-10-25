@@ -383,7 +383,8 @@ main.console.narrow { max-width: 56rem; }
 .grid-cell { white-space: nowrap; }
 .grid-cell[data-outcome="passed"] { color: var(--pass-ink); }
 .grid-cell[data-outcome="stopped"], .grid-cell[data-outcome="caught"] { color: var(--fail-ink); font-weight: 700; background: var(--fail-bg); }
-.grid-cell[data-outcome="bypassed"], .grid-cell[data-outcome="not reached"] { color: var(--ink-muted); }
+.grid-cell[data-outcome="bypassed"], .grid-cell[data-outcome="not reached"], .grid-cell[data-outcome="no ruling"] { color: var(--ink-muted); }
+.stage[data-outcome="no ruling"] { border-color: var(--ink-muted); }
 @media (max-width: 760px) { .pipeline { grid-template-columns: 1fr 1fr; } .stage + .stage::before { content: none; } }
 @media (prefers-reduced-motion: reduce) { .stage { transition: none; } }
 .section-h { margin: 2.5rem 0 0.5rem; font-size: 1.25rem; }

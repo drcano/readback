@@ -14,7 +14,8 @@ import { paypalClient } from "../apps/web/lib/paypal/client.ts";
 import { fakePayPal } from "../apps/web/lib/paypal/fake.ts";
 
 export type Layer = "runtime" | "gate" | "paypal" | "investigator";
-export type Outcome = "passed" | "stopped" | "bypassed" | "caught" | "not reached";
+// "no ruling": the investigator withholds a suggestion because the evidence doesn't support one.
+export type Outcome = "passed" | "stopped" | "bypassed" | "caught" | "not reached" | "no ruling";
 export type Stop = { layer: Layer; outcome: Outcome; detail: string };
 export type Attack = { id: string; title: string; story: string; expect: Layer | "none"; run: () => Promise<Stop[]> };
 
@@ -68,7 +69,7 @@ async function investigate(w: World, captureId: string): Promise<Stop> {
   const s = r.classification.suggestion;
   if (s === "BUYER_FAVOR") return { layer: "investigator", outcome: "caught", detail: `Refund the buyer: ${red.join(" and ")} ${red.length === 1 ? "light is" : "lights are"} red (${r.classification.label}).` };
   if (s === "SELLER_FAVOR") return { layer: "investigator", outcome: "passed", detail: "Uphold the charge." };
-  return { layer: "investigator", outcome: "passed", detail: `No ruling yet: ${r.classification.label}.${red.length ? ` Red: ${red.join(", ")} (nothing has shipped, and a new agreement has no history).` : ""}` };
+  return { layer: "investigator", outcome: "no ruling", detail: `No ruling yet: ${r.classification.label}.${red.length ? ` Red: ${red.join(", ")} (nothing has shipped, and a new agreement has no history).` : ""}` };
 }
 
 // A compromised agent: skips the runtime's pre-check and signs whatever it likes, with any key.

@@ -10,8 +10,8 @@ const LAYERS: { id: Layer; name: string; who: string }[] = [
   { id: "paypal", name: "PayPal", who: "duplicate guard, cancelled agreements" },
   { id: "investigator", name: "Investigator", who: "rebuilds a dispute from PayPal's records" },
 ];
-const WORD: Record<Outcome, string> = { passed: "Passed", stopped: "Stopped here", caught: "Caught here", bypassed: "Bypassed", "not reached": "Not reached" };
-const SYMBOL: Record<Outcome, string> = { passed: "✓", stopped: "✕", caught: "✕", bypassed: "↷", "not reached": "–" };
+const WORD: Record<Outcome, string> = { passed: "Passed", stopped: "Stopped here", caught: "Caught here", bypassed: "Bypassed", "not reached": "Not reached", "no ruling": "No ruling yet" };
+const SYMBOL: Record<Outcome, string> = { passed: "✓", stopped: "✕", caught: "✕", bypassed: "↷", "not reached": "–", "no ruling": "?" };
 const reduced = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 export function AttackLab() {

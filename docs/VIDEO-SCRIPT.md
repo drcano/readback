@@ -22,7 +22,7 @@ On screen throughout: a role chip (Shopper / Agent / PayPal / Investigator), cap
 
 ## 0:32–0:55 · Buy · chip: Agent
 
-**Shot:** her assistant: "Biscuit's low." The `request_reorder` tool runs. Cut to the order in the PayPal sandbox: the signed request in the item, the terms copy, `invoice_id RB-…-P0NN`. Ask again: *"Already ordered this period (refused by PayPal)."* Four-second flash: the injected "premium bundle" page, refused. Then `my_agent_card`: dates, amounts, receipts.
+**Shot:** the home page's **"Ask the agent to shop"** panel (no third-party assistant UI): "Biscuit's low." The `request_reorder` tool runs. Cut to the order in the PayPal sandbox: the signed request in the item, the terms copy, `invoice_id RB-…-P0NN`. Ask again: *"Already ordered this period (refused by PayPal)."* Four-second flash: the injected "premium bundle" page, refused. Then `my_agent_card`: dates, amounts, receipts.
 
 **VO:** When she asks, her agent signs one exact order, and the store charges it under her agreement. Ask twice, and PayPal itself says no. A poisoned product page can't talk it into more, because the agent won't sign it and the store won't charge it.
 
@@ -42,13 +42,13 @@ On screen throughout: a role chip (Shopper / Agent / PayPal / Investigator), cap
 
 ## 1:55–2:25 · The twist · chip: Investigator
 
-**Shot:** the next row. Same shopper, same claim, $59, every limit respected. Agent: **red**. "Her agent did not ask for this order." Recommendation: refund the buyer. Cut: judge mode, "Be a dishonest merchant", the same red light with the judge's own key.
+**Shot:** the next row. Same shopper, same claim, $59, every limit respected. Agent: **red**. "Her agent did not ask for this order." Recommendation: refund the buyer. Cut: judge mode, "Be a dishonest merchant", then **"Your two verdicts"**: the judge's own two charges side by side, their agent's next to the store's, the same red light on their own key.
 
 **VO:** Same claim. Same shopper. Every limit respected. But her agent never asked: the store charged her wallet on its own. So Readback says refund her, against the very merchant running it. That's why it can be believed.
 
 ## 2:25–2:50 · Proof · chip: none
 
-**Shot:** "Judge it yourself" scoreboard running in the browser. Terminal: `npx @readback/verify <disputeId>` printing the four lights. The Agent Toolkit change. A caption: "Readback stores nothing."
+**Shot:** **"Try to break it"**: "Run all 8 attacks" fills the grid, the red "Stopped here" cells stepping across runtime, gate and PayPal, with only the store's direct charge reaching the investigator (about 10 seconds). Then the scoreboard. Terminal: `npx @readback/verify <disputeId>` printing the four lights. The Agent Toolkit change. A caption: "Readback stores nothing."
 
 **VO:** It's all checkable. Fifty-nine labeled scenarios, two thousand tampered requests, none accepted. One command re-runs any case from PayPal. And Readback stores nothing. Every fact is PayPal's.
 
