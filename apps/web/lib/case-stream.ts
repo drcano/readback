@@ -35,11 +35,16 @@ function describe(url: URL, seen: Set<string>): Omit<CaseRecord, "status" | "ms"
 
 export function streamCase(id: string, now: Date, env: Record<string, string | undefined> = process.env, fetchImpl: typeof fetch = fetch): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder();
+  // A reader who leaves mid-build cancels the stream: no more PayPal calls for a page nobody sees.
+  let gone = false;
   return new ReadableStream({
     async start(controller) {
-      const send = (event: CaseStreamEvent) => controller.enqueue(encoder.encode(`${JSON.stringify(event)}\n`));
+      const send = (event: CaseStreamEvent) => {
+        if (!gone) controller.enqueue(encoder.encode(`${JSON.stringify(event)}\n`));
+      };
       const seen = new Set<string>();
       const watched: typeof fetch = async (input, init) => {
+        if (gone) throw new Error("The reader left; this case isn't being read any more.");
         const url = new URL(input instanceof Request ? input.url : String(input));
         const t0 = performance.now();
         const res = await fetchImpl(input, init);
@@ -53,7 +58,10 @@ export function streamCase(id: string, now: Date, env: Record<string, string | u
       } catch {
         send({ type: "done", ok: false, status: 502, message: "PayPal couldn't be reached for this case." });
       }
-      controller.close();
+      if (!gone) controller.close();
+    },
+    cancel() {
+      gone = true;
     },
   });
 }
