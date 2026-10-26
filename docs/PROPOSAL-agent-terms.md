@@ -60,6 +60,13 @@ agent_terms_request:
 - PayPal's approval page shows the agent's display name, its domain, the thumbprint, and the constraints, in PayPal's own words.
 - The display name and domain come from the **fetched agent document**, not from the merchant's request. The merchant does still choose `jwk_uri`, so a merchant could point at a rogue agent endpoint it controls. Showing the agent's domain makes that visible to the shopper; fully closing it is an open question (below).
 
+**What the shopper would see.** `/proposal` on the demo is a labeled concept of this page. It is built from the terms PayPal stores for Maya's agreement, read live, and shows three things:
+- the line PayPal's page shows today (the merchant-written plan name);
+- the stored `description`, which PayPal never shows her;
+- the proposed page, with each line tied to the field above that would supply it.
+
+![Concept, not a PayPal page: the proposed approval page and where each line comes from](assets/approval-concept.png)
+
 ### 2. Payment token: return them, and keep them
 
 ```yaml

@@ -14,8 +14,8 @@ Every row says how it is known:
 Some tests in `evals/audit/findings.test.ts` are named for the bug they pin. Each one asserts the fixed, honest outcome.
 
 **Test status, Oct 26:**
-- `pnpm test`: 387 tests pass (core 155, verify 5, agent 16, evals 152, web 59).
-- `node e2e/run.ts` in `apps/web`: 22 checks pass in Chromium (the judge flow, plus axe on 7 pages in light and dark).
+- `pnpm test`: 389 tests pass (core 155, verify 5, agent 16, evals 152, web 61).
+- `node e2e/run.ts` in `apps/web`: 24 checks pass in Chromium (the judge flow, plus axe on 8 pages in light and dark).
 
 ## 1. Approval on PayPal
 

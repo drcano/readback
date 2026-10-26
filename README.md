@@ -11,7 +11,7 @@ Agent purchase mandates and dispute evidence, built entirely on PayPal's own rec
 | **Rulings** | 59/59 labeled scenarios behave as labeled. **0** wrong suggestions toward the seller, **0** toward the buyer ([results](evals/results/latest.json)) |
 | **Tampering** | 2,000 random single-field mutations of an upheld case: **0** still upheld. 10,000 more in the core test suite |
 | **Storage** | **Zero.** No database, no files, no caches. PayPal is the only system of record |
-| **Accessibility** | axe-core: **0** WCAG 2.1 AA violations on 7 pages, light and dark |
+| **Accessibility** | axe-core: **0** WCAG 2.1 AA violations on 8 pages, light and dark |
 
 **Try it:** run it locally in a few minutes ([Run it](#run-it)). Both verdicts, the investigator, the evals and the AP2 check work without any credentials, on labeled fixture data; approving and buying use the PayPal sandbox. <!-- TODO(submission): hosted URL and the YouTube video link go here. -->
 
@@ -122,6 +122,10 @@ Readback isn't the first to record what a user authorized; AP2, Mastercard Verif
 3. **PayPal enforces limits itself**: one charge per period through invoice uniqueness (while the merchant's duplicate-invoice blocking is on, the default), and no charges on a cancelled agreement.
 4. **Built for the adjudicator, not the merchant's advocate**: deterministic checks, re-derivable in the browser, with no suggestion where the evidence can't support one.
 5. **Zero data outside PayPal.**
+
+**What we'd ask PayPal to change.** Today PayPal's approval page shows only a line the merchant writes, never the terms it stores. That gap is why a key swap at setup (THREAT-MODEL T21) can't be stopped in code. [docs/PROPOSAL-agent-terms.md](docs/PROPOSAL-agent-terms.md) is the API change that closes it. `/proposal` shows the result as a labeled concept, built from the terms PayPal stores for Maya's agreement: the line PayPal shows today, the stored text it never shows, and the approval page we propose, each line tied to the proposal's fields.
+
+![Concept, not a PayPal page: the proposed approval page, showing the stored terms and the agent key fingerprint](docs/assets/approval-concept.png)
 
 ## Presentation
 
