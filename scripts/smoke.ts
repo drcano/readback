@@ -94,10 +94,34 @@ else {
 
 // 4. The queue, live from PayPal.
 const q = await call(`${web}/api/queue`);
-const queue = parse(q.text) as { rows?: { source: string }[]; liveError?: string; notices?: string[] } | null;
+const queue = parse(q.text) as { rows?: { id: string; source: string }[]; liveError?: string; notices?: string[] } | null;
 const live = queue?.rows?.filter((r) => r.source === "Live").length ?? 0;
 check(q.status === 200 && Array.isArray(queue?.rows) && !queue?.liveError, `Queue loads from PayPal: ${live} live, ${(queue?.rows?.length ?? 0) - live} labeled${queue?.liveError ? `. ${queue.liveError}` : ""}`);
 for (const n of queue?.notices ?? []) info(`Queue: ${n}`);
+
+// The case view's live rebuild arrives record by record. A buffering proxy between here and the app
+// would deliver it all at once: nothing breaks, but the rebuild stops showing.
+const liveId = pair[0][1] ?? queue?.rows?.find((r) => r.source === "Live")?.id;
+if (!liveId) info("No live dispute yet, so the live rebuild's streaming isn't checked");
+else {
+  const t0 = performance.now();
+  const res = await fetch(`${web}/api/cases/${liveId}?stream=1`, { headers: { "accept-encoding": "gzip, br" }, signal: AbortSignal.timeout(60_000) }).catch(() => null);
+  const reader = res?.body?.pipeThrough(new TextDecoderStream()).getReader();
+  let [records, firstAt, doneAt, buffer] = [0, 0, 0, ""];
+  while (reader && !doneAt) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buffer += value;
+    for (let nl = buffer.indexOf("\n"); nl >= 0 && !doneAt; nl = buffer.indexOf("\n")) {
+      const event = parse(buffer.slice(0, nl)) as { type?: string } | null;
+      buffer = buffer.slice(nl + 1);
+      const at = Math.round(performance.now() - t0);
+      if (event?.type === "record" && records++ === 0) firstAt = at;
+      if (event?.type === "done") doneAt = at;
+    }
+  }
+  check(records > 1 && doneAt > 0 && firstAt < doneAt * 0.8, `The live rebuild streams record by record (${records} records; first at ${firstAt} ms, case at ${doneAt} ms)`);
+}
 
 // 5. Fails closed: a forged request, a dispute action without the admin token, a bad demo proof.
 const forged = await post(`${web}/api/checkout`, { mandate: "eyJhbGciOiJFUzI1NiJ9.e30.c2ln" });
