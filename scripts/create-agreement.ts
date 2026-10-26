@@ -4,7 +4,6 @@
 //
 //   pnpm agreement:create <fingerprint> [periodDays=1] [end=2027-03-31]
 //   (get the fingerprint with: pnpm --filter @readback/agent pubkey)
-import { createInterface } from "node:readline/promises";
 import { buildSetupTokenRequest, groupFingerprint, PaymentTokenSchema, parseTerms, type Terms } from "@readback/core";
 import { paypal } from "./spike/paypal.ts";
 
@@ -41,9 +40,13 @@ const setup = (await paypal({
 const approve = setup.links.find((l) => l.rel === "approve")?.href;
 // The hero is Maya's; test agreements use a spare sandbox buyer, never Maya's or the judge account.
 console.log(`Log in as the sandbox buyer this agreement is for (Maya only for the hero), check the fingerprint, and approve:\n  ${approve}\n`);
-const rl = createInterface({ input: process.stdin, output: process.stdout });
-await rl.question("Press Enter once approved...");
-rl.close();
+// Waits for the approval itself: PayPal turns the setup token APPROVED, so nobody has to press Enter.
+for (let waited = 0; ; waited += 5) {
+  const s = (await paypal({ method: "GET", path: `/v3/vault/setup-tokens/${setup.id}` })) as { status?: string };
+  if (s.status === "APPROVED") break;
+  if (waited >= 900) throw new Error(`Not approved within 15 minutes (status ${s.status ?? "unknown"}). Rerun today: it resumes the same setup token.`);
+  await new Promise((r) => setTimeout(r, 5000));
+}
 
 const token = PaymentTokenSchema.parse(
   await paypal({
