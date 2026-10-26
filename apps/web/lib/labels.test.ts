@@ -1,9 +1,16 @@
+import { readFileSync } from "node:fs";
+import { DisputeSchema } from "@readback/core";
 import { describe, expect, it } from "vitest";
 import { paypalRuling } from "./labels";
 
 describe("paypalRuling", () => {
   it("is null while the dispute is open", () => {
     expect(paypalRuling(undefined, "SELLER_FAVOR")).toBeNull();
+  });
+
+  it("reads PayPal's real ruling after the store refunded (sandbox, Oct 26)", () => {
+    const real = DisputeSchema.parse(JSON.parse(readFileSync(new URL("../../../evals/fixtures/spike/07-dispute-resolved-after-refund.json", import.meta.url), "utf8")));
+    expect(paypalRuling(real.dispute_outcome, "BUYER_FAVOR")).toMatchObject({ favors: "buyer", label: "PayPal ruled for the buyer", reason: "seller issued refund", agrees: true });
   });
 
   it("leads with PayPal's ruling and says whether Readback's evidence agrees", () => {

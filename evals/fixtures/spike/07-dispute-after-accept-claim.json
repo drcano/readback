@@ -1,0 +1,190 @@
+{
+  "dispute_id": "PP-R-CFY-10194687",
+  "create_time": "2026-10-26T20:12:33.075Z",
+  "update_time": "2026-10-26T21:02:13.665Z",
+  "disputed_transactions": [
+    {
+      "buyer_transaction_id": "2HT86836T96355032",
+      "seller_transaction_id": "008512347R795370T",
+      "create_time": "2026-10-15T13:21:24.000Z",
+      "transaction_status": "REFUNDED",
+      "gross_amount": {
+        "currency_code": "USD",
+        "value": "64.99"
+      },
+      "invoice_number": "RB-63y80131kp838264b-P901",
+      "custom": "rb1:63y80131kp838264b:1a168811825349b0:p901:1c2474ad92c45638",
+      "buyer": {
+        "email": "maya@example.com",
+        "payer_id": "FAKEPAYER0001",
+        "name": "Maya Example"
+      },
+      "seller": {
+        "email": "maya@example.com",
+        "merchant_id": "CECTB4SU6GCRL",
+        "name": "Sandbox Merchant"
+      },
+      "items": [
+        {
+          "item_id": "GBP-SR24",
+          "item_name": "Salmon & Rice Adult (24 lb)",
+          "item_quantity": "1",
+          "reason": "MERCHANDISE_OR_SERVICE_NOT_RECEIVED",
+          "item_type": "PRODUCT"
+        }
+      ],
+      "seller_protection_eligible": true,
+      "seller_protection_type": "EXPANDED_SELLER_PROTECTION"
+    }
+  ],
+  "reason": "MERCHANDISE_OR_SERVICE_NOT_RECEIVED",
+  "status": "RESOLVED",
+  "dispute_amount": {
+    "currency_code": "USD",
+    "value": "64.99"
+  },
+  "dispute_state": "RESOLVED",
+  "dispute_outcome": {
+    "outcome_code": "RESOLVED_BUYER_FAVOUR",
+    "outcome_reason": "SELLER_ISSUED_REFUND",
+    "amount_refunded": {
+      "currency_code": "USD",
+      "value": "64.99"
+    }
+  },
+  "money_movements": [
+    {
+      "affected_party": "BUYER",
+      "amount": {
+        "currency_code": "USD",
+        "value": "64.99"
+      },
+      "initiated_time": "2026-10-26T21:00:16.528Z",
+      "type": "CREDIT",
+      "reason": "DISPUTE_SETTLEMENT"
+    },
+    {
+      "affected_party": "SELLER",
+      "amount": {
+        "currency_code": "USD",
+        "value": "64.99"
+      },
+      "initiated_time": "2026-10-26T21:00:16.528Z",
+      "type": "DEBIT",
+      "reason": "DISPUTE_SETTLEMENT"
+    },
+    {
+      "affected_party": "SELLER",
+      "amount": {
+        "currency_code": "USD",
+        "value": "2.76"
+      },
+      "initiated_time": "2026-10-26T21:00:16.528Z",
+      "type": "DEBIT",
+      "reason": "DISPUTE_SETTLEMENT_FEE"
+    }
+  ],
+  "fund_movements": [
+    {
+      "party": "RECEIVER",
+      "amount": {
+        "currency_code": "USD",
+        "value": "62.23"
+      },
+      "initiated_time": "2026-10-26T20:15:42.000Z",
+      "type": "DEBIT",
+      "reason": "HOLD_PLACED"
+    },
+    {
+      "party": "BUYER",
+      "amount": {
+        "currency_code": "USD",
+        "value": "64.99"
+      },
+      "initiated_time": "2026-10-26T21:00:16.528Z",
+      "type": "CREDIT",
+      "reason": "DISPUTE_SETTLEMENT"
+    },
+    {
+      "party": "SELLER",
+      "amount": {
+        "currency_code": "USD",
+        "value": "64.99"
+      },
+      "initiated_time": "2026-10-26T21:00:16.528Z",
+      "type": "DEBIT",
+      "reason": "DISPUTE_SETTLEMENT"
+    }
+  ],
+  "dispute_life_cycle_stage": "INQUIRY",
+  "dispute_channel": "INTERNAL",
+  "messages": [
+    {
+      "posted_by": "BUYER",
+      "time_posted": "2026-10-26T20:12:33.075Z",
+      "content": "Sandbox test for the Readback hackathon project: the 24 lb bag of Salmon & Rice from this order hasn't arrived."
+    }
+  ],
+  "extensions": {
+    "buyer_contacted_time": "2026-10-26T20:12:32.288Z"
+  },
+  "evidences": [
+    {
+      "evidence_type": "CREATE",
+      "notes": "Sandbox test for the Readback hackathon project: the 24 lb bag of Salmon & Rice from this order hasn't arrived.",
+      "source": "SUBMITTED_BY_BUYER",
+      "date": "2026-10-26T20:12:33.075Z",
+      "dispute_life_cycle_stage": "INQUIRY"
+    },
+    {
+      "evidence_type": "PROOF_OF_FULFILLMENT",
+      "notes": "Readback evidence for dispute PP-R-CFY-10194687, rebuilt from PayPal's own records. Re-derive it with the store's API credentials: npx @readback/verify PP-R-CFY-10194687\nCharge: capture 008512347R795370T, USD 64.99, 2026-10-15 13:21 UTC, order 9FK118892T652990U, under PayPal agreement (vault payment token) 63y80131kp838264b.\n1. Consent: PASS. The agreement's terms as PayPal stores them (set at approval; payment tokens can't be edited): \"RB1 Good Boy Provisions | GBP-SR24 x1/30d | max USD 65.00 | 2026-10-15..2027-03-31 | agent 5_jy3jJaiu96W-4D\".\n2. Agent: FAIL. The order carries a request signed (ES256) by agent key RvOG ne4J T1t2 4fiB: agreement 63y80131kp838264b, 1 x GBP-SR24 at USD 64.99, period 901, signed 2026-10-15 13:21 UTC. check 3: It wasn't signed by the agent key approved on PayPal.\n3. Terms: FAIL. Approved: up to 1 x GBP-SR24, max USD 65.00 per order, once every 30 day(s), 2026-10-15 to 2027-03-31; invoice RB-63y80131kp838264b-P901. check 7: The signed period isn't the period it was signed in. check 7: Another charge was already made in this period.\n4. Delivery: FAIL. No shipment reported; 0 earlier undisputed charge(s) under this agreement verified through PayPal. check 10: No shipment was reported for this order. check 10: The order carries no shipping address. check 11: 0 earlier undisputed charge(s) under this agreement; at least 2 over 7+ days are needed.\nReadback's assessment: No valid agent request; the evidence supports the buyer.\nLimits: the agent-key binding rests on an honest setup and the shopper's fingerprint check at approval (Readback THREAT-MODEL T21); tracking is merchant-reported.",
+      "source": "SUBMITTED_BY_SELLER",
+      "date": "2026-10-26T20:17:01.217Z",
+      "action_info": {
+        "action": "PROVIDE_EVIDENCE"
+      },
+      "dispute_life_cycle_stage": "INQUIRY"
+    },
+    {
+      "evidence_type": "OTHER",
+      "notes": "The store accepts this claim and refunds USD 64.99 in full. Readback's assessment of PayPal's records: No valid agent request, which supports the buyer. It wasn't signed by the agent key approved on PayPal. Re-derive it with the store's API credentials: npx @readback/verify PP-R-CFY-10194687",
+      "source": "SUBMITTED_BY_SELLER",
+      "date": "2026-10-26T21:00:16.652Z",
+      "action_info": {
+        "action": "ACCEPT_CLAIM",
+        "response_option": "REFUND"
+      },
+      "dispute_life_cycle_stage": "INQUIRY"
+    }
+  ],
+  "offer": {
+    "buyer_requested_amount": {
+      "currency_code": "USD",
+      "value": "64.99"
+    }
+  },
+  "refund_details": {
+    "allowed_refund_amount": {
+      "currency_code": "USD",
+      "value": "64.99"
+    },
+    "transactions": [
+      {
+        "id": "7EM88034D46537130",
+        "gross_amount": {
+          "currency_code": "USD",
+          "value": "64.99"
+        },
+        "create_time": "2026-10-26T21:00:16.000Z"
+      }
+    ]
+  },
+  "links": [
+    {
+      "href": "https://api-m.sandbox.paypal.com/v1/customer/disputes/PP-R-CFY-10194687",
+      "rel": "self",
+      "method": "GET"
+    }
+  ]
+}

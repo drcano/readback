@@ -54,6 +54,8 @@ export async function runDisputeAction(paypal: PayPalClient, disputeId: string, 
     if (d.status === "RESOLVED") return { ok: true, sent: false, message: "PayPal has already resolved this dispute; nothing sent." };
     const lookup = await buildCaseBundle(disputeId, paypal, now);
     if (!lookup.ok) return { ok: false, status: lookup.status, message: lookup.message };
+    // PayPal refunds as soon as the claim is accepted, then closes the dispute minutes later (spike step 7).
+    if (lookup.bundle.capture.status === "REFUNDED") return { ok: true, sent: false, message: "PayPal shows this charge already refunded in full; nothing sent." };
     const r = await evaluateCase(lookup.bundle);
     const why = r.checks.find((k) => !k.pass)?.failures[0]?.message;
     const text = [
@@ -81,11 +83,12 @@ export async function runDisputeAction(paypal: PayPalClient, disputeId: string, 
     return { ...sent, via: action, onPayPalRecord: landed, message: landed ? "Sent, and it's on PayPal's record of the dispute." : "Sent; PayPal accepted it but hasn't shown it on the dispute yet." };
   }
 
+  // The record before the links: once PayPal has a response, it stops offering that action.
+  if (onRecord(d).includes(req.text)) return { ok: true, sent: false, message: "Already on the case; nothing sent again.", onPayPalRecord: true };
   if (!d.links.some((l) => l.rel === req.action)) {
     const offered = d.links.map((l) => l.rel).filter((r) => r !== "self");
     return { ok: false, status: 409, message: `PayPal doesn't offer this action on the dispute right now. It offers: ${offered.join(", ") || "nothing"}.` };
   }
-  if (onRecord(d).includes(req.text)) return { ok: true, sent: false, message: "Already on the case; nothing sent again.", onPayPalRecord: true };
 
   const hash = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(req.text))), (b) => b.toString(16).padStart(2, "0")).join("");
   const requestId = `rb-${req.action}-${disputeId}-${hash.slice(0, 16)}`;

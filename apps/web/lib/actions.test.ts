@@ -102,12 +102,17 @@ describe("refund the buyer when the evidence supports them (end to end over the 
     expect(post.body).toMatchObject({ accept_claim_type: "REFUND", note: expect.stringContaining("which supports the buyer") });
     expect((post.body as { note: string }).note).toContain(`npx @readback/verify ${disputeId}`);
 
-    // PayPal has resolved it for the buyer; the case now reads that way, and a second click sends nothing.
+    // As in the sandbox (spike step 7): refunded at once, the note on record, the dispute still under review.
+    expect(pp.disputes.get(disputeId)).toMatchObject({ status: "UNDER_REVIEW", evidences: [{ evidence_type: "OTHER", source: "SUBMITTED_BY_SELLER" }] });
+    expect(await runDisputeAction(client, disputeId, { action: "refund_buyer" })).toMatchObject({ ok: true, sent: false, message: expect.stringMatching(/already refunded/) });
+
+    // PayPal then resolves it for the buyer; the case reads that way, and another click sends nothing.
+    pp.settle(disputeId);
     const after = await buildCaseBundle(disputeId, client, new Date("2026-11-09T12:05:00Z"));
     if (!after.ok) throw new Error(after.message);
-    expect(after.bundle.dispute!.dispute_outcome).toMatchObject({ outcome_code: "RESOLVED_BUYER_FAVOUR" });
+    expect(after.bundle.dispute!.dispute_outcome).toMatchObject({ outcome_code: "RESOLVED_BUYER_FAVOUR", outcome_reason: "SELLER_ISSUED_REFUND" });
     expect((await evaluateCase(after.bundle)).classification.notes.join(" ")).toMatch(/fully refunded/);
-    expect(await runDisputeAction(client, disputeId, { action: "refund_buyer" })).toMatchObject({ ok: true, sent: false });
+    expect(await runDisputeAction(client, disputeId, { action: "refund_buyer" })).toMatchObject({ ok: true, sent: false, message: expect.stringMatching(/already resolved/) });
     expect(pp.posts.filter((p) => p.path.endsWith("/accept-claim"))).toHaveLength(1);
   });
 });

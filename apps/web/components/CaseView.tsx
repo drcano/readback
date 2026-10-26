@@ -113,7 +113,7 @@ export function CaseView({ id }: { id: string }) {
 
       <aside className="case-side" aria-label="Case actions and facts">
         <CaseActions id={id} rec={rec} closed={ruling !== null} />
-        {bundle.dispute && ruling === null && <EvidenceToPayPal id={id} statement={evidenceStatement(bundle, result)} live={!loaded.fixture} rec={rec} amount={bundle.capture.amount.value} />}
+        {bundle.dispute && ruling === null && <EvidenceToPayPal id={id} statement={evidenceStatement(bundle, result)} live={!loaded.fixture} rec={rec} amount={bundle.capture.amount.value} refunded={bundle.capture.status === "REFUNDED"} />}
         <CaseFacts bundle={bundle} result={result} stage={bundle.dispute ? stageLabel(bundle.dispute.dispute_life_cycle_stage) : null} />
       </aside>
     </div>

@@ -13,6 +13,7 @@ export type FakePayPal = {
   clock: { now: string }; // capture create_time = this, so tests control history dates
   approve: (setupTokenId: string) => void; // stands in for Maya clicking Agree on PayPal
   openDispute: (captureId: string, reason: string) => string;
+  settle: (disputeId: string) => void; // stands in for PayPal closing a dispute the store accepted
   // Load testing (evals/flood.test.ts): every call is counted; optional latency per call; and
   // after `limit.after` calls (OAuth excluded) PayPal answers 429 RATE_LIMIT_REACHED.
   calls: { method: string; path: string }[];
@@ -62,12 +63,15 @@ export function fakePayPal(): FakePayPal {
       const body: unknown = form ? JSON.parse(await (form.get("input") as Blob).text()) : init?.body ? JSON.parse(String(init.body)) : undefined;
       posts.push({ path, requestId, body });
       if (requestId && byRequestId.has(`${path}|${requestId}`)) return json(200, byRequestId.get(`${path}|${requestId}`));
-      // Accepting a claim resolves the dispute for the buyer and refunds the charge.
+      // Accepting a claim refunds the charge at once and records the note as seller evidence; the
+      // dispute stays UNDER_REVIEW, with no actions, until PayPal closes it about two minutes later
+      // (spike step 7, Oct 26). settle() stands in for that.
       const accept = /^\/v1\/customer\/disputes\/([^/]+)\/accept-claim$/.exec(path);
       if (accept) {
         const d = disputes.get(accept[1]!);
         if (!d) return json(404, { name: "RESOURCE_NOT_FOUND" });
-        Object.assign(d, { status: "RESOLVED", dispute_outcome: { outcome_code: "RESOLVED_BUYER_FAVOUR", outcome_reason: "ACCEPTED_BY_SELLER" }, links: [{ rel: "self", href: `/v1/customer/disputes/${accept[1]}` }] });
+        Object.assign(d, { status: "UNDER_REVIEW", links: [{ rel: "self", href: `/v1/customer/disputes/${accept[1]}` }] });
+        d["evidences"] = [...((d["evidences"] as Json[] | undefined) ?? []), { evidence_type: "OTHER", source: "SUBMITTED_BY_SELLER", notes: (body as { note: string }).note, date: clock.now }];
         const capId = (d["disputed_transactions"] as { seller_transaction_id: string }[])[0]!.seller_transaction_id;
         const cap = captureById(capId);
         if (cap) cap["status"] = "REFUNDED";
@@ -190,5 +194,12 @@ export function fakePayPal(): FakePayPal {
     return id;
   };
 
-  return { fetch: fakeFetch as typeof fetch, tokens, orders, disputes, posts, clock, openDispute, approve: (id) => approved.add(id), calls, knobs };
+  // PayPal's ruling once the store has accepted, as the sandbox recorded it (07-dispute-resolved-after-refund.json).
+  const settle = (disputeId: string): void => {
+    const d = disputes.get(disputeId)!;
+    const cap = captureById((d["disputed_transactions"] as { seller_transaction_id: string }[])[0]!.seller_transaction_id);
+    Object.assign(d, { status: "RESOLVED", dispute_outcome: { outcome_code: "RESOLVED_BUYER_FAVOUR", outcome_reason: "SELLER_ISSUED_REFUND", amount_refunded: cap?.["amount"] } });
+  };
+
+  return { fetch: fakeFetch as typeof fetch, tokens, orders, disputes, posts, clock, openDispute, settle, approve: (id) => approved.add(id), calls, knobs };
 }

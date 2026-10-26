@@ -82,7 +82,7 @@ export function CaseFacts({ bundle, result, stage }: { bundle: CaseBundle; resul
 // The store's evidence, sent into PayPal's own dispute (SPEC §5.4–5.5). The statement shown here is
 // computed in this browser from the same PayPal records; the server rebuilds it from PayPal before
 // sending, so what PayPal receives is never text typed here. Sending needs the store's admin token.
-export function EvidenceToPayPal({ id, statement, live, rec, amount }: { id: string; statement: string; live: boolean; rec: Rec; amount: string }) {
+export function EvidenceToPayPal({ id, statement, live, rec, amount, refunded }: { id: string; statement: string; live: boolean; rec: Rec; amount: string; refunded: boolean }) {
   const [token, setToken] = useState("");
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; message: string; onPayPalRecord?: boolean; via?: string } | null>(null);
@@ -109,7 +109,12 @@ export function EvidenceToPayPal({ id, statement, live, rec, amount }: { id: str
         <summary>Read the statement ({statement.length} characters)</summary>
         <pre>{statement}</pre>
       </details>
-      {live ? (
+      {!live ? (
+        <p className="side-note">Labeled example case: there&apos;s no PayPal dispute to send it to.</p>
+      ) : refunded ? (
+        // Accepting refunds at once; PayPal closes the dispute minutes later (spike step 7).
+        <p className="side-note">PayPal shows this charge refunded in full, so there&apos;s nothing more to send. PayPal&apos;s ruling will show here once it closes the dispute.</p>
+      ) : (
         <form className="side-actions" onSubmit={(e) => e.preventDefault()}>
           <label htmlFor="admin-token" className="small">Store admin token</label>
           <input id="admin-token" type="password" className="field" value={token} onChange={(e) => setToken(e.target.value)} autoComplete="off" />
@@ -120,8 +125,6 @@ export function EvidenceToPayPal({ id, statement, live, rec, amount }: { id: str
             Accept the claim and refund ${amount}
           </button>
         </form>
-      ) : (
-        <p className="side-note">Labeled example case: there&apos;s no PayPal dispute to send it to.</p>
       )}
       {result && (
         <p role="status" className={result.ok ? "verified" : "banner"}>
