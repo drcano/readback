@@ -6,6 +6,12 @@
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--filter", "@readback/web", "dev"],
       "port": 3000
+    },
+    {
+      "name": "readback-web-start",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": ["-c", "cd apps/web && set -a && . ../../.env && set +a && exec npx next start -p 3123"],
+      "port": 3123
     }
   ]
 }
