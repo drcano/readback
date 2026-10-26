@@ -10,8 +10,14 @@
     {
       "name": "readback-web-start",
       "runtimeExecutable": "sh",
-      "runtimeArgs": ["-c", "cd apps/web && set -a && . ../../.env && set +a && exec npx next start -p 3123"],
+      "runtimeArgs": ["-c", "cd apps/web && set -a && . ../../.env && set +a && DEMO_MODE=true exec npx next start -p 3123"],
       "port": 3123
+    },
+    {
+      "name": "readback-agent-start",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": ["-c", "cd apps/agent && MERCHANT_URL=http://localhost:3123 exec node --env-file=.env src/server.ts"],
+      "port": 3001
     }
   ]
 }
