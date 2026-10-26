@@ -15,7 +15,7 @@ Research current as of Oct 14, 2026. This revision incorporates an independent s
 
 **Maya tells her AI once what it may buy. PayPal holds that promise, her agent signs every purchase, and when anyone says "my AI bought that," the truth takes one click.**
 
-- **Consent.** Maya approves her agent's terms on PayPal's own approval page: merchant, item, cap, cadence, dates, and her agent's key fingerprint. PayPal stores them, and nobody can edit them afterward.
+- **Consent.** Maya approves her agent's terms on PayPal's own approval page, which shows a summary carrying her agent's key fingerprint. PayPal stores the exact terms (merchant, item, cap, cadence, dates, fingerprint), and nobody can edit them afterward. PayPal doesn't keep the summary she saw (spike step 2), so the key binding rests on an honest setup and her fingerprint comparison (T21); seller-favor suggestions therefore also require history (check 11).
 - **The agent.** Her assistant (Claude, or any MCP-capable assistant) is the brain. It holds no keys and has no way to pay. A small **agent runtime** on Maya's side holds the agent's private key (P-256), checks each request against her terms, and signs an **AP2-style closed mandate**.
 - **Purchases.** Each purchase is a PayPal order charged under the agreement. It carries:
   - the signed mandate;
@@ -72,7 +72,7 @@ Full sourcing in `docs/WHY-PAYPAL.md`. The essentials:
 - the first to draft disputes with AI.
 
 ### 1.1 Who adopts it
-- **Shoppers** get a hard limit their agent can't exceed, a receipt that shows what they agreed to, and a merchant who can't charge in their agent's name.
+- **Shoppers** get a hard limit their agent can't exceed, a receipt that shows what they agreed to, and a merchant who can't charge in their agent's name without a signature by the key bound at setup (an honest setup is the precondition, T21).
 - **Merchants** adopt it because it wins the disputes they should win. It's believed because it recommends refunds for the ones they should lose. Integrating it is about 10 lines on top of an existing PayPal integration (§5.8).
 - **PayPal** is the natural long-term owner. One API addition, in `docs/PROPOSAL-agent-terms.md`, makes the key binding PayPal-attested and closes the remaining gaps.
 - **Agents** only need to speak MCP; the runtime does the rest.
@@ -104,7 +104,7 @@ Full sourcing in `docs/WHY-PAYPAL.md`. The essentials:
 | Agreement type | Payment token | `usage_pattern: RECURRING_PREPAID` (PayPal refuses a `billing_plan` with `UNSCHEDULED_PREPAID`; spike step 2), `usage_type: MERCHANT`, `customer_type: CONSUMER`, `permit_multiple_payment_tokens: true` | No |
 | Who approved | Payment token | `payer_id`, `email_address`, `customer.id` | No |
 | Terms shown on PayPal's approval page | Setup token request | `billing_plan.name` only, prefixed "to <brand>:" (display only; merchant-supplied; **not returned** on GET). The stored `description` is never shown to the buyer (spike step 2) | n/a |
-| Which agreement a charge used | Order | PayPal's `payment_source.paypal.attributes.vault.id` if present; **the sandbox never sends it** (spike step 3). Otherwise the agreement the labels (`custom_id`, `invoice_id`) name, accepted only with PayPal's payer match (check 2a). `stored_credential` is merchant-declared, shown but never decisive | No |
+| Which agreement a charge used | Order | PayPal's `payment_source.paypal.attributes.vault.id` if present; **the sandbox never sends it** (spike step 3). Otherwise the agreement the labels (`custom_id`, `invoice_id`) name, accepted only with PayPal's payer match (check 2a). The payer match shows the agreement belongs to the payer charged, not that this agreement (rather than another of hers with the same merchant) paid, so the link is partly merchant-asserted; it can count for the merchant only together with her agent's signature for that same agreement. `stored_credential` is merchant-declared, shown but never decisive | No |
 | The agent's signed request | Order | `purchase_units[0].items[0].description` (≤2048 retained): the compact JWS | Merchant writes it, but can't forge it without the agent's private key |
 | Each charge | Order and capture | amounts and `amount.breakdown`; `items[]` (`name`, `sku`, `quantity`, `unit_amount`); `invoice_id`; `custom_id`; `purchase_units[0].description` | Merchant sets labels; PayPal records amounts, payer, time, and payment source |
 | One charge per period | Order | Canonical `invoice_id = RB-<tokenId>-P<NNN>`; PayPal rejects duplicates (`DUPLICATE_INVOICE_ID`) by default | — |
@@ -371,15 +371,15 @@ Sam can:
 | 1 | Consent | **Consent on PayPal** | A payment token exists, its `payer_id` matches the order's `payer.payer_id`, and its terms parse. If the token was deleted, the secondary copy from the charges is used and labeled. |
 | 2a | Consent | **Agreement link** | PayPal's vault echo (`attributes.vault.id`) if present; otherwise the agreement named by `custom_id` and/or `invoice_id` (labels that name different agreements = no link). A label-named agreement counts only with PayPal's payer match (check 1). If the agreement is gone and there's no echo, the link is secondary, which withholds a seller-favor suggestion only. Rule: merchant-written labels can count against the merchant, never for it; the signature by the approved key for that agreement (check 3) is what can favor the merchant. History entries (check 11) count only with PayPal's payer match plus a mandate signed by the approved key naming this agreement. `stored_credential` is merchant-declared and never decides a check. |
 | 2b | Agent | **Labels present** | `custom_id` and `invoice_id` parse and name that token. |
-| 3 | Agent | **Requested by her agent** | The JWS passes hygiene and verifies. Its key's thumbprint prefix equals the approved fingerprint. Its payload matches the order (`agr`, SKU, quantity, unit, amount, `p`). The capture time is within `[iat − 60s, exp + 60s]`. No other capture under the token carries the same mandateHash. |
+| 3 | Agent | **Requested by her agent** | The JWS passes hygiene and verifies. Its key's thumbprint prefix equals the approved fingerprint. Its payload matches the order (`agr`, SKU, quantity, unit and amount compared as integer cents, `p`). The capture time is within `[iat − 120s, exp + 60s]`: the gate accepts `iat` up to 60 s ahead of its clock and stops 60 s before `exp`, and PayPal's clock may be 60 s off (T27). No other capture under the token carries the same mandateHash. |
 | 4 | Consent | **Active at charge** | The capture completed with the saved wallet, which PayPal refuses on cancelled agreements. No deletion event before the capture time, if events are retrievable. |
 | 5 | Terms | **Within cap** | `amount.value` (integer cents) ≤ cap, and equals the signed `amt`. |
 | 6 | Terms | **Approved item** | Order SKU and quantity match the terms and the signed mandate. |
 | 7 | Terms | **One per period** | `invoice_id` byte-equals the canonical `RB-<tokenId>-P<NNN>`, with NNN = period(`iat`) = `p`. While PayPal's duplicate blocking is on, at most one charge exists per period. If blocking is off **[spike]**, this must be the earliest completed capture of its period. |
 | 8 | Terms | **Within dates** | `iat` and the capture time fall within the dates. |
 | 9 | Terms | **Bound to these terms** | `th` and the termsHash in `custom_id` equal the hash of the token's terms and of the charge's description copy. |
-| 10 | Delivery | **Fulfilled (merchant-reported)** | A tracker on the order with status SHIPPED, and the order's shipping address equals the shipping address on the payment token (approved at setup), when the token has one. |
-| 11 | Delivery | **History** | Prior captures under this agreement with no dispute (via `disputed_transaction_id`), and their age. **Provisional** while the capture is under 3 hours old. Inspired by Visa CE 3.0, but weaker. |
+| 10 | Delivery | **Fulfilled (merchant-reported)** | A tracker on the order with status SHIPPED or DELIVERED, and the order's shipping address equals the shipping address on the payment token (approved at setup), when the token has one. |
+| 11 | Delivery | **History** | Prior captures under this agreement with no dispute (via `disputed_transaction_id`), fully completed (refunded ones don't count), each verified through PayPal, and their age. History is built from Transaction Search payments only (`T00xx`, not denied), each capture once. **Provisional** while the capture is under 3 hours old. Inspired by Visa CE 3.0, but weaker. |
 
 **Classification** (deterministic; first match wins; every result lists all failed checks). In preview mode (a capture with no dispute), the reason is treated as UNAUTHORISED: rows 1–4 and 11–13 apply, and rows 0 and 5–10 can't match. The view is labeled "if disputed."
 
@@ -394,18 +394,18 @@ Sam can:
 | 6 | NOT_RECEIVED and check 10 passes | Shipment reported (merchant-attested) | None; supply `PROOF_OF_FULFILLMENT` |
 | 7 | NOT_AS_DESCRIBED | Item matches the signed and approved SKU; contents unverifiable | None |
 | 8 | INCORRECT_AMOUNT | Amount as authorized | `SELLER_FAVOR` |
-| 9 | DUPLICATE_TRANSACTION | Single charge in its period | `SELLER_FAVOR` |
-| 10 | CANCELED_RECURRING_BILLING | Charged before cancellation | `SELLER_FAVOR` |
+| 9 | DUPLICATE_TRANSACTION | No other labeled charge in its period | None. Readback sees only labeled charges; PayPal sees every charge to the wallet (audit Oct 25) |
+| 10 | CANCELED_RECURRING_BILLING | In terms; the cancellation time isn't readable | None, until PayPal's cancellation record is readable (spike step 5) |
 | 11 | UNAUTHORISED and check 10 fails | Authorized by terms; fulfillment not shown | None |
 | 12 | UNAUTHORISED and history below threshold | Consent authenticity unverified | None; route to PayPal account review |
-| 13 | UNAUTHORISED, all checks pass, threshold met | First-party misuse | `SELLER_FAVOR`. Shows the PayPal reasons this evidence supports: `NOT_AN_UNAUTHORIZED_TRANSACTION`, `CUSTOMER_RECOGNIZES_TRANSACTION` |
+| 13 | UNAUTHORISED, all checks pass, threshold met | Signed by her approved agent, within her terms | `SELLER_FAVOR`. Shows the PayPal reason this evidence supports: `NOT_AN_UNAUTHORIZED_TRANSACTION` |
 
 **Modifiers:**
 - **Label-dependent parts are provisional.** Check 3's mandateHash-uniqueness part and check 11 read only label-bearing captures from Transaction Search. Both are **provisional** while a capture is under 3 hours old.
 - **Secondary terms.** Any `SELLER_FAVOR` that relied on the secondary terms copy is downgraded to **None**, labeled "terms merchant-attested only."
 - **Provisional history.** If history is provisional, any `SELLER_FAVOR` that depends on it becomes **None**.
 
-**History threshold** (a stated policy constant): at least 2 prior undisputed captures, the earliest at least 7 days before this one. A valid agent signature does **not** relax it, because whoever approved the agreement chose the key.
+**History threshold** (a stated policy constant): at least 2 prior undisputed captures, the earliest at least 7 days before this one. A valid agent signature does **not** relax it, because whoever approved the agreement chose the key. It guards **every** `SELLER_FAVOR` row, whatever reason the buyer filed under (audit Oct 25): below it, the suggestion becomes None.
 
 **After a sandbox ruling.** The page shows PayPal's own `adjudications[].reason`; sandbox `adjudicate` accepts only the outcome.
 

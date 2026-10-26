@@ -37,7 +37,7 @@ Maya's assistant ──asks──▶ agent runtime ──signs (ES256)──▶ 
                        investigator view & re-verify in the browser ◀──reads─────────────┘
 ```
 
-1. **Consent on PayPal.** Maya says it once; her agent reads it back as exact terms. She approves them on **PayPal's own approval page**: merchant, item, cap, cadence, dates and her agent's key fingerprint. PayPal stores them in the payment token's `description`, which can't be edited afterwards.
+1. **Consent on PayPal.** Maya says it once; her agent reads it back as exact terms. She approves them on **PayPal's own approval page**, which shows a summary with her agent's key fingerprint; she approves only if it matches what her agent shows. PayPal stores the exact terms (merchant, item, cap, cadence, dates, fingerprint) in the payment token's `description`, which can't be edited afterwards. The summary she saw isn't kept by PayPal, which is why a seller-favor ruling also needs history (see [Limitations](#limitations)).
 2. **Signed requests.** Each purchase is a closed mandate (compact JWS, ES256 over P-256) signed by her agent runtime, which refuses anything outside the terms *before* signing.
 3. **A deterministic gate.** The merchant's gate verifies the signature, re-reads the terms from PayPal, checks every limit, and charges the saved wallet with an `invoice_id` naming the period, so **PayPal itself refuses a second charge** in the same period.
 4. **Eleven checks.** When a dispute arrives, Readback rebuilds the case from PayPal's records (dispute → capture → order → terms), verifies the signature, runs eleven checks, and suggests an outcome only when the evidence supports one.
@@ -56,7 +56,7 @@ Maya's assistant ──asks──▶ agent runtime ──signs (ES256)──▶ 
 |---|---|
 | Vault v3 setup and payment tokens (`RECURRING_PREPAID`) | The shopper's approved terms and agent fingerprint, held by PayPal and uneditable |
 | Orders v2 with `vault_id` and `stored_credential` | Merchant-initiated charges carrying the signed mandate, terms copy, `custom_id` and period `invoice_id` |
-| PayPal's duplicate-invoice guard | One charge per period, enforced by PayPal, not by Readback |
+| PayPal's duplicate-invoice guard | One charge per period, enforced by PayPal while the merchant's duplicate-invoice blocking is on (the default; merchant-configurable) |
 | Payments v2 captures | The link from a dispute to the order and agreement |
 | Disputes v1 | Read disputes; respond through whichever action the dispute's own links offer (supporting info or evidence, multipart) |
 | Transaction Search | Prior undisputed charges under the agreement, confirmed by PayPal's payer match |
@@ -81,11 +81,11 @@ Claude never holds a key and never makes an allow/deny or ruling decision. Produ
 
 **Interoperability.** Readback runs AP2 v0.2's autonomous-purchase model on PayPal's existing rails, and `/ap2` verifies AP2's own published mandate chain in the browser.
 
-**Try to break it.** `/judge` runs eight attacks through the product's real layers in your browser and shows where each one dies: a poisoned product page stops at the agent runtime; a forged key, an edited request and a fake sale price stop at the checkout gate; a second bag and a charge after cancelling stop at PayPal; and the store charging her wallet itself gets past all three and is caught by the investigator.
+**Try to break it.** `/judge` runs eight attacks through the product's real layers in your browser and shows where each one dies: a poisoned product page stops at the agent runtime; a forged key, an edited request and a fake sale price stop at the checkout gate; a second bag and a charge after cancelling stop at PayPal; and the store charging her wallet itself gets past all three and is caught by the investigator. (The lab's dishonest store leaves its invoice label; one that strips every label leaves the charge unlinked from merchant-side data, so Readback makes no suggestion either way; THREAT-MODEL T3.)
 
 ![Attack lab: where each attack was stopped](docs/assets/attack-lab.png)
 
-**Tested.** `@readback/core`: 153 tests at about 98% coverage, property-based tamper fuzzing, and a headless-browser run. 59 labeled eval scenarios. End-to-end judge flow in Chromium. An independent security review found two seller-leaning issues; both are fixed and kept as regression tests ([ADR 0005](docs/decisions/0005-independent-audit-oct15.md)). Threats T1–T34 and their mitigations: [docs/THREAT-MODEL.md](docs/THREAT-MODEL.md).
+**Tested.** `@readback/core`: 154 tests at about 98% coverage, property-based tamper fuzzing, and a headless-browser run. 59 labeled eval scenarios. End-to-end judge flow in Chromium. Two independent reviews (Oct 15 and Oct 25) attacked the engine; every finding is fixed and kept as a regression test, including the Oct 25 reviewers' 79 probes in `evals/audit/` ([ADR 0005](docs/decisions/0005-independent-audit-oct15.md), [ADR 0006](docs/decisions/0006-audit-oct25.md)). Threats T1–T34 and their mitigations: [docs/THREAT-MODEL.md](docs/THREAT-MODEL.md).
 
 ## Design
 
@@ -105,7 +105,7 @@ The investigator queue (AG Grid) shows each dispute's evidence at a glance; the 
 
 ## Potential impact
 
-- **Shoppers** can let an agent spend within limits they approved on PayPal, and a merchant can't charge in their agent's name without the agent's signature.
+- **Shoppers** can let an agent spend within limits they approved on PayPal, and a merchant can't charge in their agent's name without a signature by the key bound at setup. An honest setup is the precondition (T21).
 - **Merchants** get evidence that wins the disputes they should win, with a 10-line integration (below) and nothing new to store.
 - **PayPal** gets the record its own review currently lacks, on rails it already runs. [docs/PROPOSAL-agent-terms.md](docs/PROPOSAL-agent-terms.md) sketches the one API change (an `agent_terms` object on Vault payment tokens) that would move these checks inside PayPal.
 
@@ -116,8 +116,8 @@ Developer surfaces: `@readback/core` (the checks), `npx @readback/verify <disput
 Readback isn't the first to record what a user authorized; AP2, Mastercard Verifiable Intent, Amex and others do or plan some of this ([WHY-PAYPAL.md §5](docs/WHY-PAYPAL.md) lists them honestly). What's new:
 
 1. **AP2's autonomous model on PayPal rails that exist today**: PayPal's approval page is the trusted surface, the stored terms are the open mandate, and agent-signed requests inside each order are the closed mandates. No new network, issuer or protocol.
-2. **A merchant can't fabricate the shopper's agent.** A charge with no valid signature is suggested for the buyer even when it fits every term. Terms alone can't catch that; signatures alone can't decide it without PayPal's records.
-3. **PayPal enforces limits itself**: one charge per period through invoice uniqueness, and no charges on a cancelled agreement.
+2. **Once an honest setup has bound her agent's key, a merchant can't fabricate her agent's requests.** A charge with no valid signature is suggested for the buyer even when it fits every term. Terms alone can't catch that; signatures alone can't decide it without PayPal's records.
+3. **PayPal enforces limits itself**: one charge per period through invoice uniqueness (while the merchant's duplicate-invoice blocking is on, the default), and no charges on a cancelled agreement.
 4. **Built for the adjudicator, not the merchant's advocate**: deterministic checks, re-derivable in the browser, with no suggestion where the evidence can't support one.
 5. **Zero data outside PayPal.**
 

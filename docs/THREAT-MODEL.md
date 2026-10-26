@@ -38,7 +38,9 @@ Where only merchant-attested data is available, the result is labeled. A `SELLER
 
 **Evals:** six attack fixtures (hidden instructions, fake system text, price swap, SKU swap, merchant redirect, quantity bump). Target: 100% refused at the runtime, and 100% refused at the gate when the runtime is bypassed.
 
-**Not stopped:** an injected page could make the agent skip a legitimate reorder. That costs a missed reorder, not money.
+**Not stopped:**
+- An injected page could make the agent skip a legitimate reorder. That costs a missed reorder, not money.
+- An injection that triggers an in-terms reorder she didn't want isn't stopped, and a dispute about it is judged as authorized: she delegated "any in-terms request signed by this key," bounded by the cap, the cadence and the dates. That matches how a consented series of payments is treated (Reg E comment 2(m)-2, PSRs reg 67; WHY-PAYPAL §2).
 
 ### T2. A buggy or compromised agent tries to buy repeatedly
 
@@ -47,7 +49,7 @@ Where only merchant-attested data is available, the result is labeled. A `SELLER
 - One order per period is enforced by PayPal: every charge's canonical `invoice_id` encodes its period (`RB-<token>-P003`). PayPal rejects a second charge with the same invoice ID (`DUPLICATE_INVOICE_ID`) while "block accidental payments" is on. That is the default, and the spike verifies it.
 - `PayPal-Request-Id` is derived from the mandate hash. A retried or double-submitted mandate returns the original order instead of creating a new one.
 
-**Not stopped:** if the merchant turns off duplicate-invoice blocking, a second charge in a period isn't refused at charge time. Check 7's fallback rule still flags any non-earliest charge in a period, so the dispute favors the buyer.
+**Not stopped:** if the merchant turns off duplicate-invoice blocking, a second charge in a period isn't refused at charge time. Check 7's fallback rule still flags any non-earliest *labeled* charge in a period, so the dispute favors the buyer. A second charge with its labels stripped is invisible to Readback (T3); that's why a duplicate-charge dispute gets no suggestion (row 9, audit Oct 25) rather than "the only charge in its period."
 
 ### T3. The merchant charges without a valid request, or outside the terms
 *Example:* Sam's code is buggy, or Sam is dishonest. He calls Orders with the saved wallet directly and skips the gate. He may leave `custom_id` and `invoice_id` empty, or garble them, to hide the charge.
@@ -172,6 +174,8 @@ Where the dispute opens in inquiry, Readback first sends her the terms she appro
 - Maya approves her agent's key fingerprint on PayPal's page.
 - Every purchase carries a mandate signed by that key.
 - The investigator re-verifies it (check 3).
+
+**Who holds the key** is an assumption, not something Readback controls. An agent platform holding one key for many users makes the fingerprint identify the platform, not her agent instance (the `agr` binding still stops cross-user reuse). A hosted per-user runtime is a custodian (T20, T22). A key on her device breaks human-not-present buying while the device is off. The verdict logic survives all three; "which agent asked" becomes "which key signed." A lost key fails safe: a new approval is needed (T18); rotation within an agreement is a non-goal.
 
 **Not addressed: who built or operates the agent.** Agent-provider attestation belongs to network protocols such as Visa's Trusted Agent Protocol and Mastercard Agent Pay, and is out of scope. See also T21 for setup-time key substitution.
 

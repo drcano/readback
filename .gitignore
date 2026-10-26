@@ -10,3 +10,4 @@ next-env.d.ts
 
 # Generated and re-added by `next dev`
 apps/web/AGENTS.md
+.claude/worktrees/

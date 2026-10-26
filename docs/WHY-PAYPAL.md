@@ -56,7 +56,7 @@ None of this is legal advice. It is what the primary sources say, and it explain
 |---|---|---|
 | A transfer by someone the consumer gave access to is not "unauthorized" unless the consumer has told the institution to stop. | Reg E §1005.2(m)(1) [L1] | Consent given on PayPal's authenticated approval page; revocation as PayPal itself sees it (token deleted, charges refused) |
 | If that person exceeds the authority given, the consumer is liable until they notify the institution. | Reg E comment 2(m)-2 [L2] | The exact scope approved: merchant, item, cap, cadence, dates |
-| Preauthorized transfers must be authorized in writing, signed or similarly authenticated by the consumer. | Reg E §1005.10(b) [L3] | Approval on PayPal's own logged-in page, with the terms shown |
+| Preauthorized transfers must be authorized in writing, signed or similarly authenticated by the consumer. | Reg E §1005.10(b) [L3] | Approval on PayPal's own logged-in page. PayPal stores the merchant-declared terms at approval time and they can't be edited; the summary shown to her isn't retained (T21) |
 | Once notified of a revocation, the institution must block future payments. | Reg E comment 10(c)-2 [L3] | PayPal refuses charges on a cancelled agreement (`AGREEMENT_ALREADY_CANCELLED` at authorize/capture) [A3] |
 | Varying amounts need advance notice. The payee or institution may instead offer the consumer a range that could be anticipated. | Reg E §1005.10(d) and comment 10(d)(2)-1 [L3] | The approved cap ("up to $65 per order") can support that kind of range. Readback doesn't claim it satisfies the notice rule on its own |
 | Credit-card funding: unauthorized use means use without actual, implied, or apparent authority. | Reg Z §1026.12(b) [L4] | Same record of scope and revocation |
@@ -186,10 +186,10 @@ We don't claim a dollar figure for losses avoided. PayPal doesn't break out agen
    - **Closed mandates:** ES256-signed requests stored inside each PayPal order.
    - **Reuse without state:** AP2 handles reuse across purchases with constructs that require tracking previous presentations. Readback reuses one approval across periods statelessly, because PayPal's invoice uniqueness enforces one purchase per period.
    - No agent platform, network, or new credential issuer has to adopt anything.
-2. **Once the agreement is approved, a merchant can't fabricate the shopper's agent.** The signing key lives only with the shopper's agent. A charge with no valid signed request is therefore suggested for the buyer, even if it fits every term. Readback finds that charge through its labels, confirmed by PayPal's record of who paid; PayPal doesn't echo which saved wallet paid (spike step 3), so a merchant who strips both labels and the mandate leaves the charge unlinked from merchant-side data (no suggestion either way). Terms alone can't catch this case, and signatures alone can't decide it without PayPal's records. (Setup-time key substitution is a separate, documented risk; see the hard questions below.)
+2. **Once an honest setup has bound her agent's key, a merchant can't fabricate her agent's requests.** The signing key lives only with the shopper's agent, provided the fingerprint she approved is her agent's (T21). A charge with no valid signed request is therefore suggested for the buyer, even if it fits every term. Readback finds that charge through its labels, confirmed by PayPal's record of who paid; PayPal doesn't echo which saved wallet paid (spike step 3), so a merchant who strips both labels and the mandate leaves the charge unlinked from merchant-side data (no suggestion either way). Terms alone can't catch this case, and signatures alone can't decide it without PayPal's records. (Setup-time key substitution is a separate, documented risk; see the hard questions below.)
 3. **Terms that can't be edited.** The Vault API has no update operation for payment tokens. [A1] Once the shopper approves, the terms and the agent fingerprint are fixed. Changing them takes a new approval.
 4. **PayPal enforces two of the limits itself.**
-   - **One charge per period.** Each charge's invoice ID encodes its billing period, so PayPal rejects a second charge in the same period. This invoice-ID uniqueness is on by default but merchant-configurable. [A3]
+   - **One charge per period.** Each charge's invoice ID encodes its billing period, so PayPal rejects a second charge in the same period. This invoice-ID uniqueness is on by default but merchant-configurable. [A3] With it off, Readback still flags a later labeled charge in the same period, but a merchant who also strips the labels leaves that charge unlinked (T3).
    - **No charges on a cancelled agreement.** PayPal refuses them. [A3]
    - Cap, item, and dates are enforced by the agent's runtime and by the merchant gate, and re-checked from PayPal's records.
 5. **Built for the adjudicator.** The investigator gets three things:
@@ -231,9 +231,9 @@ Then the consent itself is fraudulent. In US terms, access obtained through frau
 You don't have to.
 - The terms and the agent fingerprint come from the payment token, which the merchant can't edit.
 - Charges, invoice IDs, trackers, and disputes come from PayPal's APIs.
-- The merchant can't forge the agent's signature, because the key lives only on the shopper's side.
+- The merchant can't forge the agent's signature, because the key lives only on the shopper's side, provided the fingerprint she approved is her agent's (T21).
 - The evidence file is a convenience. Its JSON appendix lists every PayPal object ID and the signed mandates, so anyone with API access to the merchant's account can re-derive every check.
-- A merchant who charges the saved wallet directly, bypassing the gate and stripping labels, is still linked to the agreement through PayPal's record of which saved wallet paid. With no valid signed request, the suggestion favors the buyer.
+- A merchant who charges the saved wallet directly and bypasses the gate is linked to the agreement through the labels it left plus PayPal's record of who paid. With no valid signed request, the suggestion favors the buyer. If it strips both labels and the mandate, the charge is unlinked from merchant-side data and Readback makes no suggestion either way (spike step 3, T3).
 - Where only merchant-written data is available (for example, terms read from charge copies after the shopper deletes the agreement), Readback labels it and withholds any seller-favor suggestion.
 - **What remains, stated honestly:**
   - In this build, the investigator page is served by the merchant's deployment, so results are re-derivable but not independent. PayPal hosting it would make it independent.
@@ -268,7 +268,7 @@ We found no PayPal document that says either way. Readback doesn't assert it. It
 
 **Who adopts it:**
 - **Merchants adopt it now.** It wins the disputes they should win, and it's only believed because it recommends refunds for the ones they should lose.
-- **Shoppers get a hard limit.** Their agent can't spend outside what they approved on PayPal, and a merchant can't charge in their agent's name without a signature.
+- **Shoppers get a hard limit.** Their agent can't spend outside what they approved on PayPal, and a merchant can't charge in their agent's name without a signature by the key bound at setup (an honest setup is the precondition, T21). A shopper is never worse off than under a plain billing agreement: the most a dishonest adopter gains is charging without her agent asking, bounded by the cap and the cadence.
 - **PayPal is the natural long-term owner.**
 
 **From the hackathon build:**
@@ -306,7 +306,7 @@ That closes the remaining gaps (setup-time key swap, terms after revocation, uns
   - duplicate-invoice blocking;
   - whether unauthorized disputes open as inquiries;
   - what happens when the buyer cancels from their side.
-- **Reporting delay.** Charge history comes from Transaction Search, which can lag up to three hours. [A5] This affects history checks only. Duplicate-period protection is enforced by PayPal at charge time.
+- **Reporting delay.** Charge history comes from Transaction Search, which can lag up to three hours. [A5] This affects history checks only. Duplicate-period protection is enforced by PayPal at charge time, while the merchant's duplicate-invoice blocking is on.
 - **Agent identity proves "which agent," not "whose agent."** Signatures prove that a purchase came from the agent key the shopper approved. They don't attest who built or operates that agent. A key swap at setup is stopped only by the shopper comparing fingerprints (threat model T21).
 - **Demo-grade agent access.** The shopper's agent runtime is protected by a secret connector URL in the demo; production would use OAuth.
 - **Signed mandates are a compact JWS (ES256), not AP2's SD-JWT verifiable credentials.** The open mandate is authenticated by PayPal's approval rather than a user signature.
