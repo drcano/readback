@@ -13,6 +13,7 @@ const SHOTS: { name: string; path: string; ready: string; act?: (p: Page) => Pro
   { name: "shopper", path: "/shopper", ready: "text=Use the example terms", act: async (p) => { await p.getByRole("button", { name: "Use the example terms" }).click(); await p.getByText("Is this what you mean?").scrollIntoViewIfNeeded(); } },
   { name: "attack-lab", path: "/judge", ready: "text=Stopped at the agent runtime", act: async (p) => { await p.getByRole("button", { name: /^Run all \d+ attacks$/ }).click(); await p.waitForSelector("table >> text=Caught here"); await p.locator(".lab").scrollIntoViewIfNeeded(); } },
   { name: "judge-it-yourself", path: "/judge", ready: "text=Run every scenario", act: async (p) => { await p.getByRole("button", { name: "Run every scenario in my browser" }).click(); await p.waitForSelector("text=scenarios behaved as labeled", { timeout: 60_000 }); } },
+  { name: "approval-concept", path: "/proposal", ready: "text=Where each line comes from", act: async (p) => { await p.locator(".concept-grid").scrollIntoViewIfNeeded(); } },
 ];
 
 const b = await chromium.launch();

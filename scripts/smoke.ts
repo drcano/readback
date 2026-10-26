@@ -60,7 +60,7 @@ async function mcp(secret: string, name: string, toolArgs: unknown): Promise<str
 // 1. The web app, and the pages a judge opens.
 const health = await call(`${web}/api/health`);
 check(health.status === 200 && (parse(health.text) as { core?: boolean } | null)?.core === true, `Web app is up (/api/health → ${health.status})`);
-const pages = ["/", "/shopper", "/investigator", "/judge", "/ap2"];
+const pages = ["/", "/shopper", "/investigator", "/judge", "/ap2", "/proposal"];
 const html = await Promise.all(pages.map((p) => call(`${web}${p}`)));
 pages.forEach((p, i) => check(html[i]!.status === 200, `Page ${p} → ${html[i]!.status}`));
 

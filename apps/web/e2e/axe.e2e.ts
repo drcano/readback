@@ -12,6 +12,7 @@ const PAGES: [string, string | null][] = [
   ["/investigator/fixture-twist", "text=Re-checked in your browser"],
   ["/judge", null],
   ["/ap2", "text=Agent's signature on the closed mandate"],
+  ["/proposal", "text=Where each line comes from"],
 ];
 
 const b = await chromium.launch();

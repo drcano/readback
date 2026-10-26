@@ -43,5 +43,10 @@ export const allowWebhookVerify = limiter(1200, 20000, "Webhook verification bud
 // The client IP as Render's proxy saw it: the LAST X-Forwarded-For entry is the one the proxy
 // appended; earlier entries are whatever the client sent (audit finding 6).
 export function clientIp(req: Request): string {
-  return req.headers.get("x-forwarded-for")?.split(",").at(-1)?.trim() || "local";
+  return ipFrom(req.headers);
+}
+
+// The same, from a server component's headers().
+export function ipFrom(headers: Headers): string {
+  return headers.get("x-forwarded-for")?.split(",").at(-1)?.trim() || "local";
 }

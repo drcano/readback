@@ -32,6 +32,7 @@ export default function Home() {
             <li><a className="card link-card" href="/investigator"><strong>Investigator queue</strong><span>Live sandbox disputes, each rebuilt from PayPal&apos;s records.</span></a></li>
             <li><a className="card link-card" href="/shopper"><strong>Shopper flow</strong><span>Say it once; your agent reads it back as exact terms.</span></a></li>
             <li><a className="card link-card" href="/ap2"><strong>An AP2 mandate, checked</strong><span>AP2&apos;s own published example, verified on PayPal-rails logic.</span></a></li>
+            <li><a className="card link-card" href="/proposal"><strong>What we&apos;d ask PayPal</strong><span>A concept of PayPal&apos;s approval page, showing the terms PayPal actually stores.</span></a></li>
           </ul>
         </section>
       </main>

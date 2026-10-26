@@ -499,6 +499,7 @@ Every route is stateless.
 | POST | `/api/studio-agent` | Public | none (deterministic filters over `/api/queue` results; Claude phrases them) | Answer plus a filter spec |
 | POST | `/api/chat` | Public; rate-limited; Claude budget (T34) | `GET /v3/vault/payment-tokens/{id}` and Transaction Search for `my_agent_card` (via `readAgreement`) | Claude's reply, a trace of the tools it used, and, when it calls `request_reorder`, the pending order for the judge's tab to check, sign and submit. Never signs. Stateless: the browser sends its agreement ID and the visible conversation (≤ 16 short messages) each time |
 | POST | `/api/webhooks/paypal` | PayPal signature, verified first, after a header prefilter and a per-instance cap (T25) | `POST /v1/notifications/verify-webhook-signature`, then re-fetches | 200 |
+| GET | `/proposal` (page) | Public; rate-limited (T25) | `GET /v3/vault/payment-tokens/{HERO_AGREEMENT_ID}` (the labeled hero fixture when unset, unreadable, or over budget) | The approval-page concept for `docs/PROPOSAL-agent-terms.md`: the stored terms, today's plan-name line built from them, and a mock labeled "Concept · not a PayPal page" |
 | GET | `/api/health` | Public | none | Status |
 
 **`apps/agent`**
