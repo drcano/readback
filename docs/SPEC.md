@@ -415,6 +415,8 @@ Sam can:
 
 **Claude case brief.** Three to five sentences. Every sentence cites a check number or object ID, and a validator rejects anything uncited. Claude explains; it never rules.
 
+**Live rebuild.** The case view streams the case from PayPal and shows each record as it is read: the dispute, the charge, the order with the signed request, her approved terms, and the earlier charges. Then it reruns every check in the browser. Afterwards, "Rebuilt live from N PayPal records in X s, and stored nowhere" keeps that list one click away, as the case's provenance.
+
 **Re-verify.** A button re-fetches everything from PayPal and reruns all checks, including the signature, in the browser with `readback-core`. The time to verify is shown.
 
 ### 5.7 Judge mode (`apps/web/app/page.tsx`)
@@ -490,7 +492,7 @@ Every route is stateless.
 | POST | `/api/demo/direct-charge` | Demo; JWS from the tab key (§5.7) | token GET; `POST /v2/checkout/orders` (no mandate) | Capture ID |
 | POST | `/api/orders/[orderId]/track` | Admin | `POST /v2/checkout/orders/{id}/track` | Tracker |
 | GET | `/api/queue` | Public; rate-limited (T25) | `GET /v1/customer/disputes` plus per-row case fetches | Queue rows: live disputes plus labeled fixtures |
-| GET | `/api/cases/[id]` | Public; rate-limited (T25) | dispute or capture → order → token → trackers → Transaction Search | **Case bundle:** only the fields the checks read, plus the server-side classification. The browser re-verifies from it |
+| GET | `/api/cases/[id]` | Public; rate-limited (T25) | dispute or capture → order → token → trackers → Transaction Search | **Case bundle:** only the fields the checks read, plus the server-side classification. The browser re-verifies from it. With `?stream=1`, the same build as NDJSON: one line per PayPal record as it is read (label, API, ID, status, time), then the bundle and the classification. The case view uses it to show the case being rebuilt |
 | POST | `/api/cases/[id]/brief` | Public | none (Claude only) | Cited brief, validated |
 | POST | `/api/cases/[id]/draft` | Public (draft only) | none (Claude only) | Cited draft response or inquiry message |
 | POST | `/api/cases/[id]/actions` | Admin | Disputes v1 actions, each sent only when the dispute's `links` offer it (spike step 7), after reading `evidences[]`, `supporting_info[]` and `messages[]` and skipping text already there:<br>- `send_evidence`: the case is rebuilt and Readback's statement goes out as `provide-evidence` or `provide-supporting-info`, then is read back.<br>- `refund_buyer`: `accept-claim` (`REFUND`) with a code-written note; nothing if the dispute is resolved or PayPal shows the charge refunded in full.<br>- `send_message`, `accept_claim`, `provide_evidence`, `provide_supporting_info`: with approved text.<br>Readback doesn't send `make-offer` or `escalate`. | What was sent, and whether it's on PayPal's record |
