@@ -58,7 +58,7 @@ Maya's assistant ──asks──▶ agent runtime ──signs (ES256)──▶ 
 | Orders v2 with `vault_id` and `stored_credential` | Merchant-initiated charges carrying the signed mandate, terms copy, `custom_id` and period `invoice_id` |
 | PayPal's duplicate-invoice guard | One charge per period, enforced by PayPal while the merchant's duplicate-invoice blocking is on (the default; merchant-configurable) |
 | Payments v2 captures | The link from a dispute to the order and agreement |
-| Disputes v1 | Read disputes; respond through whichever action the dispute's own links offer (supporting info or evidence, multipart) |
+| Disputes v1 | Reads disputes and answers them from the case view (**Answer PayPal**). It sends Readback's evidence through whichever action the dispute's own links offer (evidence or supporting info, multipart), or accepts the claim with a full refund. The evidence send ran on a live sandbox dispute. |
 | Transaction Search | Prior undisputed charges under the agreement, confirmed by PayPal's payer match |
 | Orders v2 tracking | Shipment evidence for the Delivery check |
 | Webhooks (verify-webhook-signature) | Events are verified with PayPal before anything acts on them |

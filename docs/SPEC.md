@@ -326,7 +326,7 @@ payload: { "tokenId": "<tokenId>", "purpose": "revoke" | "direct-charge", "iat":
 ### 5.4 Merchant role (inside the case view; no separate page)
 A **Merchant** role toggle in the case view, plus a small header on the queue.
 
-**Auth.** Merchant write actions (send message, accept, offer, provide evidence) require `MERCHANT_ADMIN_TOKEN`, an env secret compared server-side. On the public deployment the toggle is **view-only**: drafts are shown and the send buttons are disabled.
+**Auth.** Merchant write actions (send a message, send Readback's evidence, accept the claim with a refund) require `MERCHANT_ADMIN_TOKEN`, an env secret compared server-side. On the public deployment the role is **view-only** without it: drafts and Readback's statement are shown, and the send buttons stay disabled until the token is entered. The server checks the token on every request.
 
 Sam can:
 - see his agreements;
@@ -342,7 +342,11 @@ Sam can:
 5. Read `dispute.evidences[]` and `messages[]` before sending, so retries never double-submit.
 6. Claude drafts.
 7. Sam approves. Nothing is ever auto-sent.
-8. Send or upload.
+8. Send, from the case view's **Answer PayPal** panel. There are two options:
+   - **Send Readback's evidence.** The statement is written by code from the checks (at most 2,000 characters) and sent with `provide-evidence` or `provide-supporting-info`, whichever the links offer. The dispute is then read back to confirm it landed.
+   - **Accept the claim with a full refund.** This uses `accept-claim` with `accept_claim_type: REFUND` and a note written by code.
+
+   A dispute PayPal has already resolved gets nothing sent.
 
 ### 5.6 Investigator queue and case view
 **Framing.** A **proposed workflow** for a PayPal claims investigator, labeled as a concept. In this build the page and its data are served by the merchant's deployment, so results are **re-derivable** by anyone with API access to the merchant's account, but not independent of the deployment. The `@readback/verify` CLI (§5.8) removes the dependence on the merchant's hosted code. It does not remove the need for API access to that account, since PayPal's APIs return only an account's own disputes and captures. Say "re-derivable," never "independent."
@@ -489,7 +493,7 @@ Every route is stateless.
 | GET | `/api/cases/[id]` | Public; rate-limited (T25) | dispute or capture → order → token → trackers → Transaction Search | **Case bundle:** only the fields the checks read, plus the server-side classification. The browser re-verifies from it |
 | POST | `/api/cases/[id]/brief` | Public | none (Claude only) | Cited brief, validated |
 | POST | `/api/cases/[id]/draft` | Public (draft only) | none (Claude only) | Cited draft response or inquiry message |
-| POST | `/api/cases/[id]/actions` | Admin | `send-message`, `accept-claim`, `make-offer`, `escalate`, `provide-evidence` or `provide-supporting-info`, whichever the dispute's `links` offer (spike step 7; after reading `evidences[]`/`messages[]`) | PayPal's response |
+| POST | `/api/cases/[id]/actions` | Admin | Disputes v1 actions, each sent only when the dispute's `links` offer it (spike step 7), after reading `evidences[]`, `supporting_info[]` and `messages[]` and skipping text already there:<br>- `send_evidence`: the case is rebuilt and Readback's statement goes out as `provide-evidence` or `provide-supporting-info`, then is read back.<br>- `refund_buyer`: `accept-claim` (`REFUND`) with a code-written note; nothing if the dispute is resolved.<br>- `send_message`, `accept_claim`, `provide_evidence`, `provide_supporting_info`: with approved text.<br>Readback doesn't send `make-offer` or `escalate`. | What was sent, and whether it's on PayPal's record |
 | POST | `/api/studio-agent` | Public | none (deterministic filters over `/api/queue` results; Claude phrases them) | Answer plus a filter spec |
 | POST | `/api/chat` | Public; rate-limited; Claude budget (T34) | `GET /v3/vault/payment-tokens/{id}` and Transaction Search for `my_agent_card` (via `readAgreement`) | Claude's reply, a trace of the tools it used, and, when it calls `request_reorder`, the pending order for the judge's tab to check, sign and submit. Never signs. Stateless: the browser sends its agreement ID and the visible conversation (≤ 16 short messages) each time |
 | POST | `/api/webhooks/paypal` | PayPal signature, verified first, after a header prefilter and a per-instance cap (T25) | `POST /v1/notifications/verify-webhook-signature`, then re-fetches | 200 |
