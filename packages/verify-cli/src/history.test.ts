@@ -56,5 +56,10 @@ describe("history provenance", () => {
     await charge("2026-10-22T15:00:00Z", "jti-real-0002");
     await charge("2026-10-24T15:00:00Z", "jti-real-0003");
     expect(await verdictFor(first)).toMatchObject({ row: 13, suggestion: "SELLER_FAVOR" });
+
+    // Audit Oct 25: a refunded earlier charge isn't evidence she accepted it, so it stops counting.
+    const earlier = [...fake.orders.values()].find((o) => (o as { purchase_units: { invoice_id?: string }[] }).purchase_units[0]!.invoice_id?.endsWith("-P002"));
+    (earlier as { purchase_units: { payments: { captures: { status: string }[] } }[] }).purchase_units[0]!.payments.captures[0]!.status = "REFUNDED";
+    expect(await verdictFor(first)).toMatchObject({ row: 12, suggestion: null });
   });
 });

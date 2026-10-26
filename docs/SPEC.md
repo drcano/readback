@@ -172,7 +172,7 @@ payload: { "v": 1, "agr": "<tokenId>", "th": "<termsHash first 16 hex>",
 - that key's thumbprint prefix equals the fingerprint in the approved terms;
 - every payload field matches the order and the terms.
 
-**mandateHash:** SHA-256 of the compact JWS string exactly as returned by GET order, as lowercase hex. **It is an index, not a security control.** It powers deterministic idempotency and duplicate-mandate detection.
+**mandateHash:** SHA-256 of the compact JWS string exactly as returned by GET order, as lowercase hex. **It is an index, not a security control.** It powers duplicate-mandate detection (the `custom_id` label). Idempotency uses **requestHash** instead: SHA-256 of the signed content (`header.payload`), which is the same for both valid encodings of one ECDSA signature (audit Oct 25).
 
 ### 4.4 invoice_id and custom_id
 **invoice_id** (canonical, ≤127, visible to the payer). NNN is the zero-padded `p`:
@@ -291,7 +291,7 @@ payload: { "tokenId": "<tokenId>", "purpose": "revoke" | "direct-charge", "iat":
 1. **Receive** the compact JWS. Before any PayPal call:
    - run the hygiene rules;
    - verify ES256 with the embedded key;
-   - check that `iat ≤ now + 60s` and `now ≤ exp`.
+   - check that `iat ≤ now + 60s` and `now + 60s ≤ exp` (the gate stops one clock skew before `exp`, so PayPal's capture time still lands inside check 3's window; T27).
 2. **GET** the payment token named in `agr`. A 404 or error means **deny: agreement not active**.
 3. **Parse** `description` into terms. Check that the key's thumbprint prefix equals the terms fingerprint, and that `th` equals termsHash.
 4. **Check deterministically:**
@@ -308,7 +308,7 @@ payload: { "tokenId": "<tokenId>", "purpose": "revoke" | "direct-charge", "iat":
    - `items[0] = {name, sku, quantity, unit_amount, description: JWS}`;
    - the description set to the terms string, plus `invoice_id` and `custom_id`.
 
-   **Idempotency:** `PayPal-Request-Id = rb-<first 40 hex of mandateHash>`, with derived IDs for capture and track. Capture if not auto-completed **[spike]**.
+   **Idempotency:** `PayPal-Request-Id = rb-<first 40 hex of requestHash>`, where `requestHash` is the SHA-256 of the mandate's signed content (`header.payload`), with derived IDs for capture and track. ECDSA lets anyone holding a JWS re-encode its signature; hashing the signed content keeps both encodings one request (audit Oct 25). `custom_id` still carries `mandateHash16` (frozen format). Capture if not auto-completed **[spike]**.
 
    PayPal errors map to plain-language denials:
    - `DUPLICATE_INVOICE_ID` → "already ordered this period (refused by PayPal)."

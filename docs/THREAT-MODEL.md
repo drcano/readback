@@ -47,7 +47,7 @@ Where only merchant-attested data is available, the result is labeled. A `SELLER
 **Mitigation:**
 - The runtime and the gate cap each order at the agreed quantity and amount, and bind it to the period it was signed in. Both are stateless, so neither counts orders itself (corrected after the Oct 15 audit, ADR 0005).
 - One order per period is enforced by PayPal: every charge's canonical `invoice_id` encodes its period (`RB-<token>-P003`). PayPal rejects a second charge with the same invoice ID (`DUPLICATE_INVOICE_ID`) while "block accidental payments" is on. That is the default, and the spike verifies it.
-- `PayPal-Request-Id` is derived from the mandate hash. A retried or double-submitted mandate returns the original order instead of creating a new one.
+- `PayPal-Request-Id` is derived from the mandate's signed content (`requestHash`, not the whole JWS, so a re-encoded signature is the same request). A retried or double-submitted mandate returns the original order instead of creating a new one.
 
 **Not stopped:** if the merchant turns off duplicate-invoice blocking, a second charge in a period isn't refused at charge time. Check 7's fallback rule still flags any non-earliest *labeled* charge in a period, so the dispute favors the buyer. A second charge with its labels stripped is invisible to Readback (T3); that's why a duplicate-charge dispute gets no suggestion (row 9, audit Oct 25) rather than "the only charge in its period."
 
@@ -205,10 +205,10 @@ Where the dispute opens in inquiry, Readback first sends her the terms she appro
 
 **Mitigation:**
 - The gate rejects expired mandates (`exp` is 5 minutes), mandates from any period but the signing period, and `iat` in the future.
-- Within the period, PayPal rejects a second canonical `invoice_id`. A resubmitted identical mandate is a no-op through the derived `PayPal-Request-Id`.
+- Within the period, PayPal rejects a second canonical `invoice_id`. A resubmitted mandate is a no-op through the derived `PayPal-Request-Id`, which comes from its signed content, so a re-encoded signature (ECDSA malleability) is the same request too.
 - **Check 3** catches the merchant reusing a mandate it received:
-  - the capture time must fall within `[iat − 60s, exp + 60s]`;
-  - no other capture under the token may carry the same `mandateHash`.
+  - the capture time must fall within `[iat − 120s, exp + 60s]` (the gate stops 60 s before `exp`; T27);
+  - no other labeled capture under the token may carry the same `mandateHash`. This part rests on the merchant's labels: a twin labeled differently escapes it, but is caught by its own case (wrong period, or not first in its period).
 - The `jti` is not tracked; no storage is needed.
 
 **Evals:** an expired mandate, a past-period mandate, and a mandate resubmitted into a second order. Target: all refused or flagged.

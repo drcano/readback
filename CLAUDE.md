@@ -108,7 +108,7 @@ readback/
 
 **Security and correctness**
 - Secrets only in environment variables on the server. Never in the browser, the repo, or logs. Keep `.env.example` current.
-- Every PayPal POST sends a **deterministic** `PayPal-Request-Id` derived from the operation, so retries are no-ops. Order create uses `rb-<first 40 hex of mandateHash>`; capture and track IDs are derived from it. Never use a random ID for a retryable operation.
+- Every PayPal POST sends a **deterministic** `PayPal-Request-Id` derived from the operation, so retries are no-ops. Order create uses `rb-<first 40 hex of requestHash>` (the SHA-256 of the mandate's signed content, `header.payload`, so both encodings of one ECDSA signature are the same request); capture and track IDs are derived from it. Never use a random ID for a retryable operation.
 - Find a disputed charge through PayPal as far as PayPal goes: dispute → `seller_transaction_id` → capture → order. PayPal sends no vault echo (spike step 3), so the agreement is the one `custom_id`/`invoice_id` name, accepted only with PayPal's payer match. Labels can count against the merchant, never for it: only a signature by the agreement's key can favor the merchant (SPEC §5.6 check 2a).
 - Money is parsed into integer cents and never compared as strings. USD only. Shipping, tax, and discounts are zero.
 - Verify webhooks with PayPal's verify-webhook-signature endpoint before acting. Unverified events are dropped.
