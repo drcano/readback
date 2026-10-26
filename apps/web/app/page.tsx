@@ -3,6 +3,10 @@ import { JudgeMode } from "@/components/JudgeMode";
 import { TwoVerdicts } from "@/components/TwoVerdicts";
 import { AppFooter, AppHeader } from "@/components/ui";
 
+// Read per request, not at build time: setting HERO_DISPUTE_ID/TWIST_DISPUTE_ID on a running
+// deployment must take effect without a rebuild (edge case, Oct 26).
+export const dynamic = "force-dynamic";
+
 // The real hero and twist disputes, once opened in the sandbox; otherwise the landing uses fixtures.
 const caseId = (v: string | undefined) => (v && /^[A-Za-z0-9-]{1,64}$/.test(v) ? v : undefined);
 

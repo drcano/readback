@@ -4,13 +4,27 @@
 import { type CaseResult, evaluateCase, groupFingerprint, lights } from "@readback/core";
 import { type ReactNode, useEffect, useState } from "react";
 import { loadCase } from "@/lib/case-client";
-import { recommendation } from "@/lib/labels";
+import { paypalRuling, recommendation, type Ruling } from "@/lib/labels";
 import { FourLights } from "./FourLights";
 import { RecPill } from "./ui";
 
-// signedBy/signedAfter wrap the agent fingerprint when the charge carries a valid signed request.
-export type Side = { id: string; tag: string; title: string; signedBy: string; signedAfter: string; unsigned: string; note?: string };
-type Checked = { result: CaseResult; amount: string; fixture: boolean };
+// `title` shows only while loading; once checked, the card's headline is derived from the evidence,
+// so a live pair can never say more than its own checks show (edge case, Oct 26). `note` replaces the
+// classification label only while there's no suggestion.
+export type Side = { id: string; tag: string; title: string; who: "her" | "your"; note?: string };
+
+function headline(result: CaseResult, who: Side["who"]): { title: string; key: "valid" | "other" | "none" } {
+  const m = result.facts.mandate;
+  const key = !m ? "none" : result.facts.terms?.fingerprint === m.fingerprint ? "valid" : "other";
+  const you = who === "her" ? "she" : "you";
+  const termsOk = lights(result.checks).find((l) => l.group === "Terms")?.state !== "fail";
+  const title =
+    key === "none" ? `The ${who === "her" ? "merchant" : "store"} charged ${who} wallet directly`
+    : key === "other" ? `Signed, but not by the key ${you} approved`
+    : `${who === "her" ? "Her" : "Your"} agent asked, ${termsOk ? "within" : "outside"} ${who} terms`;
+  return { title, key };
+}
+type Checked = { result: CaseResult; amount: string; fixture: boolean; ruling: Ruling | null };
 
 // Loads and re-checks each case; null while loading, an Error when it couldn't be read.
 export function useChecked(ids: string[]): { cases: (Checked | Error | null)[]; ms: number } {
@@ -21,7 +35,13 @@ export function useChecked(ids: string[]): { cases: (Checked | Error | null)[]; 
     (async () => {
       const loaded = await Promise.all(ids.map((id) => loadCase(id).catch((e: unknown) => (e instanceof Error ? e : new Error("Couldn't load this case.")))));
       const t0 = performance.now();
-      const cases = await Promise.all(loaded.map(async (l) => (l instanceof Error ? l : { result: await evaluateCase(l.bundle), amount: l.bundle.capture.amount.value, fixture: l.fixture })));
+      const cases = await Promise.all(
+        loaded.map(async (l) => {
+          if (l instanceof Error) return l;
+          const result = await evaluateCase(l.bundle);
+          return { result, amount: l.bundle.capture.amount.value, fixture: l.fixture, ruling: paypalRuling(l.bundle.dispute?.dispute_outcome, result.classification.suggestion) };
+        }),
+      );
       if (live) setState({ cases, ms: Math.round(performance.now() - t0) });
     })();
     return () => {
@@ -44,18 +64,28 @@ export function VerdictCard({ side, checked, placeholder }: { side: Side; checke
   }
   const c = checked.result.classification;
   const m = checked.result.facts.mandate;
+  const h = headline(checked.result, side.who);
+  const you = side.who === "her" ? "she" : "you";
   return (
     <article className="verdict-card" data-rec={recommendation(c.suggestion).key}>
       <div className="pair-top">
         <RecPill suggestion={c.suggestion} />
         <span className="mono muted">{side.tag} · ${checked.amount}</span>
       </div>
-      <h3>{side.title}</h3>
+      {checked.ruling && (
+        // A dispute PayPal already decided: its ruling first, then whether Readback's evidence agrees.
+        <p className="ruling-line"><strong>{checked.ruling.label}.</strong> {checked.ruling.agrees === null ? "" : checked.ruling.agrees ? "Readback agrees." : "Readback's evidence disagrees."}</p>
+      )}
+      <h3>{h.title}</h3>
       <p className="muted">
-        {m ? <>{side.signedBy} <span className="fp">{groupFingerprint(m.fingerprint)}</span>{side.signedAfter}</> : side.unsigned}
+        {m ? (
+          <>Signed by agent key <span className="fp">{groupFingerprint(m.fingerprint)}</span>{h.key === "valid" ? `, the key ${you} approved on PayPal.` : `, not the key ${you} approved on PayPal.`}</>
+        ) : (
+          `No signed request from ${side.who} agent.`
+        )}
       </p>
       <FourLights lights={lights(checked.result.checks)} />
-      <p className="muted small">{side.note ?? c.label}</p>
+      <p className="muted small">{c.suggestion === null && side.note ? side.note : c.label}</p>
       <a className="btn" href={`/investigator/${encodeURIComponent(side.id)}`}>Open the case</a>
     </article>
   );
@@ -77,12 +107,12 @@ export function YourVerdicts({ signed, direct }: { signed: string | null; direct
       </div>
       <div className="pair-grid">
         <VerdictCard
-          side={{ id: signed ?? "", tag: "Your agent's charge", title: "Your agent asked, within your terms", signedBy: "Signed by your tab's key", signedAfter: ", the one you approved on PayPal.", unsigned: "No valid signed request.", note: "No ruling yet, on purpose: nothing has shipped and a new agreement has no undisputed history. The hero case shows one that has both." }}
+          side={{ id: signed ?? "", tag: "Your agent's charge", title: "Your agent asked, within your terms", who: "your", note: "No ruling yet, on purpose: nothing has shipped and a new agreement has no undisputed history. The hero case shows one that has both." }}
           checked={at(signed)}
           placeholder="Step 2 puts your agent's signed charge here."
         />
         <VerdictCard
-          side={{ id: direct ?? "", tag: "The store's charge", title: "The store charged your wallet directly", signedBy: "Signed by", signedAfter: ".", unsigned: "Every term respected, but your agent never asked." }}
+          side={{ id: direct ?? "", tag: "The store's charge", title: "The store charged your wallet directly", who: "your" }}
           checked={at(direct)}
           placeholder="Step 5 puts the store's direct charge here."
         />

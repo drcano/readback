@@ -62,6 +62,18 @@ export function fakePayPal(): FakePayPal {
       const body: unknown = form ? JSON.parse(await (form.get("input") as Blob).text()) : init?.body ? JSON.parse(String(init.body)) : undefined;
       posts.push({ path, requestId, body });
       if (requestId && byRequestId.has(`${path}|${requestId}`)) return json(200, byRequestId.get(`${path}|${requestId}`));
+      // Accepting a claim resolves the dispute for the buyer and refunds the charge.
+      const accept = /^\/v1\/customer\/disputes\/([^/]+)\/accept-claim$/.exec(path);
+      if (accept) {
+        const d = disputes.get(accept[1]!);
+        if (!d) return json(404, { name: "RESOURCE_NOT_FOUND" });
+        Object.assign(d, { status: "RESOLVED", dispute_outcome: { outcome_code: "RESOLVED_BUYER_FAVOUR", outcome_reason: "ACCEPTED_BY_SELLER" }, links: [{ rel: "self", href: `/v1/customer/disputes/${accept[1]}` }] });
+        const capId = (d["disputed_transactions"] as { seller_transaction_id: string }[])[0]!.seller_transaction_id;
+        const cap = captureById(capId);
+        if (cap) cap["status"] = "REFUNDED";
+        if (requestId) byRequestId.set(`${path}|${requestId}`, { links: [] });
+        return json(200, { links: [] });
+      }
       const info = /^\/v1\/customer\/disputes\/([^/]+)\/provide-supporting-info$/.exec(path);
       if (info) {
         const d = disputes.get(info[1]!);
@@ -172,7 +184,7 @@ export function fakePayPal(): FakePayPal {
     disputes.set(id, {
       dispute_id: id, reason, status: "UNDER_REVIEW", dispute_life_cycle_stage: "CHARGEBACK",
       // In this state the sandbox offered only supporting info (spike step 7).
-      links: [{ rel: "self", href: `/v1/customer/disputes/${id}` }, { rel: "provide_supporting_info", href: `/v1/customer/disputes/${id}/provide-supporting-info` }],
+      links: [{ rel: "self", href: `/v1/customer/disputes/${id}` }, { rel: "provide_supporting_info", href: `/v1/customer/disputes/${id}/provide-supporting-info` }, { rel: "accept_claim", href: `/v1/customer/disputes/${id}/accept-claim` }],
       disputed_transactions: [{ seller_transaction_id: captureId, custom: c?.["custom_id"], invoice_number: c?.["invoice_id"] }],
     });
     return id;

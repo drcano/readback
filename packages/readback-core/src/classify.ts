@@ -29,8 +29,25 @@ export async function evaluateCase(bundle: CaseBundle): Promise<CaseResult> {
   const mode = bundle.dispute ? "dispute" : "preview";
   const reason: DisputeReason = bundle.dispute?.reason ?? "UNAUTHORISED";
   const failed = checks.filter((c) => !c.pass).map((c) => c.id);
-  const classification = applyModifiers(classify(reason, new Set(failed)), checks, facts);
+  const c = applyModifiers(classify(reason, new Set(failed)), checks, facts);
+  const classification = { ...c, notes: [...c.notes, ...contextNotes(bundle)] };
   return { mode, reason, facts, checks, failed, classification };
+}
+
+// Facts an investigator needs to read a suggestion correctly, stated, never used to decide one
+// (edge cases, Oct 26): a refund already made, a card issuer deciding instead of PayPal, and a
+// dispute that covers more than the charge evaluated here.
+function contextNotes(b: CaseBundle): string[] {
+  const notes: string[] = [];
+  if (b.capture.status === "REFUNDED") notes.push("PayPal shows this charge fully refunded already.");
+  if (b.capture.status === "PARTIALLY_REFUNDED") notes.push("PayPal shows this charge partly refunded already.");
+  if (b.dispute?.dispute_channel === "EXTERNAL") notes.push("A card issuer's chargeback: the issuer decides, and PayPal's outcome doesn't bind it.");
+  const txns = b.dispute?.disputed_transactions ?? [];
+  if (txns.length > 1) {
+    const others = txns.map((t) => t.seller_transaction_id).filter((id): id is string => Boolean(id) && id !== b.capture.id);
+    notes.push(`This dispute covers ${txns.length} charges; this evaluation is of ${b.capture.id}. Check the others separately: ${others.join(", ")}.`);
+  }
+  return notes;
 }
 
 function row(row: number, code: string, label: string, suggestion: Suggestion, notes: string[] = []): Classification {

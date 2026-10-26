@@ -57,6 +57,7 @@ export function CaseView({ id }: { id: string }) {
   const lead = groups.find((g) => g.state === "fail") ?? groups.find((g) => g.state === "caution");
   const why = rec.key === "uphold" ? UPHOLD_WHY : rec.key === "refund" && lead ? lead.summary : `${c.label}. The evidence doesn't support a recommendation either way, so a person should look.`;
   const terms = result.facts.terms;
+  const otherCharges = (bundle.dispute?.disputed_transactions ?? []).map((t) => t.seller_transaction_id).filter((id): id is string => Boolean(id) && id !== bundle.capture.id);
 
   return (
     <div className="case-layout">
@@ -72,6 +73,12 @@ export function CaseView({ id }: { id: string }) {
           {bundle.order.purchase_units[0]?.items?.[0] ? ` for ${bundle.order.purchase_units[0].items[0].quantity} × ${bundle.order.purchase_units[0].items[0].name}` : ""}
           , charged {fmtDate(bundle.capture.create_time)}.
         </p>
+        {otherCharges.length > 0 && (
+          <p className="banner">
+            This dispute covers {otherCharges.length + 1} charges; this page evaluates <span className="mono">{bundle.capture.id}</span>. Also check:{" "}
+            {otherCharges.map((id, i) => <span key={id}>{i > 0 && ", "}<a href={`/investigator/${encodeURIComponent(id)}`} className="mono">{id}</a></span>)}
+          </p>
+        )}
 
         {ruling && (
           <section className="card ruling-banner" aria-labelledby="ruling-h">
@@ -105,8 +112,8 @@ export function CaseView({ id }: { id: string }) {
       </div>
 
       <aside className="case-side" aria-label="Case actions and facts">
-        <CaseActions id={id} rec={rec} amount={bundle.capture.amount.value} closed={ruling !== null} />
-        {bundle.dispute && ruling === null && <EvidenceToPayPal id={id} statement={evidenceStatement(bundle, result)} live={!loaded.fixture} />}
+        <CaseActions id={id} rec={rec} closed={ruling !== null} />
+        {bundle.dispute && ruling === null && <EvidenceToPayPal id={id} statement={evidenceStatement(bundle, result)} live={!loaded.fixture} rec={rec} amount={bundle.capture.amount.value} />}
         <CaseFacts bundle={bundle} result={result} stage={bundle.dispute ? stageLabel(bundle.dispute.dispute_life_cycle_stage) : null} />
       </aside>
     </div>

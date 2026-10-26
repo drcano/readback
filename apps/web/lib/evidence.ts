@@ -39,7 +39,7 @@ export function evidenceStatement(bundle: CaseBundle, result: CaseResult): strin
     c.suggestion === "SELLER_FAVOR"
       ? `Readback's assessment: ${c.label}. ${c.notes.join(" ")}`
       : c.suggestion === "BUYER_FAVOR"
-        ? `Readback's assessment: ${c.label}; the evidence supports the buyer.`
+        ? `Readback's assessment: ${c.label}; the evidence supports the buyer. ${c.notes.join(" ")}`
         : `Readback's assessment: ${c.label}; the evidence doesn't support a suggestion either way. ${c.notes.join(" ")}`,
     "Limits: the agent-key binding rests on an honest setup and the shopper's fingerprint check at approval (Readback THREAT-MODEL T21); tracking is merchant-reported.",
   ];

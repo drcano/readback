@@ -77,3 +77,37 @@ describe("send Readback's evidence (end to end over the PayPal fake)", () => {
     expect(await runDisputeAction(client, disputeId, { action: "send_evidence" }, new Date("2026-11-09T12:00:00Z"))).toMatchObject({ ok: true, sent: false });
   });
 });
+
+describe("refund the buyer when the evidence supports them (end to end over the PayPal fake)", () => {
+  it("accepts the claim with a full refund, explains why in a note written by code, and only once", async () => {
+    const { fakePayPal } = await import("./paypal/fake");
+    const { formatTerms, generateAgentKey, signActionProof, evaluateCase } = await import("@readback/core");
+    const { directCharge } = await import("./demo");
+    const { buildCaseBundle } = await import("./cases");
+    const pp = fakePayPal();
+    const key = await generateAgentKey(true);
+    const now = new Date("2026-11-08T15:00:00Z");
+    const terms = { merchant: "Good Boy Provisions", sku: "GBP-SR24", qty: 1, periodDays: 1, capCents: 6500, start: "2026-11-08", end: "2027-03-31", fingerprint: key.fingerprint };
+    pp.tokens.set("tok2", { id: "tok2", payment_source: { paypal: { description: formatTerms(terms), payer_id: "MAYA2" } } });
+    const client = paypalClient(ENV, pp.fetch);
+    // The store charges her wallet itself: every term respected, no request from her agent.
+    const proof = await signActionProof("tok2", "direct-charge", now.getTime() / 1000, key.privateKey, key.publicJwk);
+    const charged = await directCharge(client, { tokenId: "tok2", proof }, now);
+    if (!charged.ok) throw new Error(charged.failure.code);
+    const disputeId = pp.openDispute(charged.captureId, "UNAUTHORISED");
+
+    const r = await runDisputeAction(client, disputeId, { action: "refund_buyer" }, new Date("2026-11-09T12:00:00Z"));
+    expect(r).toMatchObject({ ok: true, sent: true, via: "accept_claim" });
+    const post = pp.posts.find((p) => p.path.endsWith("/accept-claim"))!;
+    expect(post.body).toMatchObject({ accept_claim_type: "REFUND", note: expect.stringContaining("which supports the buyer") });
+    expect((post.body as { note: string }).note).toContain(`npx @readback/verify ${disputeId}`);
+
+    // PayPal has resolved it for the buyer; the case now reads that way, and a second click sends nothing.
+    const after = await buildCaseBundle(disputeId, client, new Date("2026-11-09T12:05:00Z"));
+    if (!after.ok) throw new Error(after.message);
+    expect(after.bundle.dispute!.dispute_outcome).toMatchObject({ outcome_code: "RESOLVED_BUYER_FAVOUR" });
+    expect((await evaluateCase(after.bundle)).classification.notes.join(" ")).toMatch(/fully refunded/);
+    expect(await runDisputeAction(client, disputeId, { action: "refund_buyer" })).toMatchObject({ ok: true, sent: false });
+    expect(pp.posts.filter((p) => p.path.endsWith("/accept-claim"))).toHaveLength(1);
+  });
+});

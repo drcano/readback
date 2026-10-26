@@ -11,7 +11,7 @@ const NEXT: Record<Rec["key"], string> = {
   review: "The records don't settle it either way. Read the brief, then decide.",
 };
 
-export function CaseActions({ id, rec, amount, closed }: { id: string; rec: Rec; amount: string; closed: boolean }) {
+export function CaseActions({ id, rec, closed }: { id: string; rec: Rec; closed: boolean }) {
   const [brief, setBrief] = useState<{ sentences: { text: string; cites: string[] }[]; by: string } | null>(null);
   const [draft, setDraft] = useState<{ kind: string; text: string } | null>(null);
 
@@ -34,7 +34,7 @@ export function CaseActions({ id, rec, amount, closed }: { id: string; rec: Rec;
       <div className="side-actions">
         <button type="button" className="btn btn-primary" onClick={explain}>Explain this case in plain English</button>
         {!closed && <button type="button" className="btn" onClick={loadDraft}>Draft a reply to the shopper</button>}
-        {!closed && rec.key === "refund" && <button type="button" className="btn" disabled>Refund ${amount} (admin only)</button>}
+
       </div>
       <p className="side-note">Every sentence in the brief cites a check or a PayPal record. A person approves before anything is sent; sending is off on the public demo.</p>
       {brief && (
@@ -70,6 +70,8 @@ export function CaseFacts({ bundle, result, stage }: { bundle: CaseBundle; resul
         <dt>Charged</dt><dd>{fmt(bundle.capture.create_time)}</dd>
         {stage && (<><dt>Stage</dt><dd>{stage}</dd></>)}
         <dt>Respond by</dt><dd>{due ? fmt(due) : "—"}</dd>
+        {bundle.capture.status.includes("REFUNDED") && (<><dt>Refund</dt><dd>PayPal shows <span className="mono">{bundle.capture.status}</span></dd></>)}
+        {bundle.dispute?.dispute_channel === "EXTERNAL" && (<><dt>Channel</dt><dd>Card issuer chargeback</dd></>)}
         <dt>Seller Protection</dt><dd>PayPal shows <span className="mono">{bundle.capture.seller_protection?.status ?? "not present"}</span></dd>
         <dt>Capture</dt><dd className="mono">{bundle.capture.id}</dd>
       </dl>
@@ -80,18 +82,20 @@ export function CaseFacts({ bundle, result, stage }: { bundle: CaseBundle; resul
 // The store's evidence, sent into PayPal's own dispute (SPEC §5.4–5.5). The statement shown here is
 // computed in this browser from the same PayPal records; the server rebuilds it from PayPal before
 // sending, so what PayPal receives is never text typed here. Sending needs the store's admin token.
-export function EvidenceToPayPal({ id, statement, live }: { id: string; statement: string; live: boolean }) {
+export function EvidenceToPayPal({ id, statement, live, rec, amount }: { id: string; statement: string; live: boolean; rec: Rec; amount: string }) {
   const [token, setToken] = useState("");
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; message: string; onPayPalRecord?: boolean; via?: string } | null>(null);
 
-  async function send() {
+  // Two answers, both written by the server from PayPal's records: send the evidence, or accept the
+  // claim and refund (when the evidence supports the buyer, that's Readback's recommendation).
+  async function send(action: "send_evidence" | "refund_buyer") {
     setBusy(true);
     setResult(null);
     const res = await fetch(`/api/cases/${encodeURIComponent(id)}/actions`, {
       method: "POST",
       headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
-      body: JSON.stringify({ action: "send_evidence" }),
+      body: JSON.stringify({ action }),
     }).catch(() => null);
     setResult(((await res?.json().catch(() => null)) as typeof result) ?? { ok: false, message: "Couldn't reach the store's server." });
     setBusy(false);
@@ -99,17 +103,22 @@ export function EvidenceToPayPal({ id, statement, live }: { id: string; statemen
 
   return (
     <section className="card side-card" aria-labelledby="evidence-h">
-      <h2 id="evidence-h">Evidence for PayPal</h2>
+      <h2 id="evidence-h">Answer PayPal</h2>
       <p>Readback&apos;s statement for this dispute, citing PayPal&apos;s own records. Failed checks are reported as plainly as passed ones.</p>
       <details className="evidence">
         <summary>Read the statement ({statement.length} characters)</summary>
         <pre>{statement}</pre>
       </details>
       {live ? (
-        <form className="side-actions" onSubmit={(e) => { e.preventDefault(); void send(); }}>
+        <form className="side-actions" onSubmit={(e) => e.preventDefault()}>
           <label htmlFor="admin-token" className="small">Store admin token</label>
           <input id="admin-token" type="password" className="field" value={token} onChange={(e) => setToken(e.target.value)} autoComplete="off" />
-          <button type="submit" className="btn btn-primary" disabled={busy || !token}>{busy ? "Sending to PayPal…" : "Send to PayPal"}</button>
+          <button type="button" className={`btn ${rec.key === "refund" ? "" : "btn-primary"}`} disabled={busy || !token} onClick={() => void send("send_evidence")}>
+            {busy ? "Working with PayPal…" : "Send the evidence to PayPal"}
+          </button>
+          <button type="button" className={`btn ${rec.key === "refund" ? "btn-refund" : ""}`} disabled={busy || !token} onClick={() => void send("refund_buyer")}>
+            Accept the claim and refund ${amount}
+          </button>
         </form>
       ) : (
         <p className="side-note">Labeled example case: there&apos;s no PayPal dispute to send it to.</p>

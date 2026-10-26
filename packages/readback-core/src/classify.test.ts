@@ -189,6 +189,18 @@ describe("classification rows", () => {
     expect(await outcome(withReason(clone(), "CANCELED_RECURRING_BILLING"))).toMatchObject({ row: 10, suggestion: null });
   });
 
+  it("states refunds, card-issuer chargebacks and multi-charge disputes without changing the suggestion (Oct 26)", async () => {
+    const plain = await evaluateCase(clone());
+    const b = clone();
+    b.capture = { ...b.capture, status: "PARTIALLY_REFUNDED" };
+    b.dispute = { ...b.dispute!, dispute_channel: "EXTERNAL", disputed_transactions: [...b.dispute!.disputed_transactions!, { seller_transaction_id: "CAP-OTHER" }] };
+    const r = await evaluateCase(b);
+    expect(r.classification.suggestion).toBe(plain.classification.suggestion);
+    expect(r.classification.notes.join(" ")).toMatch(/partly refunded/);
+    expect(r.classification.notes.join(" ")).toMatch(/card issuer's chargeback/);
+    expect(r.classification.notes.join(" ")).toMatch(/covers 2 charges; this evaluation is of CAP-HERO\. Check the others separately: CAP-OTHER/);
+  });
+
   it("the history threshold guards every seller-favor row, not only unauthorized (audit Oct 25)", async () => {
     const b = withReason(clone(), "INCORRECT_AMOUNT");
     b.history = [];

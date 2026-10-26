@@ -16,11 +16,14 @@ export const ActionRequestSchema = z.union([
   }),
   // Readback's evidence statement: the server rebuilds it from PayPal at send time; no text from the browser.
   z.strictObject({ action: z.literal("send_evidence") }),
+  // Accept the claim with a full refund; the note is written by code from the case (Oct 26).
+  z.strictObject({ action: z.literal("refund_buyer") }),
 ]);
 export type ActionRequest = z.infer<typeof ActionRequestSchema>;
 
 const DisputeLinks = z.object({
   reason: z.string(),
+  status: z.string().optional(),
   links: z.array(z.object({ rel: z.string(), href: z.string() })).default([]),
   evidences: z.array(z.object({ notes: z.string().optional() })).nullish(),
   supporting_info: z.array(z.object({ notes: z.string().optional() })).nullish(),
@@ -46,6 +49,21 @@ export async function runDisputeAction(paypal: PayPalClient, disputeId: string, 
   const got = await paypal.get(path, DisputeLinks);
   if (!got.ok) return { ok: false, status: got.status === 404 ? 404 : 502, message: "PayPal didn't return this dispute." };
   const d = got.data;
+
+  if (req.action === "refund_buyer") {
+    if (d.status === "RESOLVED") return { ok: true, sent: false, message: "PayPal has already resolved this dispute; nothing sent." };
+    const lookup = await buildCaseBundle(disputeId, paypal, now);
+    if (!lookup.ok) return { ok: false, status: lookup.status, message: lookup.message };
+    const r = await evaluateCase(lookup.bundle);
+    const why = r.checks.find((k) => !k.pass)?.failures[0]?.message;
+    const text = [
+      `The store accepts this claim and refunds USD ${lookup.bundle.capture.amount.value} in full.`,
+      `Readback's assessment of PayPal's records: ${r.classification.label}${r.classification.suggestion === "BUYER_FAVOR" ? ", which supports the buyer" : ""}.${why ? ` ${why}` : ""}`,
+      `Re-derive it with the store's API credentials: npx @readback/verify ${disputeId}`,
+    ].join(" ");
+    const sent = await runDisputeAction(paypal, disputeId, { action: "accept_claim", text }, now);
+    return sent.ok && sent.sent ? { ...sent, via: "accept_claim", message: "Claim accepted; PayPal refunds the buyer." } : sent;
+  }
 
   if (req.action === "send_evidence") {
     // Whichever evidence action PayPal offers in the dispute's current state (spike step 7).
@@ -81,7 +99,7 @@ export async function runDisputeAction(paypal: PayPalClient, disputeId: string, 
     form.append("input", new Blob([JSON.stringify(input)], { type: "application/json" }));
     res = await paypal.postForm(endpoint, requestId, form, Any);
   } else {
-    res = await paypal.post(endpoint, requestId, req.action === "send_message" ? { message: req.text } : { note: req.text }, Any);
+    res = await paypal.post(endpoint, requestId, req.action === "send_message" ? { message: req.text } : { note: req.text, accept_claim_type: "REFUND" }, Any);
   }
   if (!res.ok) return { ok: false, status: 502, message: `PayPal refused: ${res.issues.join(", ")}.` };
   return { ok: true, sent: true, message: "Sent to PayPal." };

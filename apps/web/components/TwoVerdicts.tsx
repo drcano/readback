@@ -6,8 +6,8 @@
 import { checkedIn, type Side, useChecked, VerdictCard } from "./VerdictPair";
 
 const SIDES: [Omit<Side, "id">, Omit<Side, "id">] = [
-  { tag: "Charge A", title: "Her agent asked, within her terms", signedBy: "Signed by agent key", signedAfter: ", the key she approved on PayPal.", unsigned: "No signed request from her agent." },
-  { tag: "Charge B", title: "The merchant charged her wallet directly", signedBy: "Signed by agent key", signedAfter: ".", unsigned: "Every term respected, but no signed request from her agent." },
+  { tag: "Charge A", title: "Her agent asked, within her terms", who: "her" },
+  { tag: "Charge B", title: "The merchant charged her wallet directly", who: "her" },
 ];
 const FIXTURES = ["fixture-hero", "fixture-twist"];
 

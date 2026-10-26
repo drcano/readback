@@ -128,6 +128,7 @@ export const DisputeSchema = z.object({
   update_time: z.string().optional(),
   // Present once PayPal has decided (status RESOLVED). Shown, never used by the checks.
   dispute_outcome: z.object({ outcome_code: z.string(), outcome_reason: z.string().optional() }).optional(),
+  dispute_channel: z.string().optional(), // INTERNAL (PayPal) or EXTERNAL (a card issuer's chargeback)
   disputed_transactions: z
     .array(
       z.object({
