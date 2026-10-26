@@ -22,6 +22,7 @@
     "seed:charge": "node --env-file=.env scripts/seed-charge.ts",
     "agreement:create": "node --env-file=.env scripts/create-agreement.ts",
     "doctor": "node scripts/doctor.ts",
+    "smoke": "node --env-file-if-exists=.env scripts/smoke.ts",
     "eval": "pnpm --filter @readback/evals eval"
   },
   "devDependencies": {
