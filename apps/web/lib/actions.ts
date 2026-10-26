@@ -7,7 +7,7 @@ import { evaluateCase } from "@readback/core";
 import { z } from "zod";
 import { buildCaseBundle } from "./cases";
 import { evidenceStatement } from "./evidence";
-import type { PayPalClient } from "@/lib/paypal/client";
+import type { PayPalClient } from "./paypal/client";
 
 export const ActionRequestSchema = z.union([
   z.object({

@@ -480,19 +480,19 @@ Every route is stateless.
 - **Judge:** the body carries the tab's public JWK, and the server sets the start date to today (UTC).
 - In both cases the server computes the fingerprint and builds the terms |
 | GET | `/api/agreements/return` | Public (PayPal return URL) | `POST /v3/vault/payment-tokens` (exchange) | Redirect to the shopper page with `tokenId` in the URL and cookie |
-| GET | `/api/agreements/[tokenId]` | Public | `GET /v3/vault/payment-tokens/{id}`; Transaction Search | Terms, status, recent orders (§5.3a); no personal data |
+| GET | `/api/agreements/[tokenId]` | Public; rate-limited (T25) | `GET /v3/vault/payment-tokens/{id}`; Transaction Search | Terms, status, recent orders (§5.3a); no personal data |
 | DELETE | `/api/agreements/[tokenId]` | Proof of the agreement's agent key: a JWS over `{tokenId, purpose:"revoke", iat}`; or Admin | `DELETE /v3/vault/payment-tokens/{id}` | 204 |
 | POST | `/api/checkout` | Public; the signed mandate is the credential | token GET; `POST /v2/checkout/orders`; capture | Capture ID and order ID, or a plain-language denial |
 | POST | `/api/demo/direct-charge` | Demo; JWS from the tab key (§5.7) | token GET; `POST /v2/checkout/orders` (no mandate) | Capture ID |
 | POST | `/api/orders/[orderId]/track` | Admin | `POST /v2/checkout/orders/{id}/track` | Tracker |
-| GET | `/api/queue` | Public | `GET /v1/customer/disputes` plus per-row case fetches | Queue rows: live disputes plus labeled fixtures |
-| GET | `/api/cases/[id]` | Public | dispute or capture → order → token → trackers → Transaction Search | **Case bundle:** only the fields the checks read, plus the server-side classification. The browser re-verifies from it |
+| GET | `/api/queue` | Public; rate-limited (T25) | `GET /v1/customer/disputes` plus per-row case fetches | Queue rows: live disputes plus labeled fixtures |
+| GET | `/api/cases/[id]` | Public; rate-limited (T25) | dispute or capture → order → token → trackers → Transaction Search | **Case bundle:** only the fields the checks read, plus the server-side classification. The browser re-verifies from it |
 | POST | `/api/cases/[id]/brief` | Public | none (Claude only) | Cited brief, validated |
 | POST | `/api/cases/[id]/draft` | Public (draft only) | none (Claude only) | Cited draft response or inquiry message |
 | POST | `/api/cases/[id]/actions` | Admin | `send-message`, `accept-claim`, `make-offer`, `escalate`, `provide-evidence` or `provide-supporting-info`, whichever the dispute's `links` offer (spike step 7; after reading `evidences[]`/`messages[]`) | PayPal's response |
 | POST | `/api/studio-agent` | Public | none (deterministic filters over `/api/queue` results; Claude phrases them) | Answer plus a filter spec |
 | POST | `/api/chat` | Public; rate-limited; Claude budget (T34) | `GET /v3/vault/payment-tokens/{id}` and Transaction Search for `my_agent_card` (via `readAgreement`) | Claude's reply, a trace of the tools it used, and, when it calls `request_reorder`, the pending order for the judge's tab to check, sign and submit. Never signs. Stateless: the browser sends its agreement ID and the visible conversation (≤ 16 short messages) each time |
-| POST | `/api/webhooks/paypal` | PayPal signature, verified first | `POST /v1/notifications/verify-webhook-signature`, then re-fetches | 200 |
+| POST | `/api/webhooks/paypal` | PayPal signature, verified first, after a header prefilter and a per-instance cap (T25) | `POST /v1/notifications/verify-webhook-signature`, then re-fetches | 200 |
 | GET | `/api/health` | Public | none | Status |
 
 **`apps/agent`**

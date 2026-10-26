@@ -16,6 +16,15 @@ const HEADERS = {
 const EventSchema = z.object({ id: z.string(), event_type: z.string(), resource: z.unknown().optional() });
 export type WebhookEvent = z.infer<typeof EventSchema>;
 
+function isPayPalCertUrl(u: string): boolean {
+  try {
+    const url = new URL(u);
+    return url.protocol === "https:" && (url.hostname === "paypal.com" || url.hostname.endsWith(".paypal.com"));
+  } catch {
+    return false;
+  }
+}
+
 export async function verifyWebhook(
   paypal: PayPalClient,
   headers: Headers,
@@ -25,6 +34,9 @@ export async function verifyWebhook(
   if (!webhookId) return { ok: false, reason: "PAYPAL_WEBHOOK_ID not set" };
   const fields = Object.fromEntries(Object.entries(HEADERS).map(([k, h]) => [k, headers.get(h)]));
   if (Object.values(fields).some((v) => !v)) return { ok: false, reason: "missing PayPal transmission headers" };
+  // Cheap prefilter before spending a PayPal call (flood test, Oct 26): PayPal signs with
+  // SHA256withRSA and serves its certificate from paypal.com over https.
+  if (fields["auth_algo"] !== "SHA256withRSA" || !isPayPalCertUrl(fields["cert_url"]!)) return { ok: false, reason: "not a PayPal transmission" };
   let event: unknown;
   try {
     event = JSON.parse(rawBody);

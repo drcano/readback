@@ -242,7 +242,9 @@ export async function runChecks(b: CaseBundle): Promise<{ facts: CaseFacts; chec
       const earliest = Math.min(...prior.map((h) => toSec(h.captureTime)));
       const ok = prior.length >= HISTORY_MIN_PRIOR && facts.captureSec - earliest >= HISTORY_MIN_AGE_SEC;
       return {
-        failures: ok ? [] : [f("HISTORY_BELOW_THRESHOLD", `${prior.length} earlier undisputed charge(s) under this agreement; at least ${HISTORY_MIN_PRIOR} over 7+ days are needed.`)],
+        failures: ok ? [] : [b.historyLimited
+          ? f("HISTORY_NOT_ESTABLISHED", `Readback checks the oldest earlier charges for disputes up to a limit, and found fewer than ${HISTORY_MIN_PRIOR} undisputed ones; PayPal can see the rest.`)
+          : f("HISTORY_BELOW_THRESHOLD", `${prior.length} earlier undisputed charge(s) under this agreement; at least ${HISTORY_MIN_PRIOR} over 7+ days are needed.`)],
         provisional: facts.provisional,
       };
     }],

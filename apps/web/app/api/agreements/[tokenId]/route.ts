@@ -3,6 +3,7 @@
 import { TokenIdSchema } from "@readback/core";
 import { z } from "zod";
 import { isAdmin } from "@/lib/admin";
+import { allowLookup, clientIp } from "@/lib/budget";
 import { readAgreement, revokeAgreement } from "@/lib/agreements";
 import { paypalClient } from "@/lib/paypal/client";
 
@@ -11,6 +12,8 @@ type Ctx = { params: Promise<{ tokenId: string }> };
 export async function GET(req: Request, ctx: Ctx): Promise<Response> {
   const id = TokenIdSchema.safeParse((await ctx.params).tokenId);
   if (!id.success) return Response.json({ ok: false }, { status: 400 });
+  const budget = allowLookup(clientIp(req));
+  if (!budget.ok) return Response.json({ ok: false, message: budget.message }, { status: 429 });
   // ?charges=false skips Transaction Search: the agent runtime's per-call terms check needs only the terms.
   const withCharges = new URL(req.url).searchParams.get("charges") !== "false";
   const view = await readAgreement(paypalClient(), id.data, new Date(), withCharges);

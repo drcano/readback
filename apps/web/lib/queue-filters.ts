@@ -8,7 +8,7 @@ const light = (r: QueueRow, group: string) => r.lights.find((l) => l.group === g
 export const FILTERS = {
   merchant_should_lose: { label: "cases the merchant should lose (suggested buyer's favor)", match: (r: QueueRow) => r.suggestion === "BUYER_FAVOR" },
   merchant_should_win: { label: "cases suggested for the seller", match: (r: QueueRow) => r.suggestion === "SELLER_FAVOR" },
-  no_suggestion: { label: "cases with no suggested outcome", match: (r: QueueRow) => r.suggestion === null },
+  no_suggestion: { label: "cases with no suggested outcome", match: (r: QueueRow) => r.suggestion === null && r.loaded },
   consent_unverified: { label: "cases where consent authenticity is unverified", match: (r: QueueRow) => r.row === 12 },
   agent_failed: { label: "cases with no valid request from the shopper's agent", match: (r: QueueRow) => light(r, "Agent") === "fail" },
   failed_only_delivery: {

@@ -13,6 +13,10 @@ export type FakePayPal = {
   clock: { now: string }; // capture create_time = this, so tests control history dates
   approve: (setupTokenId: string) => void; // stands in for Maya clicking Agree on PayPal
   openDispute: (captureId: string, reason: string) => string;
+  // Load testing (evals/flood.test.ts): every call is counted; optional latency per call; and
+  // after `limit.after` calls (OAuth excluded) PayPal answers 429 RATE_LIMIT_REACHED.
+  calls: { method: string; path: string }[];
+  knobs: { latencyMs: number; rateLimitAfter: number | null };
 };
 
 export function fakePayPal(): FakePayPal {
@@ -24,6 +28,8 @@ export function fakePayPal(): FakePayPal {
   const setupTokens = new Map<string, Json>();
   const approved = new Set<string>();
   const posts: FakePayPal["posts"] = [];
+  const calls: FakePayPal["calls"] = [];
+  const knobs: FakePayPal["knobs"] = { latencyMs: 0, rateLimitAfter: null };
   const clock = { now: new Date().toISOString() };
   const captureToOrder = new Map<string, string>();
   let n = 0;
@@ -43,6 +49,11 @@ export function fakePayPal(): FakePayPal {
     const path = url.pathname;
     const headers = new Headers(init?.headers);
     if (path === "/v1/oauth2/token") return json(200, { access_token: "fake-token" });
+    calls.push({ method, path });
+    if (knobs.latencyMs) await new Promise((r) => setTimeout(r, knobs.latencyMs));
+    if (knobs.rateLimitAfter !== null && calls.length > knobs.rateLimitAfter) {
+      return new Response(JSON.stringify({ name: "RATE_LIMIT_REACHED", message: "Too many requests. Blocked due to rate limiting." }), { status: 429, headers: { "content-type": "application/json", "retry-after": "60" } });
+    }
 
     if (method === "POST") {
       const requestId = headers.get("PayPal-Request-Id");
@@ -131,8 +142,14 @@ export function fakePayPal(): FakePayPal {
     }
     if (method === "GET" && path === "/v1/customer/disputes") {
       const txn = url.searchParams.get("disputed_transaction_id");
-      const items = [...disputes.values()].filter((d) => (d["disputed_transactions"] as { seller_transaction_id: string }[])[0]?.seller_transaction_id === txn);
-      return json(200, { items: items.map((d) => ({ dispute_id: d["dispute_id"] })) });
+      if (txn) {
+        const items = [...disputes.values()].filter((d) => (d["disputed_transactions"] as { seller_transaction_id: string }[])[0]?.seller_transaction_id === txn);
+        return json(200, { items: items.map((d) => ({ dispute_id: d["dispute_id"] })) });
+      }
+      // The plain list, newest first, at most page_size (PayPal's maximum is 50), with a next link.
+      const size = Math.min(Number(url.searchParams.get("page_size") ?? 10), 50);
+      const all = [...disputes.values()].reverse();
+      return json(200, { items: all.slice(0, size).map((d) => ({ dispute_id: d["dispute_id"] })), links: all.length > size ? [{ rel: "next", href: "next" }] : [] });
     }
     if (method === "GET" && path.startsWith("/v1/customer/disputes/")) {
       const d = disputes.get(path.split("/").pop()!);
@@ -161,5 +178,5 @@ export function fakePayPal(): FakePayPal {
     return id;
   };
 
-  return { fetch: fakeFetch as typeof fetch, tokens, orders, disputes, posts, clock, openDispute, approve: (id) => approved.add(id) };
+  return { fetch: fakeFetch as typeof fetch, tokens, orders, disputes, posts, clock, openDispute, approve: (id) => approved.add(id), calls, knobs };
 }

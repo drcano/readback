@@ -163,6 +163,7 @@ export const CaseBundleSchema = z.object({
   tokenDeletedAt: z.string().nullable(), // from VAULT.PAYMENT-TOKEN.DELETED, if retrievable
   history: z.array(HistoryEntrySchema),
   historyComplete: z.boolean(), // false if Transaction Search failed or was cut short
+  historyLimited: z.boolean().optional(), // the dispute lookups hit their budget before two charges qualified
   now: z.string(), // when the bundle was fetched
 });
 export type CaseBundle = z.infer<typeof CaseBundleSchema>;

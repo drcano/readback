@@ -49,6 +49,15 @@ async function hideAddress(a: Address | undefined): Promise<Address | undefined>
 const DAY_MS = 86_400_000;
 const WINDOW_DAYS = 31; // Transaction Search's maximum window
 
+// The history walk checks at most this many earlier charges for disputes (see findHistory).
+export const HISTORY_LOOKUP_BUDGET = 10;
+
+// A PayPal failure, said plainly: rate limiting isn't "not found".
+function failed(status: number, notFound: string): CaseLookup {
+  if (status === 429) return { ok: false, status: 429, message: "PayPal is rate-limiting requests right now; try again in a minute." };
+  return { ok: false, status: status === 404 ? 404 : 502, message: status === 404 ? notFound : "PayPal couldn't be reached for this case." };
+}
+
 export async function buildCaseBundle(id: string, paypal: PayPalClient, now: Date): Promise<CaseLookup> {
   // Dispute IDs start with PP-D- or PP-R- (both seen in the sandbox); capture IDs never start with
   // PP-, so anything else is treated as a capture ID (preview mode).
@@ -56,7 +65,7 @@ export async function buildCaseBundle(id: string, paypal: PayPalClient, now: Dat
   let captureId = id;
   if (id.startsWith("PP-")) {
     const d = await paypal.get(`/v1/customer/disputes/${encodeURIComponent(id)}`, DisputeSchema);
-    if (!d.ok) return { ok: false, status: d.status === 404 ? 404 : 502, message: "Dispute not found at PayPal." };
+    if (!d.ok) return failed(d.status, "Dispute not found at PayPal.");
     dispute = d.data;
     const txn = d.data.disputed_transactions?.[0]?.seller_transaction_id;
     if (!txn) return { ok: false, status: 422, message: "The dispute names no seller transaction." };
@@ -64,11 +73,12 @@ export async function buildCaseBundle(id: string, paypal: PayPalClient, now: Dat
   }
 
   const cap = await paypal.get(`/v2/payments/captures/${encodeURIComponent(captureId)}`, CaptureWithOrder);
-  if (!cap.ok) return { ok: false, status: cap.status === 404 ? 404 : 502, message: "Charge not found at PayPal." };
+  if (!cap.ok) return failed(cap.status, "Charge not found at PayPal.");
   const orderId = cap.data.supplementary_data?.related_ids?.order_id;
   if (!orderId) return { ok: false, status: 422, message: "PayPal doesn't link this charge to an order." };
 
   const raw = await paypal.get(`/v2/checkout/orders/${encodeURIComponent(orderId)}`, z.unknown());
+  if (!raw.ok) return failed(raw.status, "Order not found at PayPal.");
   const order = raw.ok ? OrderSchema.safeParse(raw.data) : null;
   const owners = raw.ok ? OrderCaptures.safeParse(raw.data) : null;
   if (!order?.success || !owners?.success) return { ok: false, status: 502, message: "Order not found at PayPal." };
@@ -83,7 +93,7 @@ export async function buildCaseBundle(id: string, paypal: PayPalClient, now: Dat
   if (tokenId) {
     const t = await paypal.get(`/v3/vault/payment-tokens/${encodeURIComponent(tokenId)}`, PaymentTokenSchema);
     if (t.ok) token = t.data;
-    else if (t.status !== 404) return { ok: false, status: 502, message: "Agreement lookup failed at PayPal." };
+    else if (t.status !== 404) return failed(t.status, "Agreement lookup failed at PayPal.");
   }
 
   // Same rule as the checks: the order's copy of the terms is used only if PayPal's token is gone.
@@ -92,7 +102,7 @@ export async function buildCaseBundle(id: string, paypal: PayPalClient, now: Dat
   const payerId = token?.payment_source.paypal.payer_id ?? orderData.payer?.payer_id ?? orderData.payment_source?.paypal?.account_id;
   const history = tokenId && terms?.ok
     ? await findHistory(paypal, tokenId, new Date(`${terms.value.start}T00:00:00Z`), now, { checkDisputes: true, verifyPayer: payerId, fingerprint: terms.value.fingerprint, before: cap.data.create_time })
-    : { entries: [], complete: true };
+    : { entries: [], complete: true, limited: false };
 
   const { supplementary_data: _s, ...capture } = cap.data;
   const pu = orderData.purchase_units[0]!;
@@ -111,6 +121,7 @@ export async function buildCaseBundle(id: string, paypal: PayPalClient, now: Dat
       tokenDeletedAt: null,
       history: history.entries,
       historyComplete: history.complete,
+      historyLimited: history.limited,
       now: now.toISOString(),
     },
   };
@@ -126,7 +137,7 @@ export async function findHistory(
   start: Date,
   now: Date,
   opts: { checkDisputes: boolean; verifyPayer?: string | undefined; fingerprint?: string; before?: string },
-): Promise<{ entries: HistoryEntry[]; complete: boolean }> {
+): Promise<{ entries: HistoryEntry[]; complete: boolean; limited: boolean }> {
   const prefix = `rb1:${tokenId}:`;
   const entries: HistoryEntry[] = [];
   for (let from = start.getTime(); from < now.getTime(); from += WINDOW_DAYS * DAY_MS) {
@@ -136,7 +147,7 @@ export async function findHistory(
       const res = await paypal.get(`/v1/reporting/transactions?${q}`, Search);
       // A failed search means the history is incomplete; the checks treat that as provisional,
       // so missing history can never pass a check by accident (audit finding 3).
-      if (!res.ok) return { entries, complete: false };
+      if (!res.ok) return { entries, complete: false, limited: false };
       for (const { transaction_info: t } of res.data.transaction_details ?? []) {
         // Only payments count as charges: T00xx (vault charges are T0003, buyer-present T0006), never a
         // denied one (status D). PayPal also writes non-payment rows carrying the charge's labels (a
@@ -158,8 +169,18 @@ export async function findHistory(
   const candidates = entries
     .filter((h) => opts.before === undefined || Date.parse(h.captureTime) < Date.parse(opts.before))
     .sort((a, b) => Date.parse(a.captureTime) - Date.parse(b.captureTime));
+  // A bounded walk: under a dispute flood most earlier charges are disputed and never qualify, so
+  // an unbounded walk costs one PayPal call per earlier charge for every case (audit: flood, Oct 26).
+  // Past the budget, history is "not established within the limit": check 11 then fails, which can
+  // only withhold a seller-favor suggestion, never create one.
   let qualified = 0;
+  let lookups = 0;
+  let limited = false;
   for (const h of opts.verifyPayer ? candidates : entries) {
+    if (opts.checkDisputes && ++lookups > HISTORY_LOOKUP_BUDGET) {
+      limited = qualified < 2;
+      break;
+    }
     if (opts.checkDisputes) {
       const d = await paypal.get(`/v1/customer/disputes?disputed_transaction_id=${encodeURIComponent(h.captureId)}`, DisputeList);
       // Unknown dispute status counts as disputed: it must not help the merchant (fail closed).
@@ -170,7 +191,7 @@ export async function findHistory(
       if (h.verified && ++qualified >= 2) break;
     }
   }
-  return { entries, complete: true };
+  return { entries, complete: true, limited };
 }
 
 // Labels alone are merchant-written, so a history entry counts only if PayPal shows the same payer

@@ -12,7 +12,7 @@ async function rows(): Promise<QueueRow[]> {
       const r = await evaluateCase(f.bundle);
       return {
         id: f.id, href: "", source: "Fixture" as const, note: f.label, reason: r.reason, stage: "", amount: 0, due: null,
-        classification: r.classification.label, row: r.classification.row, suggestion: r.classification.suggestion, ruling: null,
+        classification: r.classification.label, row: r.classification.row, suggestion: r.classification.suggestion, ruling: null, loaded: true,
         failed: r.failed.join(", "), lights: lights(r.checks), evidence: r.facts.secondaryTerms ? ("Merchant copy (secondary)" as const) : ("PayPal terms" as const),
       };
     }),

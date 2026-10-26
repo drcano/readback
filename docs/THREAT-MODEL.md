@@ -252,11 +252,19 @@ Where the dispute opens in inquiry, Readback first sends her the terms she appro
 ### T24. The merchant omits the mandate or the labels
 This is T3's stripped-labels case. With either label left, the agreement is linked (with PayPal's payer match), and the missing mandate or label fails checks 3 and 2b, giving `BUYER_FAVOR`. With both labels and the mandate stripped, see T3's "Not stopped": no link from merchant-side data, no suggestion.
 
-### T25. Denial of service on the gate or webhooks
+### T25. Denial of service on the gate, the queue, or webhooks, including a flood of disputes
+
+**Exposure:** public routes that fan out into PayPal calls. A flood of disputes, or a script reloading the queue, could turn page views into thousands of PayPal calls, get the app rate-limited by PayPal for everyone, and (worse) make disputes silently disappear from the queue. Measured over the PayPal fake (`evals/flood.test.ts`, Oct 26), never against PayPal's sandbox.
 
 **Mitigation:**
 - The gate verifies the signature and hygiene **before** any PayPal call, so junk requests cost no PayPal quota.
-- Webhooks each cost one verification call. Rate limiting is delegated to the platform, or kept in ephemeral per-instance counters with no customer data.
+- **History walks are bounded.** A case checks at most 10 earlier charges for disputes. When every earlier charge was disputed, one case cost 65 PayPal calls; it now costs 16. Past the budget, check 11 says history "isn't established" (never "no history"), which can only withhold a seller-favor suggestion.
+- **The queue is bounded and honest.** Cases are built 4 at a time within a 15 s budget (20 disputes at 50 ms per PayPal call: 11.6 s → 3.0 s). Every listed dispute appears: one PayPal couldn't return, or that wasn't reached in time, is a row with the reason and no verdict. Under rate limiting, the queue used to show 14 of 60 disputes with no error; it now lists all 50 PayPal returned and says how many couldn't be evaluated, and says when PayPal has more than the 50 shown. A 429 is reported as rate limiting, not "not found".
+- **Amplifying routes are rate-limited** per IP in ephemeral per-instance counters with no customer data: the queue (30/hour), case and agreement lookups (300/hour). Over the queue limit, the labeled examples still load without calling PayPal.
+- **Webhooks:** a cheap prefilter (all PayPal transmission headers, `SHA256withRSA`, a certificate URL on paypal.com over https) runs before the verification call, and verification calls are capped per instance. 1,000 forged events now cost 0 PayPal calls (was 1,000). A dropped event loses nothing: every screen re-reads PayPal.
+- **Concurrent evidence sends** on one dispute share one deterministic `PayPal-Request-Id`, so ten at once leave one statement.
+
+**Not stopped:** a distributed flood within the per-IP limits; the per-instance counters multiply with instances (one on Render). The cost is bounded by PayPal's own rate limits, which the app now reports honestly.
 
 ### T26. Webhook duplication and reordering
 

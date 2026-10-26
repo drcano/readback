@@ -54,9 +54,11 @@ function ClaimCell({ data }: ICellRendererParams<QueueRow>) {
     </span>
   );
 }
-const StepsCell = ({ data }: ICellRendererParams<QueueRow>) => (data ? <Steps lights={data.lights} /> : null);
+// A dispute PayPal couldn't return in time is listed with the reason and no verdict.
+const StepsCell = ({ data }: ICellRendererParams<QueueRow>) => (!data ? null : data.loaded ? <Steps lights={data.lights} /> : <span className="muted small">{data.note}</span>);
 function RecCell({ data }: ICellRendererParams<QueueRow>) {
   if (!data) return null;
+  if (!data.loaded) return <span className="rec" data-rec="review">Not loaded</span>;
   if (!data.ruling || data.ruling.agrees === null) return <RecPill suggestion={data.suggestion} />;
   // Closed by PayPal: Readback's recommendation is a check against PayPal's ruling.
   return (
@@ -142,10 +144,10 @@ export function QueueGrid() {
 
   useEffect(() => {
     fetch("/api/queue")
-      .then((r) => r.json() as Promise<{ rows: QueueRow[]; liveError: string | null }>)
+      .then((r) => r.json() as Promise<{ rows: QueueRow[]; liveError: string | null; notices?: string[] }>)
       .then((q) => {
         setRows(q.rows);
-        setNotice(q.liveError);
+        setNotice([q.liveError, ...(q.notices ?? [])].filter(Boolean).join(" ") || null);
       })
       .catch(() => setNotice("Couldn't load the queue."));
   }, []);
