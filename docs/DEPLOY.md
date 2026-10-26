@@ -34,7 +34,7 @@ One page, in order, about an hour. Every step here uses Dante's accounts and sec
 - [ ] Never put `AGENT_PRIVATE_KEY` or the MCP secrets on readback-web.
 - [ ] Nothing to set for PayPal's return URLs. They're built from `RENDER_EXTERNAL_URL`, which Render sets itself. Without it they'd point at `https://localhost:10000`, which is what `next start` sees behind Render's proxy.
 - [ ] Deploy, and wait for both health checks to go green.
-- [ ] If the build or start fails on Node: `render.yaml` pins 22.18.0, but everything was tested on 26.5.0. Set `NODE_VERSION=26.5.0` on both services.
+- [ ] If the build or start fails on Node: `render.yaml` pins 22.18.0, but everything was tested on 26.5.0. Set `NODE_VERSION=26.5.0` on both services. The build gets pnpm through `npx`, not Corepack (which Node 25+ no longer ships), and the start commands run `next` and `node` directly, so either version works.
 
 ## 3. PayPal webhooks (sandbox app)
 - [ ] Open developer.paypal.com → Apps & Credentials → Sandbox → the Readback app → Webhooks → **Add**.

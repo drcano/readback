@@ -1,14 +1,16 @@
 # Render Blueprint: two stateless Starter services (always on during judging; no disk, no database).
 # Secrets are set in the Render dashboard (sync: false), never in this file. Steps: docs/DEPLOY.md.
 # PayPal's return URLs use RENDER_EXTERNAL_URL, which Render sets on web services (apps/web/lib/agreements.ts).
+# pnpm comes from npx at the pinned version, because Node 25+ no longer ships Corepack, and the services
+# start their binaries directly, so nothing at runtime depends on a package manager.
 services:
   - type: web
     name: readback-web
     runtime: node
     plan: starter
     rootDir: .
-    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @readback/web build
-    startCommand: pnpm --filter @readback/web start
+    buildCommand: npx --yes pnpm@12.11.2 install --frozen-lockfile && npx --yes pnpm@12.11.2 --filter @readback/web build
+    startCommand: cd apps/web && ./node_modules/.bin/next start
     healthCheckPath: /api/health
     envVars:
       - key: NODE_VERSION
@@ -47,8 +49,8 @@ services:
     runtime: node
     plan: starter
     rootDir: .
-    buildCommand: corepack enable && pnpm install --frozen-lockfile
-    startCommand: pnpm --filter @readback/agent start
+    buildCommand: npx --yes pnpm@12.11.2 install --frozen-lockfile
+    startCommand: cd apps/agent && node src/server.ts
     healthCheckPath: /health
     envVars:
       - key: NODE_VERSION
