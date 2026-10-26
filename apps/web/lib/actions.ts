@@ -53,6 +53,8 @@ export async function runDisputeAction(paypal: PayPalClient, disputeId: string, 
     const lookup = await buildCaseBundle(disputeId, paypal, now);
     if (!lookup.ok) return { ok: false, status: lookup.status, message: lookup.message };
     const text = evidenceStatement(lookup.bundle, await evaluateCase(lookup.bundle));
+    // Checked before the links: once evidence is in, PayPal stops offering provide_evidence (spike step 7).
+    if (onRecord(d).includes(text)) return { ok: true, sent: false, message: "Already on PayPal's record of the dispute; nothing sent again.", onPayPalRecord: true };
     const sent = await runDisputeAction(paypal, disputeId, { action, text }, now);
     if (!sent.ok || !sent.sent) return sent;
     // Read it back: the statement should now be on PayPal's own record of the dispute.
