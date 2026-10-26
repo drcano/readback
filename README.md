@@ -175,6 +175,8 @@ pnpm run doctor                       # checks the configuration (plain `pnpm do
 pnpm dev                              # web on :3000, agent runtime on :3001
 ```
 
+**Deploying:** [docs/DEPLOY.md](docs/DEPLOY.md) (GitLab and Render, one page), then `pnpm smoke <web-url> --agent <agent-url>` checks the deployment the way a judge meets it, without changing anything at PayPal.
+
 Tests: `pnpm test` · browser: `pnpm test:browser` · evals: `pnpm eval` · end to end: `pnpm --filter @readback/web build && pnpm --filter @readback/web test:e2e` · Claude harness: `pnpm --filter @readback/agent harness` (needs `ANTHROPIC_API_KEY`).
 
 ## Status
@@ -196,7 +198,7 @@ Tests: `pnpm test` · browser: `pnpm test:browser` · evals: `pnpm eval` · end 
 | `apps/web` | The merchant's Readback deployment (Next.js) |
 | `examples/existing-paypal-merchant` | The 10-line quick-start, runnable offline |
 | `evals/` | Labeled scenarios, fixtures and results |
-| `scripts/` | Sandbox spike, `seed:charge`, `agreement:create`, `doctor` |
+| `scripts/` | Sandbox spike, `seed:charge`, `agreement:create`, `doctor`, `smoke` |
 | `docs/` | Spec, threat model, edge cases, the case for PayPal, the API proposal, decision records |
 
 ## Security

@@ -465,7 +465,7 @@ Sam can:
 - **"Judge it yourself."** A button runs the full eval suite on recorded fixtures in the visitor's browser and shows the scoreboard live.
 - **"Try to break it."** The attack lab (`evals/lab.ts`) runs eight attacks through the product's real layers in the browser and shows where each one is stopped: agent runtime, checkout gate, PayPal, or investigator. Each attack's stopping layer is a test.
 - **CI.** Evals, fast-check tamper fuzzing, and axe-core accessibility checks (zero violations), with badges and results committed under `evals/results/`.
-- **Deploy to Render.** A `render.yaml` Blueprint and a `doctor` script that checks the env, app features, and sandbox reachability.
+- **Deploy to Render.** A `render.yaml` Blueprint and the steps in `docs/DEPLOY.md`. `doctor` checks the env, the app features, sandbox reachability, and that no secret is in git history. `pnpm smoke <url>` checks a deployment the way a judge meets it: both services, the return URLs, the verdict pair re-checked from its bundles, the fail-closed routes, and the hosted agent holding the key the agreements name.
 
 ### 5.10 Route table
 
@@ -508,7 +508,7 @@ Every route is stateless.
 | GET | `/.well-known/agent-key` | Public | Public JWK plus fingerprint |
 | GET | `/health` | Public | Status |
 
-**Scripts:** `scripts/spike/*`; `pnpm seed:charge` (§2); `pnpm doctor`.
+**Scripts:** `scripts/spike/*`; `pnpm seed:charge` (§2); `pnpm run doctor`; `pnpm smoke <web-url> [--agent <url>] [--charge]` (read-only unless `--charge`).
 
 ## 6. AI components
 
