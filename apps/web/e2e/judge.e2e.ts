@@ -10,6 +10,15 @@ const page = await b.newPage();
 const errors: string[] = [];
 page.on("pageerror", (e) => errors.push(String(e)));
 
+// A judge who cancels on PayPal's page: the popup reports back and the tab says so (Oct 26 edge case).
+await page.context().route("https://www.sandbox.paypal.com/**", async (route) => {
+  await route.fulfill({ status: 302, headers: { location: `${APP}/api/agreements/return?flow=judge&cancelled=1` } });
+});
+await page.goto(APP);
+await page.getByRole("button", { name: "Create my key and approve on PayPal" }).click();
+await page.waitForSelector("text=You cancelled on PayPal", { timeout: 20_000 });
+console.log("PASS  step 1 cancelled: the popup reported back and nothing was set up");
+await page.context().unroute("https://www.sandbox.paypal.com/**");
 // The popup would open PayPal's real site. Intercept it: approve in the fake, then follow
 // PayPal's return redirect back to our return route, exactly as PayPal would.
 await page.context().route("https://www.sandbox.paypal.com/**", async (route) => {
@@ -17,8 +26,6 @@ await page.context().route("https://www.sandbox.paypal.com/**", async (route) =>
   await fetch(`http://localhost:4555/__approve/${setupId}`);
   await route.fulfill({ status: 302, headers: { location: `${APP}/api/agreements/return?flow=judge&approval_token_id=${setupId}` } });
 });
-
-await page.goto(APP);
 await page.getByRole("button", { name: "Create my key and approve on PayPal" }).click();
 await page.waitForSelector("text=Approved on PayPal", { timeout: 20_000 });
 const fp = await page.textContent(".fp");

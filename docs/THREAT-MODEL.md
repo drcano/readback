@@ -260,7 +260,7 @@ This is T3's stripped-labels case. With either label left, the agreement is link
 - The gate verifies the signature and hygiene **before** any PayPal call, so junk requests cost no PayPal quota.
 - **History walks are bounded.** A case checks at most 10 earlier charges for disputes. When every earlier charge was disputed, one case cost 65 PayPal calls; it now costs 16. Past the budget, check 11 says history "isn't established" (never "no history"), which can only withhold a seller-favor suggestion.
 - **The queue is bounded and honest.** Cases are built 4 at a time within a 15 s budget (20 disputes at 50 ms per PayPal call: 11.6 s → 3.0 s). Every listed dispute appears: one PayPal couldn't return, or that wasn't reached in time, is a row with the reason and no verdict. Under rate limiting, the queue used to show 14 of 60 disputes with no error; it now lists all 50 PayPal returned and says how many couldn't be evaluated, and says when PayPal has more than the 50 shown. A 429 is reported as rate limiting, not "not found".
-- **Amplifying routes are rate-limited** per IP in ephemeral per-instance counters with no customer data: the queue (30/hour), case and agreement lookups (300/hour). Over the queue limit, the labeled examples still load without calling PayPal.
+- **Amplifying routes are rate-limited** per IP in ephemeral per-instance counters with no customer data: the queue (120/hour), case and agreement lookups (600/hour). The hourly per-IP figures assume several judges may share one office IP; the daily caps (3,000 queue loads, 20,000 lookups) bound the cost. Over the queue limit, the labeled examples still load without calling PayPal.
 - **Webhooks:** a cheap prefilter (all PayPal transmission headers, `SHA256withRSA`, a certificate URL on paypal.com over https) runs before the verification call, and verification calls are capped per instance. 1,000 forged events now cost 0 PayPal calls (was 1,000). A dropped event loses nothing: every screen re-reads PayPal.
 - **Concurrent evidence sends** on one dispute share one deterministic `PayPal-Request-Id`, so ten at once leave one statement.
 
@@ -351,7 +351,7 @@ This is T3's stripped-labels case. With either label left, the agreement is link
 **Exposure:** `/api/terms/compile`, `/api/cases/[id]/brief`, `/api/cases/[id]/draft`, `/api/chat`, and `/api/studio-agent` call Claude on the builder's Anthropic key. A script could run up cost during judging.
 
 **Mitigation:**
-- Per-IP rate limits (ephemeral, per instance) and capped `max_tokens`.
+- Per-IP rate limits (ephemeral, per instance; 60 calls an hour per IP, sized so several judges sharing one office IP aren't locked out) and capped `max_tokens`.
 - An `ANTHROPIC_DAILY_CALLS` circuit breaker, enforced per instance in memory, after which these routes return a labeled "demo budget reached" state.
 - `/api/chat` also caps the conversation (16 messages of up to 1,000 characters) and the tool loop (4 turns per request), and never signs: `request_reorder` goes back to the judge's tab, which signs only in-terms requests under terms carrying its own key, and the gate re-checks them. The tab's reports reach Claude as delimited data (`apps/web/lib/agent-chat.test.ts`, `apps/web/lib/tab-agent.test.ts`).
 - A billing alert set on the Anthropic account.

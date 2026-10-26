@@ -43,6 +43,7 @@ export function JudgeMode() {
   const [bought, setBought] = useState<string | null>(null);
   const [dishonest, setDishonest] = useState<string | null>(null);
   const [status, setStatus] = useState<string>("");
+  const [blockedUrl, setBlockedUrl] = useState<string | null>(null);
 
   // The PayPal popup posts the new agreement ID back here (same origin only).
   useEffect(() => {
@@ -51,8 +52,11 @@ export function JudgeMode() {
       const data = e.data as { type?: string; tokenId?: string };
       if (data.type === "rb-agreement" && data.tokenId) {
         setTokenId(data.tokenId);
+        setBlockedUrl(null);
         setStatus("Approved on PayPal. Your tab's key is now the approved agent.");
       }
+      if (data.type === "rb-agreement-cancelled") setStatus("You cancelled on PayPal, so nothing was set up. Press the button to try again.");
+      if (data.type === "rb-agreement-failed") setStatus("PayPal's approval didn't complete. Press the button to try again.");
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
@@ -63,8 +67,13 @@ export function JudgeMode() {
     setKey(k);
     const r = await post("/api/agreements", { flow: "judge", draft: DRAFT, jwk: k.publicJwk });
     if (!r.ok) return setStatus(reason(r));
-    window.open(String(r["approveUrl"]), "paypal-approval", "popup,width=480,height=720");
-    setStatus("Approve in the PayPal window with the judge sandbox account. Check the fingerprint first.");
+    const url = String(r["approveUrl"]);
+    // A blocked popup returns null: offer the same approval page as a link (it still reports back here).
+    if (!window.open(url, "paypal-approval", "popup,width=480,height=720")) {
+      setBlockedUrl(url);
+      return setStatus("Your browser blocked PayPal's approval window. Open it with the link below.");
+    }
+    setStatus("Approve in the PayPal window with the judge sandbox buyer account (from the Devpost testing instructions). Check the fingerprint first.");
   }
 
   async function buy() {
@@ -92,9 +101,10 @@ export function JudgeMode() {
       </p>
       <ol className="rail">
         <Step n={1} title="Approve" s={state(Boolean(tokenId), true)}>
-          <p>Your tab becomes the agent. You approve its terms on PayPal&apos;s own page.</p>
+          <p>Your tab becomes the agent. You approve its terms on PayPal&apos;s own sandbox page, signed in as the judge sandbox buyer from the Devpost testing instructions.</p>
           {key && <p>Your agent&apos;s fingerprint: <span className="fp">{groupFingerprint(key.fingerprint)}</span>. PayPal&apos;s page should show the same 16 characters.</p>}
           <button type="button" className="btn btn-primary" onClick={approve} disabled={Boolean(tokenId)}>Create my key and approve on PayPal</button>
+          {blockedUrl && <p><a href={blockedUrl} target="paypal-approval" rel="opener">Open PayPal&apos;s approval page</a> (sign in with the judge sandbox buyer account).</p>}
         </Step>
         <Step n={2} title="Buy" s={state(Boolean(bought), Boolean(tokenId))}>
           <p>Ask Claude to shop: it asks your agent (this tab) to sign, and only what fits your terms gets signed. Or buy in one click.</p>

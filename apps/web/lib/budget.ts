@@ -26,16 +26,17 @@ export function limiter(perKeyPerHour: number, perDay: number, dailyMessage: str
   };
 }
 
-// Claude-backed routes: ~1 cent per call, so 500/day ≈ USD 5/day per instance.
-export const allow = limiter(20, Number(process.env["ANTHROPIC_DAILY_CALLS"] ?? 500), "The demo's daily AI budget is used up. The rest of the demo still works.");
+// Per-IP hourly limits assume several judges may share one office IP (NAT); the daily caps are the
+// cost control. Claude-backed routes: ~1 cent per call, so 500/day ≈ USD 5/day per instance.
+export const allow = limiter(60, Number(process.env["ANTHROPIC_DAILY_CALLS"] ?? 500), "The demo's daily AI budget is used up. The rest of the demo still works.");
 // Starting PayPal approvals (setup tokens) and demo direct charges: sandbox cost only, but bounded.
-export const allowAgreement = limiter(10, 1000, "The demo has started enough agreements for today; try again tomorrow.");
-export const allowDirectCharge = limiter(5, 500, "The demo has made enough direct charges for today.");
+export const allowAgreement = limiter(30, 1000, "The demo has started enough agreements for today; try again tomorrow.");
+export const allowDirectCharge = limiter(20, 500, "The demo has made enough direct charges for today.");
 // Public routes that fan out into many PayPal calls per request (the queue, a case, an agreement).
 // A dispute flood or a script mustn't turn page views into a flood of PayPal calls that gets the
 // app rate-limited for everyone (THREAT-MODEL T25; evals/flood.test.ts).
-export const allowQueue = limiter(30, 3000, "The queue has been loaded a lot today; it shows labeled examples until tomorrow.");
-export const allowLookup = limiter(300, 20000, "Too many case lookups today; try again tomorrow.");
+export const allowQueue = limiter(120, 3000, "The queue has been loaded a lot today; it shows labeled examples until tomorrow.");
+export const allowLookup = limiter(600, 20000, "Too many case lookups today; try again tomorrow.");
 // Webhook verification calls PayPal once per event: capped per instance, after a cheap prefilter.
 export const allowWebhookVerify = limiter(1200, 20000, "Webhook verification budget used up for today.");
 

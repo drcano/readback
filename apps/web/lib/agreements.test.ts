@@ -32,6 +32,15 @@ describe("agreements", () => {
     expect(JSON.stringify(view)).not.toMatch(/MAYA00000001/); // no personal data in the public view
   });
 
+  it("judge mode's cancel goes back through the return route, so the opener tab hears about it", async () => {
+    const pp = fakePayPal();
+    const created = await createAgreement(paypalClient(ENV, pp.fetch), DRAFT, (await generateAgentKey(false)).publicJwk, { ...OPTS, flow: "judge" });
+    expect(created.ok).toBe(true);
+    expect(pp.posts.find((p) => p.path === "/v3/vault/setup-tokens")!.body).toMatchObject({
+      payment_source: { paypal: { experience_context: { return_url: "https://readback.example/api/agreements/return?flow=judge", cancel_url: "https://readback.example/api/agreements/return?flow=judge&cancelled=1" } } },
+    });
+  });
+
   it("refuses unknown items and terms outside the grammar's limits", async () => {
     const client = paypalClient(ENV, fakePayPal().fetch);
     const agent = await generateAgentKey(true);

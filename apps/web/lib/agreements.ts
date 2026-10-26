@@ -47,7 +47,8 @@ export async function createAgreement(
   if (!parsed.ok) return { ok: false, status: 422, failure: parsed.error };
   const body = buildSetupTokenRequest(parsed.value, {
     returnUrl: `${opts.baseUrl}/api/agreements/return?flow=${opts.flow}`,
-    cancelUrl: `${opts.baseUrl}/shopper?cancelled=1`,
+    // Judge mode's approval runs in a popup: its cancel must report back to the opener tab too.
+    cancelUrl: opts.flow === "judge" ? `${opts.baseUrl}/api/agreements/return?flow=judge&cancelled=1` : `${opts.baseUrl}/shopper?cancelled=1`,
   });
   if (!body.ok) return { ok: false, status: 422, failure: body.error };
   const res = await paypal.post("/v3/vault/setup-tokens", `rb-setup-${(await sha256Hex(text)).slice(0, 40)}`, body.value, SetupTokenCreated);
