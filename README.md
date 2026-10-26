@@ -85,7 +85,9 @@ Claude never holds a key and never makes an allow/deny or ruling decision. Produ
 
 ![Attack lab: where each attack was stopped](docs/assets/attack-lab.png)
 
-**Tested.** `@readback/core`: 154 tests at about 98% coverage, property-based tamper fuzzing, and a headless-browser run. 59 labeled eval scenarios. End-to-end judge flow in Chromium. Two independent reviews (Oct 15 and Oct 25) attacked the engine; every finding is fixed and kept as a regression test, including the Oct 25 reviewers' 79 probes in `evals/audit/` ([ADR 0005](docs/decisions/0005-independent-audit-oct15.md), [ADR 0006](docs/decisions/0006-audit-oct25.md)). Threats T1–T34 and their mitigations: [docs/THREAT-MODEL.md](docs/THREAT-MODEL.md).
+**Tested.** `@readback/core`: 155 tests at about 98% line coverage, property-based tamper fuzzing, and a headless-browser run. 59 labeled eval scenarios. End-to-end judge flow in Chromium. Two independent reviews (Oct 15 and Oct 25) attacked the engine; every finding is fixed and kept as a regression test, including the Oct 25 reviewers' 79 probes in `evals/audit/` ([ADR 0005](docs/decisions/0005-independent-audit-oct15.md), [ADR 0006](docs/decisions/0006-audit-oct25.md)). Threats T1–T34 and their mitigations: [docs/THREAT-MODEL.md](docs/THREAT-MODEL.md).
+
+[docs/EDGE-CASES.md](docs/EDGE-CASES.md) lists every edge we know of: clocks and period boundaries, retries and outages, PayPal's dispute states, floods and rate limits. Each edge cites the test or sandbox record behind it, and the ones not yet covered are named.
 
 ## Design
 
@@ -195,7 +197,7 @@ Tests: `pnpm test` · browser: `pnpm test:browser` · evals: `pnpm eval` · end 
 | `examples/existing-paypal-merchant` | The 10-line quick-start, runnable offline |
 | `evals/` | Labeled scenarios, fixtures and results |
 | `scripts/` | Sandbox spike, `seed:charge`, `agreement:create`, `doctor` |
-| `docs/` | Spec, threat model, the case for PayPal, the API proposal, decision records |
+| `docs/` | Spec, threat model, edge cases, the case for PayPal, the API proposal, decision records |
 
 ## Security
 
