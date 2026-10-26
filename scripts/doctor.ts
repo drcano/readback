@@ -1,6 +1,7 @@
 // pnpm run doctor — checks a deployment's configuration before a demo (SPEC §5.9). Prints PASS/FAIL
 // per item and never prints secret values.
 // Run locally: pnpm run doctor (plain `pnpm doctor` is pnpm's own built-in)  (reads .env and apps/agent/.env)
+import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 
 const results: [boolean, string][] = [];
@@ -29,6 +30,17 @@ check(Boolean(web["PAYPAL_WEBHOOK_ID"]), "PAYPAL_WEBHOOK_ID set (webhook verific
 check(Boolean(web["MERCHANT_ADMIN_TOKEN"] && web["MERCHANT_ADMIN_TOKEN"].length >= 24), "MERCHANT_ADMIN_TOKEN set (24+ chars)");
 check(Boolean(web["ANTHROPIC_API_KEY"]), "ANTHROPIC_API_KEY set (terms compiler, brief, chat panel)");
 check(!web["HERO_MCP_SECRET"] && !web["JUDGE_MCP_SECRET"], "No MCP path secrets in the merchant .env (they belong to apps/agent only)");
+
+// The repo is public: no secret value from either .env file may appear anywhere in git history.
+const secrets = Object.entries({ ...readEnvFile(".env"), ...agent })
+  .filter(([k]) => /SECRET|KEY|TOKEN/.test(k))
+  .map(([, v]) => v.trim().replace(/^["']|["']$/g, ""))
+  .filter((v) => v.length >= 8);
+try {
+  secrets.push((JSON.parse(agent["AGENT_PRIVATE_KEY"] ?? "") as { d: string }).d); // the key's private part on its own
+} catch {}
+const history = spawnSync("git", ["log", "-p", "--all"], { encoding: "utf8", maxBuffer: 1 << 28 }).stdout ?? "";
+check(history.length > 0 && secrets.every((s) => !history.includes(s)), `No secret from .env or apps/agent/.env is in git history (${secrets.length} checked)`);
 
 // Live checks: OAuth works, and the app can see Vault (a bogus token must 404, not 403).
 if (web["PAYPAL_CLIENT_ID"] && web["PAYPAL_CLIENT_SECRET"]) {
