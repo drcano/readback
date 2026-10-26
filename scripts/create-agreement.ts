@@ -39,7 +39,8 @@ const setup = (await paypal({
   body: body.value,
 })) as { id: string; links: { rel: string; href: string }[] };
 const approve = setup.links.find((l) => l.rel === "approve")?.href;
-console.log(`Log in as MAYA's sandbox account, check the fingerprint, and approve:\n  ${approve}\n`);
+// The hero is Maya's; test agreements use a spare sandbox buyer, never Maya's or the judge account.
+console.log(`Log in as the sandbox buyer this agreement is for (Maya only for the hero), check the fingerprint, and approve:\n  ${approve}\n`);
 const rl = createInterface({ input: process.stdin, output: process.stdout });
 await rl.question("Press Enter once approved...");
 rl.close();
@@ -55,4 +56,4 @@ const token = PaymentTokenSchema.parse(
 const stored = token.payment_source.paypal.description;
 console.log(`\nagreement (payment token) ID: ${token.id}`);
 console.log(stored === termsText ? "PASS  PayPal stored the terms byte-for-byte" : `FAIL  PayPal stored: ${stored}`);
-console.log(`\nAdd to .env:  HERO_AGREEMENT_ID=${token.id}`);
+console.log(`\nOnly if this is the hero agreement, add to .env:  HERO_AGREEMENT_ID=${token.id}`);

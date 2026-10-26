@@ -2,7 +2,8 @@
 // what PayPal shows at each stage. Disputes can't be created by API: Maya opens them in the UI
 // (run with no arguments for the steps).
 // Run: pnpm spike:disputes                                   list recent disputes + how to open one
-//      pnpm spike:disputes get <disputeId>                   read it and follow it to capture/order/token
+//      pnpm spike:disputes get <disputeId> [label]           read it and follow it to capture/order/token
+//                                                            (a label saves 07-<label>-*.json, so the Oct 15 fixtures stay as recorded)
 //      pnpm spike:disputes escalate <disputeId>              INQUIRY -> claim
 //      pnpm spike:disputes require-evidence <disputeId> [SELLER_EVIDENCE|BUYER_EVIDENCE]  (sandbox only)
 //      pnpm spike:disputes provide-evidence <disputeId> [--type=X] [--file-part=evidence-file] [--input-as-string]
@@ -19,7 +20,7 @@ const PNG_1X1 = Buffer.from(
   "base64",
 );
 
-const HELP = `pnpm spike:disputes [list | get <id> | escalate <id> | require-evidence <id> [SELLER_EVIDENCE|BUYER_EVIDENCE]
+const HELP = `pnpm spike:disputes [list | get <id> [label] | escalate <id> | require-evidence <id> [SELLER_EVIDENCE|BUYER_EVIDENCE]
   | provide-evidence <id> [--type=X] [--file-part=evidence-file] [--input-as-string]
   | adjudicate <id> SELLER_FAVOR|BUYER_FAVOR | send-message <id> "text"]`;
 
@@ -103,21 +104,23 @@ then 'get' it and record status + dispute_outcome.`);
   }
 
   case "get": {
-    const d = await getDispute("dispute-get");
+    // Unlabeled keeps the Oct 15 names; a label (e.g. "unauthorized") saves alongside them instead.
+    const named = (kind: string, legacy: string) => (extra ? `07-${extra}-${kind}` : legacy);
+    const d = await getDispute(extra ? `${extra}-dispute` : "dispute-get");
     // SPEC §5.5 step 2: dispute -> capture -> order -> token, using only PayPal's own links.
     for (const t of d.disputed_transactions ?? []) {
       console.log(`  seller_transaction_id ${t.seller_transaction_id}, custom ${t.custom}, invoice_number ${t.invoice_number}`);
       if (!t.seller_transaction_id) { check("seller_transaction_id present", false); continue; }
       type Capture = { custom_id?: string; invoice_id?: string; supplementary_data?: { related_ids?: { order_id?: string } } };
       const cap = (await paypal({ method: "GET", path: `/v2/payments/captures/${t.seller_transaction_id}` })) as Capture;
-      saveFixture("07-capture", cap);
+      saveFixture(named("capture", "07-capture"), cap);
       check("dispute.custom === capture.custom_id", t.custom === cap.custom_id);
       check("dispute.invoice_number === capture.invoice_id", t.invoice_number === cap.invoice_id);
       const orderId = cap.supplementary_data?.related_ids?.order_id;
       check("capture -> order_id", orderId !== undefined);
       if (orderId) {
         const order = (await paypal({ method: "GET", path: `/v2/checkout/orders/${orderId}` })) as Order;
-        saveFixture("07-order", order);
+        saveFixture(named("order", "07-order"), order);
         const vaultId = order.payment_source?.paypal?.attributes?.vault?.id;
         check(`order -> vault.id (token ${vaultId ?? "missing"})`, vaultId !== undefined);
         check("custom_id names that token", cap.custom_id?.startsWith(`rb1:${vaultId}:`) === true);
