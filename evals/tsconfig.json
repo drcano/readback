@@ -1,5 +1,5 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": { "lib": ["ES2023", "DOM"], "module": "esnext", "moduleResolution": "bundler" },
-  "include": ["*.ts"]
+  "include": ["*.ts", "audit/*.ts"]
 }

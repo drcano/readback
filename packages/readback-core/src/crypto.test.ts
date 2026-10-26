@@ -191,12 +191,12 @@ describe("closed mandate: against the terms", () => {
     expect(codes({ unit: "65.00", amt: "65.00" })).toEqual([]);
   });
 
-  it("freshness: iat up to 60s ahead, refused after exp", () => {
+  it("freshness: iat up to 60s ahead; the gate stops one skew before exp (audit Oct 25)", () => {
     const m = payload();
     expect(checkFreshness(m, NOW - 60)).toEqual([]);
     expect(checkFreshness(m, NOW - 61).map((f) => f.code)).toEqual(["NOT_YET_VALID"]);
-    expect(checkFreshness(m, m.exp)).toEqual([]);
-    expect(checkFreshness(m, m.exp + 1).map((f) => f.code)).toEqual(["EXPIRED"]);
+    expect(checkFreshness(m, m.exp - 60)).toEqual([]);
+    expect(checkFreshness(m, m.exp - 59).map((f) => f.code)).toEqual(["EXPIRED"]);
   });
 });
 

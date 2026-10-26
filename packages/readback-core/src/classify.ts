@@ -53,15 +53,26 @@ export function classify(reason: DisputeReason, failed: ReadonlySet<CheckId>): C
       return row(7, "ITEM_MATCHES_APPROVED", "Item matches the signed and approved SKU; contents unverifiable", null);
     case "INCORRECT_AMOUNT":
       return row(8, "AMOUNT_AS_AUTHORIZED", "Amount as authorized", "SELLER_FAVOR");
+    // Readback sees only charges that carry this agreement's labels, so "no other charge" would be
+    // inferred from silence: an unlabeled second charge is invisible to it (audit Oct 25). PayPal
+    // sees every charge to the wallet, so this is PayPal's call.
     case "DUPLICATE_TRANSACTION":
-      return row(9, "SINGLE_CHARGE_IN_PERIOD", "Single charge in its period", "SELLER_FAVOR");
+      return row(9, "NO_OTHER_LABELED_CHARGE", "No other labeled charge in its period", null, [
+        "Readback sees only charges labeled with this agreement; PayPal can see every charge to this wallet.",
+      ]);
+    // Until PayPal's cancellation record is readable (spike step 5: does a buyer-side cancel delete
+    // the token, and when?), "charged before she cancelled" has no evidence behind it.
     case "CANCELED_RECURRING_BILLING":
-      return row(10, "CHARGED_BEFORE_CANCELLATION", "Charged before cancellation", "SELLER_FAVOR");
+      return row(10, "CANCELLATION_TIME_UNKNOWN", "In terms; the cancellation time isn't readable", null, [
+        "Readback can't read when she cancelled; PayPal can.",
+      ]);
     default: // UNAUTHORISED (and preview mode)
       if (any("10")) return row(11, "AUTHORIZED_NOT_FULFILLED", "Authorized by terms; fulfillment not shown", null);
       if (any("11")) return row(12, "CONSENT_UNVERIFIED", "Consent authenticity unverified", null, ["Route to PayPal account review."]);
-      return row(13, "FIRST_PARTY_MISUSE", "First-party misuse", "SELLER_FAVOR", [
-        "Supported PayPal reasons: NOT_AN_UNAUTHORIZED_TRANSACTION, CUSTOMER_RECOGNIZES_TRANSACTION.",
+      // What the evidence shows, not a motive: her approved key signed this, within her terms, with
+      // undisputed history. Consent authenticity rests on that history and on the key bound at setup (T21).
+      return row(13, "SIGNED_WITHIN_TERMS", "Signed by her approved agent, within her terms", "SELLER_FAVOR", [
+        "Supported PayPal reason: NOT_AN_UNAUTHORIZED_TRANSACTION.",
       ]);
   }
 }
@@ -70,6 +81,11 @@ export function classify(reason: DisputeReason, failed: ReadonlySet<CheckId>): C
 // anything merchant-attested or still-lagging can't be what wins the merchant a case.
 function applyModifiers(c: Classification, checks: CheckResult[], facts: CaseFacts): Classification {
   if (c.suggestion !== "SELLER_FAVOR") return c;
+  // The history threshold guards every seller-favor row, not only "unauthorized": a valid signature
+  // doesn't relax it, because whoever approved the agreement chose the key (T21; audit Oct 25).
+  if (checks.some((k) => k.id === "11" && !k.pass)) {
+    return { ...c, suggestion: null, notes: [...c.notes, "Too little undisputed history to rely on the approved key: no suggestion."] };
+  }
   if (facts.secondaryTerms) {
     return { ...c, suggestion: null, notes: [...c.notes, "Terms merchant-attested only (agreement deleted): no suggestion."] };
   }

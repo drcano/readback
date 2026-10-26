@@ -54,7 +54,9 @@ describe("authorizeCharge", () => {
     if (!d.allow) return;
     expect(d.invoiceId).toBe(`RB-${TOKEN}-P019`); // Nov 8 is day 19 of a 1-day cadence from Oct 21
     expect(d.customId).toMatch(new RegExp(`^rb1:${TOKEN}:[0-9a-f]{16}:p019:[0-9a-f]{16}$`));
-    expect(d.requestIds.create).toBe(`rb-${d.mandateHash.slice(0, 40)}`);
+    // From the signed content, not the whole JWS: a re-encoded signature is the same request.
+    expect(d.requestIds.create).toMatch(/^rb-[0-9a-f]{40}$/);
+    expect(d.requestIds.create).not.toBe(`rb-${d.mandateHash.slice(0, 40)}`);
     expect(d.orderRequest).toEqual({
       intent: "CAPTURE",
       payment_source: { paypal: { vault_id: TOKEN, stored_credential: { payment_initiator: "MERCHANT", usage: "SUBSEQUENT", usage_pattern: "RECURRING_PREPAID" } } },

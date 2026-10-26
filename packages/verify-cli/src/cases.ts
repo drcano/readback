@@ -28,7 +28,7 @@ const CaptureWithOrder = CaptureSchema.extend({
 const Search = z.object({
   total_pages: z.number().optional(),
   transaction_details: z
-    .array(z.object({ transaction_info: z.object({ transaction_id: z.string(), transaction_initiation_date: z.string(), custom_field: z.string().optional(), transaction_event_code: z.string().optional(), transaction_amount: z.object({ value: z.string() }).optional() }) }))
+    .array(z.object({ transaction_info: z.object({ transaction_id: z.string(), transaction_initiation_date: z.string(), custom_field: z.string().optional(), transaction_event_code: z.string().optional(), transaction_status: z.string().optional(), transaction_amount: z.object({ value: z.string() }).optional() }) }))
     .optional(),
 });
 const DisputeList = z.object({ items: z.array(z.object({ dispute_id: z.string() })).optional() });
@@ -36,7 +36,6 @@ const DisputeList = z.object({ items: z.array(z.object({ dispute_id: z.string() 
 const OrderCaptures = z.object({
   purchase_units: z.array(z.object({ payments: z.object({ captures: z.array(z.object({ id: z.string() })).optional() }).optional() })),
 });
-const COMPLETED = new Set(["COMPLETED", "PARTIALLY_REFUNDED", "REFUNDED"]);
 
 // The public case bundle carries no street addresses (audit finding 8). Check 10 only needs to
 // know whether the order shipped to the approved address, so each address becomes a SHA-256 of its
@@ -139,9 +138,13 @@ export async function findHistory(
       // so missing history can never pass a check by accident (audit finding 3).
       if (!res.ok) return { entries, complete: false };
       for (const { transaction_info: t } of res.data.transaction_details ?? []) {
-        // T11xx are holds and reversals, not charges: a dispute adds T1110/T1111 rows carrying the
-        // disputed charge's labels (spike step 6). Charges are T0003 (vault) and T0006.
-        if (t.custom_field?.startsWith(prefix) && !t.transaction_event_code?.startsWith("T11")) {
+        // Only payments count as charges: T00xx (vault charges are T0003, buyer-present T0006), never a
+        // denied one (status D). PayPal also writes non-payment rows carrying the charge's labels (a
+        // dispute's T1110 hold and T1111 release, spike step 6; chargebacks, holds), and a declined
+        // attempt doesn't burn the invoice (spike step 4): counting those would rule against an honest
+        // charge (audit Oct 25). The 31-day windows share an edge, so each capture is kept once.
+        const payment = t.transaction_event_code?.startsWith("T00") && t.transaction_status !== "D";
+        if (t.custom_field?.startsWith(prefix) && payment && !entries.some((e) => e.captureId === t.transaction_id)) {
           entries.push({ captureId: t.transaction_id, captureTime: t.transaction_initiation_date, customId: t.custom_field, amount: t.transaction_amount?.value, disputed: false, verified: false });
         }
       }
@@ -176,7 +179,8 @@ export async function findHistory(
 async function paidWithThisAgreement(paypal: PayPalClient, captureId: string, tokenId: string, payerId: string, fingerprint: string | undefined): Promise<boolean> {
   const cap = await paypal.get(`/v2/payments/captures/${encodeURIComponent(captureId)}`, CaptureWithOrder);
   const orderId = cap.ok ? cap.data.supplementary_data?.related_ids?.order_id : undefined;
-  if (!cap.ok || !orderId || !COMPLETED.has(cap.data.status)) return false;
+  // A refunded prior charge isn't evidence she accepted it, so only fully completed ones qualify.
+  if (!cap.ok || !orderId || cap.data.status !== "COMPLETED") return false;
   const raw = await paypal.get(`/v2/checkout/orders/${encodeURIComponent(orderId)}`, z.unknown());
   const order = raw.ok ? OrderSchema.safeParse(raw.data) : null;
   const owners = raw.ok ? OrderCaptures.safeParse(raw.data) : null;

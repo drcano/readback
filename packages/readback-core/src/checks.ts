@@ -130,13 +130,17 @@ export async function runChecks(b: CaseBundle): Promise<{ facts: CaseFacts; chec
       const out: Failure[] = [];
       if (!terms || mandate.fingerprint !== terms.fingerprint) out.push(f("KEY_NOT_APPROVED", "It wasn't signed by the agent key approved on PayPal."));
       if (sig.agr !== tokenId) out.push(f("WRONG_AGREEMENT", "The signed request names a different agreement."));
-      if (!item || sig.sku !== item.sku || String(sig.qty) !== item.quantity || sig.unit !== item.unit_amount.value) {
+      // Money as integer cents, never as strings; a non-canonical amount parses to null and differs.
+      if (!item || sig.sku !== item.sku || String(sig.qty) !== item.quantity || !sameCents(sig.unit, item.unit_amount.value)) {
         out.push(f("ORDER_DIFFERS", "The order's item doesn't match the signed request."));
       }
-      if (sig.amt !== pu.amount.value) out.push(f("ORDER_DIFFERS", "The order's total doesn't match the signed request."));
+      if (!sameCents(sig.amt, pu.amount.value)) out.push(f("ORDER_DIFFERS", "The order's total doesn't match the signed request."));
       const inv = pu.invoice_id ? parseInvoiceId(pu.invoice_id) : null;
       if (!inv || inv.period !== sig.p) out.push(f("ORDER_DIFFERS", "The order's period doesn't match the signed request."));
-      if (facts.captureSec < sig.iat - CLOCK_SKEW_SEC || facts.captureSec > sig.exp + CLOCK_SKEW_SEC) {
+      // The gate accepts iat up to one skew ahead of its own clock, and PayPal's clock may be one skew
+      // behind the gate's: the earliest honest capture is two skews before iat (audit Oct 25, T27).
+      // The gate stops one skew before exp, so the latest honest capture is within one skew after it.
+      if (facts.captureSec < sig.iat - 2 * CLOCK_SKEW_SEC || facts.captureSec > sig.exp + CLOCK_SKEW_SEC) {
         out.push(f("CAPTURED_OUTSIDE_WINDOW", "The charge happened outside the signed request's five-minute window."));
       }
       const reused = otherCaptures.some((h) => h.customId && parseCustomId(h.customId)?.mandateHash16 === mandate.mandateHash.slice(0, 16));
@@ -164,7 +168,7 @@ export async function runChecks(b: CaseBundle): Promise<{ facts: CaseFacts; chec
       if (amount === null || captured === null || !terms) return { failures: [f("AMOUNT_UNREADABLE", "The charge amount can't be compared with the terms.")], secondary: facts.secondaryTerms };
       if (amount > terms.capCents) out.push(f("OVER_CAP", `USD ${pu.amount.value} is over the approved USD ${formatCents(terms.capCents)} per order.`));
       if (captured !== amount) out.push(f("CAPTURE_DIFFERS", "The amount captured differs from the order."));
-      if (sig && sig.amt !== pu.amount.value) out.push(f("AMOUNT_NOT_SIGNED", "The amount differs from what the agent signed."));
+      if (sig && parseCents(sig.amt) !== amount) out.push(f("AMOUNT_NOT_SIGNED", "The amount differs from what the agent signed."));
       const bd = pu.amount.breakdown;
       if (!bd?.item_total || parseCents(bd.item_total.value) !== amount) out.push(f("BREAKDOWN_INVALID", "The order's item total doesn't equal its amount."));
       for (const k of ZERO_BREAKDOWN) {
@@ -224,7 +228,8 @@ export async function runChecks(b: CaseBundle): Promise<{ facts: CaseFacts; chec
 
     ["10", "Delivery", "Fulfilled (merchant-reported)", () => {
       const out: Failure[] = [];
-      if (!pu.shipping?.trackers?.some((t) => t.status === "SHIPPED")) out.push(f("NOT_SHIPPED", "No shipment was reported for this order."));
+      // PayPal moves a tracked shipment from SHIPPED to DELIVERED; both mean it was sent (audit Oct 25).
+      if (!pu.shipping?.trackers?.some((t) => t.status === "SHIPPED" || t.status === "DELIVERED")) out.push(f("NOT_SHIPPED", "No shipment was reported for this order."));
       const approved = b.token?.payment_source.paypal.shipping?.address;
       if (approved && !pu.shipping?.address) out.push(f("NO_ADDRESS", "The order carries no shipping address."));
       else if (approved && !sameAddress(approved, pu.shipping?.address)) out.push(f("ADDRESS_DIFFERS", "It shipped to a different address than the one approved."));
@@ -248,6 +253,11 @@ export async function runChecks(b: CaseBundle): Promise<{ facts: CaseFacts; chec
     return { id, group, name, pass: d.failures.length === 0, failures: d.failures, provisional: d.provisional ?? false, secondary: d.secondary ?? false };
   });
   return { facts, checks };
+}
+
+function sameCents(a: string, b: string): boolean {
+  const x = parseCents(a);
+  return x !== null && x === parseCents(b);
 }
 
 function sameAddress(a: Address, b: Address | undefined): boolean {

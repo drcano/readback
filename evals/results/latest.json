@@ -23,16 +23,16 @@
       "total": 15
     },
     "sellerShouldWin": {
-      "passed": 5,
-      "total": 5
+      "passed": 3,
+      "total": 3
     },
     "buyerShouldWin": {
       "passed": 6,
       "total": 6
     },
     "noSuggestionDue": {
-      "passed": 4,
-      "total": 4
+      "passed": 6,
+      "total": 6
     },
     "wrongTowardSeller": 0,
     "wrongTowardBuyer": 0,
@@ -319,17 +319,17 @@
       "pass": true
     },
     {
-      "id": "dispute: seller: 'duplicate' but it's the only charge in its period",
+      "id": "dispute: neither: 'duplicate', and it's the only labeled charge in its period",
       "category": "dispute",
-      "expected": "SELLER_FAVOR",
-      "actual": "SELLER_FAVOR",
+      "expected": "none",
+      "actual": "none",
       "pass": true
     },
     {
-      "id": "dispute: seller: 'cancelled recurring' but charged before cancelling",
+      "id": "dispute: neither: 'cancelled recurring', and the cancellation time isn't readable",
       "category": "dispute",
-      "expected": "SELLER_FAVOR",
-      "actual": "SELLER_FAVOR",
+      "expected": "none",
+      "actual": "none",
       "pass": true
     },
     {

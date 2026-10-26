@@ -36,8 +36,11 @@ export async function directCharge(
     nowSec: Math.floor(now.getTime() / 1000),
   });
   if (!proof.ok) return { ok: false, status: 403, failure: proof.error };
-  if (terms.value.start !== now.toISOString().slice(0, 10)) {
-    return { ok: false, status: 403, failure: { code: "NOT_A_JUDGE_AGREEMENT", message: "Only today's demo agreements can be charged directly." } };
+  // Today or yesterday (UTC), so a judge who approved just before midnight isn't locked out; the hero
+  // agreement (started Oct 15) and other seeded agreements stay out of reach.
+  const yesterday = new Date(now.getTime() - 86_400_000).toISOString().slice(0, 10);
+  if (terms.value.start !== now.toISOString().slice(0, 10) && terms.value.start !== yesterday) {
+    return { ok: false, status: 403, failure: { code: "NOT_A_JUDGE_AGREEMENT", message: "Only demo agreements approved today or yesterday can be charged directly." } };
   }
 
   // Every term respected (in-terms amount and item); only the agent's request is missing.

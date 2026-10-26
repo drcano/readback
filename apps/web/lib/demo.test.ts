@@ -63,5 +63,13 @@ describe("demo direct charge (T32 guards)", () => {
     const proof = await signActionProof("judgeagr1", "direct-charge", nowSec, tab2.privateKey, tab2.publicJwk);
     const r = await directCharge(client2, { tokenId: "judgeagr1", proof }, NOW);
     expect(r.ok ? "OK" : r.failure.code).toBe("NOT_A_JUDGE_AGREEMENT");
+
+    // A judge who approved just before UTC midnight can still play the dishonest merchant; older can't.
+    for (const [start, want] of [["2026-11-04", "OK"], ["2026-11-03", "NOT_A_JUDGE_AGREEMENT"]] as const) {
+      const s = await setup(start);
+      const p = await signActionProof("judgeagr1", "direct-charge", nowSec, s.tab.privateKey, s.tab.publicJwk);
+      const res = await directCharge(s.client, { tokenId: "judgeagr1", proof: p }, NOW);
+      expect(res.ok ? "OK" : res.failure.code).toBe(want);
+    }
   });
 });

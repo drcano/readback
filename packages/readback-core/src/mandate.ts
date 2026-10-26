@@ -36,6 +36,10 @@ export type VerifiedMandate = {
   jwk: PublicJwk;
   fingerprint: string; // of the key that signed it
   mandateHash: string; // sha256 hex of the exact JWS string; an index, not a security control
+  // sha256 hex of the signed content (header.payload) only. ECDSA lets anyone holding a JWS mint a
+  // second valid signature over the same content (s → n−s), which changes mandateHash but not this,
+  // so PayPal-Request-Ids derived from it make every form of one request the same request (audit Oct 25).
+  requestHash: string;
 };
 
 // Signature + shape + internal consistency. Says nothing yet about *whose* key signed it:
@@ -57,6 +61,7 @@ export async function verifyMandate(jws: string): Promise<Result<VerifiedMandate
     jwk: verified.value.jwk,
     fingerprint: await agentFingerprint(verified.value.jwk),
     mandateHash: await sha256Hex(jws),
+    requestHash: await sha256Hex(jws.slice(0, jws.lastIndexOf("."))),
   });
 }
 
@@ -87,10 +92,12 @@ export function checkAgainstTerms(m: MandatePayload, signerFingerprint: string, 
   return out;
 }
 
-// Gate-only: is the request fresh right now? iat may be up to 60s in the future (clock skew).
+// Gate-only: is the request fresh right now? iat may be up to 60s in the future (clock skew). The
+// gate stops one skew before exp, so PayPal's capture (latency plus its own clock) still lands inside
+// the window the investigator's check 3 allows (audit Oct 25, T27).
 export function checkFreshness(m: MandatePayload, nowSec: number): Failure[] {
   if (m.iat > nowSec + CLOCK_SKEW_SEC) return [{ code: "NOT_YET_VALID", message: "The signed request is dated in the future." }];
-  if (nowSec > m.exp) return [{ code: "EXPIRED", message: "The signed request expired; ask your agent again." }];
+  if (nowSec + CLOCK_SKEW_SEC > m.exp) return [{ code: "EXPIRED", message: "The signed request expired; ask your agent again." }];
   return [];
 }
 

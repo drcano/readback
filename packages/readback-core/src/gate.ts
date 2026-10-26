@@ -65,7 +65,7 @@ export async function authorizeCharge(input: GateInput): Promise<GateDecision> {
   // 1. Signature and hygiene, before trusting anything in the payload.
   const verified = await verifyMandate(input.jws);
   if (!verified.ok) return deny([verified.error]);
-  const { payload: m, fingerprint, mandateHash } = verified.value;
+  const { payload: m, fingerprint, mandateHash, requestHash } = verified.value;
   const stale = checkFreshness(m, input.nowSec);
   if (stale.length > 0) return deny(stale);
 
@@ -103,7 +103,7 @@ export async function authorizeCharge(input: GateInput): Promise<GateDecision> {
     mandateHash,
     invoiceId: inv,
     customId: cid,
-    requestIds: requestIds(mandateHash),
+    requestIds: requestIds(requestHash),
     orderRequest: {
       intent: "CAPTURE",
       payment_source: {

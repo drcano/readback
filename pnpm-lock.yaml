@@ -258,6 +258,9 @@ importers:
       '@readback/core':
         specifier: workspace:*
         version: link:../packages/readback-core
+      '@readback/verify':
+        specifier: workspace:*
+        version: link:../packages/verify-cli
       jose:
         specifier: ^6.2.12
         version: 6.2.12

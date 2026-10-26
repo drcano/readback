@@ -116,7 +116,7 @@ export function fakePayPal(): FakePayPal {
       const details = [...captureToOrder.keys()]
         .map((capId) => captureById(capId)!)
         .filter((c) => Date.parse(String(c["create_time"])) >= from && Date.parse(String(c["create_time"])) <= to)
-        .map((c) => ({ transaction_info: { transaction_id: c["id"], transaction_initiation_date: c["create_time"], custom_field: c["custom_id"], transaction_event_code: "T0003" } }));
+        .map((c) => ({ transaction_info: { transaction_id: c["id"], transaction_initiation_date: c["create_time"], custom_field: c["custom_id"], transaction_event_code: "T0003", transaction_status: "S" } }));
       return json(200, { transaction_details: details, total_pages: 1 });
     }
     if (method === "GET" && path === "/v1/customer/disputes") {

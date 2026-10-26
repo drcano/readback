@@ -37,8 +37,9 @@ export function parseCustomId(value: string): CustomId | null {
 
 // PayPal-Request-Id values derived from the mandate, so a retry of the same purchase is a no-op
 // at PayPal instead of a second charge (CLAUDE.md §5).
-export function requestIds(mandateHash: string) {
-  const base = `rb-${mandateHash.slice(0, 40)}`;
+// From the mandate's requestHash (its signed content), so a re-encoded signature is the same request.
+export function requestIds(requestHash: string) {
+  const base = `rb-${requestHash.slice(0, 40)}`;
   return { create: base, capture: `${base}-capture`, track: `${base}-track` };
 }
 

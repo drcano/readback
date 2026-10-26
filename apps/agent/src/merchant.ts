@@ -37,7 +37,7 @@ export function httpMerchant(baseUrl: string, fetchImpl: typeof fetch = fetch): 
         body: JSON.stringify({ mandate }),
       }).catch(() => null);
       const body = (await res?.json().catch(() => null)) as CheckoutReply | null;
-      return body ?? { ok: false, failures: [{ code: "MERCHANT_UNREACHABLE", message: "The shop didn't answer; nothing was charged." }] };
+      return body ?? { ok: false, failures: [{ code: "MERCHANT_UNREACHABLE", message: "The shop didn't answer, so it's unclear whether the order went through. Asking again is safe: PayPal refuses a second charge this period." }] };
     },
     async revoke(tokenId, proof) {
       const res = await fetchImpl(`${baseUrl}/api/agreements/${encodeURIComponent(tokenId)}`, {

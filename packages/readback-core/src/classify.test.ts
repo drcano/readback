@@ -183,8 +183,16 @@ describe("classification rows", () => {
   it("rows 7–10: reason-specific outcomes", async () => {
     expect((await outcome(withReason(clone(), "MERCHANDISE_OR_SERVICE_NOT_AS_DESCRIBED"))).row).toBe(7);
     expect(await outcome(withReason(clone(), "INCORRECT_AMOUNT"))).toMatchObject({ row: 8, suggestion: "SELLER_FAVOR" });
-    expect(await outcome(withReason(clone(), "DUPLICATE_TRANSACTION"))).toMatchObject({ row: 9, suggestion: "SELLER_FAVOR" });
-    expect(await outcome(withReason(clone(), "CANCELED_RECURRING_BILLING"))).toMatchObject({ row: 10, suggestion: "SELLER_FAVOR" });
+    // Rows 9 and 10 make no suggestion: "no other charge" and "before she cancelled" would be
+    // inferred from what Readback can't see (unlabeled charges; PayPal's cancellation record). Audit Oct 25.
+    expect(await outcome(withReason(clone(), "DUPLICATE_TRANSACTION"))).toMatchObject({ row: 9, suggestion: null });
+    expect(await outcome(withReason(clone(), "CANCELED_RECURRING_BILLING"))).toMatchObject({ row: 10, suggestion: null });
+  });
+
+  it("the history threshold guards every seller-favor row, not only unauthorized (audit Oct 25)", async () => {
+    const b = withReason(clone(), "INCORRECT_AMOUNT");
+    b.history = [];
+    expect(await outcome(b)).toMatchObject({ row: 8, suggestion: null, failed: ["11"] });
   });
 
   it("row 11: shipped to an address she didn't approve", async () => {

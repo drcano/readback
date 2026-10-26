@@ -290,8 +290,10 @@ describe("disputes across the classification table", async () => {
     ["seller: her agent signed it, in terms, delivered, then disowned", hero.bundle, "SELLER_FAVOR"],
     ["seller: same charge, checked before any dispute (if disputed)", { ...structuredClone(hero.bundle), dispute: null }, "SELLER_FAVOR"],
     ["seller: 'incorrect amount' but it equals the signed amount", withReason(hero.bundle, "INCORRECT_AMOUNT"), "SELLER_FAVOR"],
-    ["seller: 'duplicate' but it's the only charge in its period", withReason(hero.bundle, "DUPLICATE_TRANSACTION"), "SELLER_FAVOR"],
-    ["seller: 'cancelled recurring' but charged before cancelling", withReason(hero.bundle, "CANCELED_RECURRING_BILLING"), "SELLER_FAVOR"],
+    // Audit Oct 25: "the only charge in its period" and "charged before she cancelled" would be inferred
+    // from what Readback can't see (unlabeled charges; PayPal's cancellation record), so neither side.
+    ["neither: 'duplicate', and it's the only labeled charge in its period", withReason(hero.bundle, "DUPLICATE_TRANSACTION"), "none"],
+    ["neither: 'cancelled recurring', and the cancellation time isn't readable", withReason(hero.bundle, "CANCELED_RECURRING_BILLING"), "none"],
     ["buyer: merchant charged her wallet directly (no agent request)", fx["PP-D-TWIST"]!, "BUYER_FAVOR"],
     ["buyer: charged after she cancelled", fx["PP-D-FX-REVOKED"]!, "BUYER_FAVOR"],
     ["buyer: not received, no shipment reported", fx["PP-D-FX-NOTRECEIVED"]!, "BUYER_FAVOR"],
