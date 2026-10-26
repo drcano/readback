@@ -344,9 +344,9 @@ Sam can:
 7. Sam approves. Nothing is ever auto-sent.
 8. Send, from the case view's **Answer PayPal** panel. There are two options:
    - **Send Readback's evidence.** The statement is written by code from the checks (at most 2,000 characters) and sent with `provide-evidence` or `provide-supporting-info`, whichever the links offer. The dispute is then read back to confirm it landed.
-   - **Accept the claim with a full refund.** This uses `accept-claim` with `accept_claim_type: REFUND` and a note written by code.
+   - **Accept the claim with a full refund.** This uses `accept-claim` with `accept_claim_type: REFUND` and a note written by code. PayPal refunds at once and resolves the dispute about two minutes later (spike step 7).
 
-   A dispute PayPal has already resolved gets nothing sent.
+   Nothing is sent for a dispute PayPal has already resolved, or for a charge it shows refunded in full.
 
 ### 5.6 Investigator queue and case view
 **Framing.** A **proposed workflow** for a PayPal claims investigator, labeled as a concept. In this build the page and its data are served by the merchant's deployment, so results are **re-derivable** by anyone with API access to the merchant's account, but not independent of the deployment. The `@readback/verify` CLI (§5.8) removes the dependence on the merchant's hosted code. It does not remove the need for API access to that account, since PayPal's APIs return only an account's own disputes and captures. Say "re-derivable," never "independent."

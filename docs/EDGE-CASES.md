@@ -14,7 +14,7 @@ Every row says how it is known:
 Some tests in `evals/audit/findings.test.ts` are named for the bug they pin. Each one asserts the fixed, honest outcome.
 
 **Test status, Oct 26:**
-- `pnpm test`: 382 tests pass (core 155, verify 5, agent 16, evals 152, web 54).
+- `pnpm test`: 383 tests pass (core 155, verify 5, agent 16, evals 152, web 55).
 - `node e2e/run.ts` in `apps/web`: 21 checks pass in Chromium (the judge flow, plus axe on 7 pages in light and dark).
 
 ## 1. Approval on PayPal
@@ -105,7 +105,7 @@ Nothing that decides money or a ruling depends on Claude, so each of these has a
 | Sending Readback's evidence | The server rebuilds the case from PayPal at send time (no text from the browser) and sends it as evidence or supporting info, whichever PayPal offers. It then reads the dispute back to confirm. | Test: [actions](../apps/web/lib/actions.test.ts) › "rebuilds the case from PayPal, sends the statement as supporting info, and finds it on the dispute". Sandbox: [step 7](decisions/0001-sandbox-spike.md) (stored as `PROOF_OF_FULFILLMENT`, `SUBMITTED_BY_SELLER`; `07-dispute-after-readback-evidence.json`) |
 | A resend after PayPal has the evidence (PayPal then stops offering `provide_evidence`) | The record is checked before the links: "already on PayPal's record," nothing sent. | Test: [actions](../apps/web/lib/actions.test.ts) › "doesn't resend text already on the case". Sandbox: [step 7](decisions/0001-sandbox-spike.md) |
 | Ten sends at once on one dispute | One statement on PayPal's record. | Test: [flood](../evals/flood.test.ts) › "ten concurrent evidence sends on one dispute leave exactly one statement" |
-| The store refunds instead of contesting | Accepts the claim with a full refund and a note written by code from the case, only once. A dispute PayPal has already resolved gets nothing sent. Over the fake only so far (§9). | Test: [actions](../apps/web/lib/actions.test.ts) › "accepts the claim with a full refund, explains why in a note written by code, and only once" |
+| The store refunds instead of contesting | Accepts the claim with a full refund and a note written by code from the case. PayPal refunds at once and keeps the note as seller evidence. The dispute stays under review, with no actions, for about two minutes, then closes for the buyer. A retry in that window says the charge is already refunded; a retry after says PayPal resolved it. Neither sends anything. | Test: [actions](../apps/web/lib/actions.test.ts) › "accepts the claim with a full refund, explains why in a note written by code, and only once"; [labels](../apps/web/lib/labels.test.ts) › "reads PayPal's real ruling after the store refunded (sandbox, Oct 26)". Sandbox: [step 7](decisions/0001-sandbox-spike.md) (`07-dispute-after-accept-claim.json`, `07-dispute-resolved-after-refund.json`) |
 | A write action without the store's admin token | Refused (401). The panel's buttons stay disabled until a token is entered, and the server checks it. | Test: [evals](../evals/evals.test.ts) › "guard: merchant action without admin token" |
 | Nobody answers, and PayPal rules alone (the sandbox did, about 14 hours after filing) | The case view leads with PayPal's ruling and says whether Readback's evidence agrees. | Test: [labels](../apps/web/lib/labels.test.ts) › "leads with PayPal's ruling and says whether Readback's evidence agrees" · "is null while the dispute is open". Sandbox: [step 7](decisions/0001-sandbox-spike.md) (`07-dispute-resolved.json`) |
 | Resolved without a ruling, or Readback has no recommendation | Claims no agreement either way. | Test: [labels](../apps/web/lib/labels.test.ts) › "claims nothing when Readback has no recommendation or PayPal's outcome isn't a ruling" |
@@ -139,7 +139,6 @@ All measured against Readback's own stack over the PayPal fake, never against th
 
 Known and unproven. None of these is claimed anywhere else.
 - **Popup and exchange states:** the popup-blocked fallback link and the failed-exchange message reach the judge's tab, but no automated test exercises them.
-- **Live refund:** a full refund through `accept-claim` has run only over the fake, not on a live sandbox dispute.
 - **Buyer-side cancel:** cancelling in PayPal's settings, and whether that fires `VAULT.PAYMENT-TOKEN.DELETED`, is pending (spike step 5).
 - **Unauthorized dispute in the sandbox:** whether one opens in the inquiry stage is pending (spike step 7), as is a dispute that reaches adjudication after Readback's evidence.
 - **Long statements:** an evidence statement over PayPal's 2,000-character limit is cut with an ellipsis. No test builds one that long.

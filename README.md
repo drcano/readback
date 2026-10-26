@@ -58,7 +58,7 @@ Maya's assistant ──asks──▶ agent runtime ──signs (ES256)──▶ 
 | Orders v2 with `vault_id` and `stored_credential` | Merchant-initiated charges carrying the signed mandate, terms copy, `custom_id` and period `invoice_id` |
 | PayPal's duplicate-invoice guard | One charge per period, enforced by PayPal while the merchant's duplicate-invoice blocking is on (the default; merchant-configurable) |
 | Payments v2 captures | The link from a dispute to the order and agreement |
-| Disputes v1 | Reads disputes and answers them from the case view (**Answer PayPal**). It sends Readback's evidence through whichever action the dispute's own links offer (evidence or supporting info, multipart), or accepts the claim with a full refund. The evidence send ran on a live sandbox dispute. |
+| Disputes v1 | Reads disputes and answers them from the case view (**Answer PayPal**). It sends Readback's evidence through whichever action the dispute's own links offer (evidence or supporting info, multipart), or accepts the claim with a full refund. Both ran on a live sandbox dispute. |
 | Transaction Search | Prior undisputed charges under the agreement, confirmed by PayPal's payer match |
 | Orders v2 tracking | Shipment evidence for the Delivery check |
 | Webhooks (verify-webhook-signature) | Events are verified with PayPal before anything acts on them |
@@ -184,7 +184,7 @@ Tests: `pnpm test` · browser: `pnpm test:browser` · evals: `pnpm eval` · end 
 | `packages/readback-core`: terms grammar, ES256 mandates, fingerprints, labels, gate decision, eleven checks, classification, AP2 import | Built and tested (see above) |
 | `apps/agent`: MCP agent runtime, stateless, two secret paths | Built; tested over MCP, with MCP Inspector, by the Claude harness, and live through the home page chat panel |
 | `apps/web`: shopper flow, judge mode, investigator queue and case view, checkout gate, agreements, webhooks | Built; tested against an in-memory PayPal fake and end to end in Chromium |
-| Sandbox spike | Steps 1, 2, 4, 6, 8 and 9 pass. Step 3's charge passes, but PayPal sends no vault echo; the labels-plus-payer fallback is in place. Step 5's merchant side is done; buyer-side cancel is *pending*. Step 7: a real dispute reads end to end, and the sandbox adjudicated it alone overnight; an unauthorized-claim dispute is *pending*. ([record](docs/decisions/0001-sandbox-spike.md)) |
+| Sandbox spike | Steps 1, 2, 4, 6, 8 and 9 pass. Step 3's charge passes, but PayPal sends no vault echo; the labels-plus-payer fallback is in place. Step 5's merchant side is done; buyer-side cancel is *pending*. Step 7: a real dispute reads end to end, and the sandbox adjudicated one alone overnight. On a live dispute, Readback sent its evidence, then refunded, and PayPal ruled for the buyer about two minutes later. An unauthorized-claim dispute is *pending*. ([record](docs/decisions/0001-sandbox-spike.md)) |
 
 ## Repository
 
