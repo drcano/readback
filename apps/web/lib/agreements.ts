@@ -33,6 +33,14 @@ const SetupTokenCreated = z.object({ id: z.string(), links: z.array(z.object({ r
 
 export type CreateResult = { ok: true; approveUrl: string; setupTokenId: string; terms: string } | { ok: false; status: number; failure: Failure };
 
+// The app's public origin, for PayPal's return URLs, the judge popup's postMessage and redirects.
+// Behind Render's proxy, `req.url` names the server's own port (https://localhost:10000), so a
+// return URL built from it sends the approver to localhost. Render sets RENDER_EXTERNAL_URL on web
+// services; locally there's no proxy and `req.url` is right.
+export function publicOrigin(req: Request, env: Record<string, string | undefined> = process.env): string {
+  return env["RENDER_EXTERNAL_URL"] || new URL(req.url).origin;
+}
+
 // The server computes the fingerprint from the key itself; a fingerprint is never accepted as input.
 export async function createAgreement(
   paypal: PayPalClient,

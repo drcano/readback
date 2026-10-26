@@ -1,5 +1,6 @@
 # Render Blueprint: two stateless Starter services (always on during judging; no disk, no database).
-# Secrets are set in the Render dashboard (sync: false), never in this file.
+# Secrets are set in the Render dashboard (sync: false), never in this file. Steps: docs/DEPLOY.md.
+# PayPal's return URLs use RENDER_EXTERNAL_URL, which Render sets on web services (apps/web/lib/agreements.ts).
 services:
   - type: web
     name: readback-web

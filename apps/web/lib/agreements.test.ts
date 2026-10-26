@@ -1,6 +1,6 @@
 import { generateAgentKey, parseTerms, signActionProof } from "@readback/core";
 import { describe, expect, it } from "vitest";
-import { createAgreement, exchangeSetupToken, fetchAgentKey, readAgreement, revokeAgreement } from "./agreements";
+import { createAgreement, exchangeSetupToken, fetchAgentKey, publicOrigin, readAgreement, revokeAgreement } from "./agreements";
 import { paypalClient } from "./paypal/client";
 import { fakePayPal } from "./paypal/fake";
 
@@ -30,6 +30,13 @@ describe("agreements", () => {
     const view = await readAgreement(client, ex.tokenId, new Date("2026-10-22T00:00:00Z"));
     expect(view).toMatchObject({ active: true, terms: created.terms, fingerprint: agent.fingerprint, charges: [] });
     expect(JSON.stringify(view)).not.toMatch(/MAYA00000001/); // no personal data in the public view
+  });
+
+  it("PayPal's return URLs use the public origin, not the proxy's localhost (Render)", () => {
+    // What next start sees behind Render's proxy, measured Oct 26: the server's own port.
+    const behindProxy = new Request("https://localhost:10000/api/agreements");
+    expect(publicOrigin(behindProxy, { RENDER_EXTERNAL_URL: "https://readback-web.onrender.com" })).toBe("https://readback-web.onrender.com");
+    expect(publicOrigin(new Request("http://localhost:3000/api/agreements"), {})).toBe("http://localhost:3000");
   });
 
   it("judge mode's cancel goes back through the return route, so the opener tab hears about it", async () => {

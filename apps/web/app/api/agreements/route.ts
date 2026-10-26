@@ -3,7 +3,7 @@
 // Maya's agent key is fetched from AGENT_RUNTIME_URL only (never a URL from the body).
 import { PublicJwkSchema } from "@readback/core";
 import { z } from "zod";
-import { createAgreement, DraftSchema, fetchAgentKey } from "@/lib/agreements";
+import { createAgreement, DraftSchema, fetchAgentKey, publicOrigin } from "@/lib/agreements";
 import { allowAgreement, clientIp } from "@/lib/budget";
 import { paypalClient } from "@/lib/paypal/client";
 
@@ -21,7 +21,7 @@ export async function POST(req: Request): Promise<Response> {
   if (!jwk) return Response.json({ ok: false, failure: { code: "AGENT_UNREACHABLE", message: "Your agent runtime didn't answer with its key." } }, { status: 502 });
   const result = await createAgreement(paypalClient(), body.data.draft, jwk, {
     today: new Date().toISOString().slice(0, 10), // agreements start today, UTC
-    baseUrl: new URL(req.url).origin,
+    baseUrl: publicOrigin(req),
     flow: body.data.flow,
   });
   return Response.json(result, { status: result.ok ? 200 : result.status });
