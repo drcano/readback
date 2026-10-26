@@ -76,3 +76,50 @@ export function CaseFacts({ bundle, result, stage }: { bundle: CaseBundle; resul
     </section>
   );
 }
+
+// The store's evidence, sent into PayPal's own dispute (SPEC §5.4–5.5). The statement shown here is
+// computed in this browser from the same PayPal records; the server rebuilds it from PayPal before
+// sending, so what PayPal receives is never text typed here. Sending needs the store's admin token.
+export function EvidenceToPayPal({ id, statement, live }: { id: string; statement: string; live: boolean }) {
+  const [token, setToken] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<{ ok: boolean; message: string; onPayPalRecord?: boolean; via?: string } | null>(null);
+
+  async function send() {
+    setBusy(true);
+    setResult(null);
+    const res = await fetch(`/api/cases/${encodeURIComponent(id)}/actions`, {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
+      body: JSON.stringify({ action: "send_evidence" }),
+    }).catch(() => null);
+    setResult(((await res?.json().catch(() => null)) as typeof result) ?? { ok: false, message: "Couldn't reach the store's server." });
+    setBusy(false);
+  }
+
+  return (
+    <section className="card side-card" aria-labelledby="evidence-h">
+      <h2 id="evidence-h">Evidence for PayPal</h2>
+      <p>Readback&apos;s statement for this dispute, citing PayPal&apos;s own records. Failed checks are reported as plainly as passed ones.</p>
+      <details className="evidence">
+        <summary>Read the statement ({statement.length} characters)</summary>
+        <pre>{statement}</pre>
+      </details>
+      {live ? (
+        <form className="side-actions" onSubmit={(e) => { e.preventDefault(); void send(); }}>
+          <label htmlFor="admin-token" className="small">Store admin token</label>
+          <input id="admin-token" type="password" className="field" value={token} onChange={(e) => setToken(e.target.value)} autoComplete="off" />
+          <button type="submit" className="btn btn-primary" disabled={busy || !token}>{busy ? "Sending to PayPal…" : "Send to PayPal"}</button>
+        </form>
+      ) : (
+        <p className="side-note">Labeled example case: there&apos;s no PayPal dispute to send it to.</p>
+      )}
+      {result && (
+        <p role="status" className={result.ok ? "verified" : "banner"}>
+          {result.ok && result.onPayPalRecord ? "✓ " : ""}{result.message}{result.via ? ` (via ${result.via.replaceAll("_", " ")})` : ""}
+        </p>
+      )}
+      <p className="side-note">The server rebuilds the statement from PayPal at send time and sends it with whichever action PayPal offers on this dispute. Sending twice is a no-op.</p>
+    </section>
+  );
+}

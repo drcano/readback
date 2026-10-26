@@ -46,9 +46,19 @@ export function fakePayPal(): FakePayPal {
 
     if (method === "POST") {
       const requestId = headers.get("PayPal-Request-Id");
-      const body: unknown = init?.body ? JSON.parse(String(init.body)) : undefined;
+      // Disputes' supporting info is multipart with an `input` JSON part (spike step 7).
+      const form = init?.body instanceof FormData ? init.body : null;
+      const body: unknown = form ? JSON.parse(await (form.get("input") as Blob).text()) : init?.body ? JSON.parse(String(init.body)) : undefined;
       posts.push({ path, requestId, body });
       if (requestId && byRequestId.has(`${path}|${requestId}`)) return json(200, byRequestId.get(`${path}|${requestId}`));
+      const info = /^\/v1\/customer\/disputes\/([^/]+)\/provide-supporting-info$/.exec(path);
+      if (info) {
+        const d = disputes.get(info[1]!);
+        if (!d) return json(404, { name: "RESOURCE_NOT_FOUND" });
+        d["supporting_info"] = [...((d["supporting_info"] as Json[] | undefined) ?? []), { notes: (body as { notes: string }).notes, source: "SUBMITTED_BY_SELLER", provided_time: clock.now }];
+        if (requestId) byRequestId.set(`${path}|${requestId}`, { links: [] });
+        return json(200, { links: [] });
+      }
       const remember = (res: Json) => {
         if (requestId) byRequestId.set(`${path}|${requestId}`, res);
         return json(201, res);
@@ -144,6 +154,8 @@ export function fakePayPal(): FakePayPal {
     const c = captureById(captureId);
     disputes.set(id, {
       dispute_id: id, reason, status: "UNDER_REVIEW", dispute_life_cycle_stage: "CHARGEBACK",
+      // In this state the sandbox offered only supporting info (spike step 7).
+      links: [{ rel: "self", href: `/v1/customer/disputes/${id}` }, { rel: "provide_supporting_info", href: `/v1/customer/disputes/${id}/provide-supporting-info` }],
       disputed_transactions: [{ seller_transaction_id: captureId, custom: c?.["custom_id"], invoice_number: c?.["invoice_id"] }],
     });
     return id;

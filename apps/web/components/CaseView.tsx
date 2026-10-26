@@ -6,7 +6,8 @@ import { type CaseResult, evaluateCase, lights } from "@readback/core";
 import { useCallback, useEffect, useState } from "react";
 import { type Loaded, loadCase as load } from "@/lib/case-client";
 import { claimQuote, paypalRuling, reasonLabel, recommendation, stageLabel } from "@/lib/labels";
-import { CaseActions, CaseFacts } from "./CaseSide";
+import { evidenceStatement } from "@/lib/evidence";
+import { CaseActions, CaseFacts, EvidenceToPayPal } from "./CaseSide";
 import { EvidenceChain } from "./EvidenceChain";
 import { CheckTable } from "./CheckTable";
 import { Tape } from "./Tape";
@@ -105,6 +106,7 @@ export function CaseView({ id }: { id: string }) {
 
       <aside className="case-side" aria-label="Case actions and facts">
         <CaseActions id={id} rec={rec} amount={bundle.capture.amount.value} closed={ruling !== null} />
+        {bundle.dispute && ruling === null && <EvidenceToPayPal id={id} statement={evidenceStatement(bundle, result)} live={!loaded.fixture} />}
         <CaseFacts bundle={bundle} result={result} stage={bundle.dispute ? stageLabel(bundle.dispute.dispute_life_cycle_stage) : null} />
       </aside>
     </div>

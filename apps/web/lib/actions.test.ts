@@ -48,3 +48,32 @@ describe("dispute actions", () => {
     expect(posts).toHaveLength(0);
   });
 });
+
+describe("send Readback's evidence (end to end over the PayPal fake)", () => {
+  it("rebuilds the case from PayPal, sends the statement as supporting info, and finds it on the dispute", async () => {
+    const { fakePayPal } = await import("./paypal/fake");
+    const { formatTerms, generateAgentKey, buildMandate, sha256Hex, signMandate } = await import("@readback/core");
+    const { checkout } = await import("./checkout");
+    const pp = fakePayPal();
+    const key = await generateAgentKey(true);
+    const terms = { merchant: "Good Boy Provisions", sku: "GBP-SR24", qty: 1, periodDays: 1, capCents: 6500, start: "2026-10-21", end: "2027-03-31", fingerprint: key.fingerprint };
+    pp.tokens.set("tok1", { id: "tok1", payment_source: { paypal: { description: formatTerms(terms), payer_id: "MAYA1" } } });
+    const iat = Date.parse("2026-11-08T15:00:00Z") / 1000;
+    pp.clock.now = "2026-11-08T15:00:05Z";
+    const m = buildMandate({ sku: "GBP-SR24", qty: 1, unitCents: 6499 }, { tokenId: "tok1", terms, termsHash: await sha256Hex(formatTerms(terms)) }, iat, "jti-evidence1");
+    if (!m.ok) throw new Error(m.error.code);
+    const charged = await checkout(await signMandate(m.value, key.privateKey, key.publicJwk), paypalClient(ENV, pp.fetch), iat + 5);
+    if (!charged.ok) throw new Error("charge");
+    const disputeId = pp.openDispute(charged.captureId, "UNAUTHORISED");
+
+    const client = paypalClient(ENV, pp.fetch);
+    const r = await runDisputeAction(client, disputeId, { action: "send_evidence" }, new Date("2026-11-09T12:00:00Z"));
+    expect(r).toMatchObject({ ok: true, sent: true, via: "provide_supporting_info", onPayPalRecord: true });
+    const notes = (pp.disputes.get(disputeId)!["supporting_info"] as { notes: string }[])[0]!.notes;
+    expect(notes).toContain(`Readback evidence for dispute ${disputeId}`);
+    expect(notes).toContain(charged.captureId);
+    expect(notes).toContain("2. Agent: PASS");
+    // Sending again is a no-op: the same statement is already on PayPal's record.
+    expect(await runDisputeAction(client, disputeId, { action: "send_evidence" }, new Date("2026-11-09T12:00:00Z"))).toMatchObject({ ok: true, sent: false });
+  });
+});

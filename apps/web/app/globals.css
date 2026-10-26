@@ -390,3 +390,9 @@ main.console.narrow { max-width: 56rem; }
 @media (max-width: 760px) { .pipeline { grid-template-columns: 1fr 1fr; } .stage + .stage::before { content: none; } }
 @media (prefers-reduced-motion: reduce) { .stage { transition: none; } }
 .section-h { margin: 2.5rem 0 0.5rem; font-size: 1.25rem; }
+
+/* Evidence for PayPal */
+.evidence { margin: 0 0 1rem; font-size: var(--text-sm); }
+.evidence summary { cursor: pointer; font-weight: 700; }
+.evidence pre { margin: 0.625rem 0 0; padding: 0.75rem; white-space: pre-wrap; overflow-wrap: anywhere; font-family: var(--font-mono); font-size: 0.75rem; line-height: 1.5; background: var(--paper); border-radius: var(--radius); color: var(--ink); }
+
