@@ -337,6 +337,27 @@ main.console.narrow { max-width: 56rem; }
 .more h3 { margin: 1.5rem 0 0.75rem; }
 .output { margin-top: 1rem; font-size: var(--text-sm); }
 .output ul { padding-left: 1rem; }
+/* The live rebuild: each PayPal record as the server reads it. It's the case view's loading state, and
+   then its provenance under "How we know". Rows rise in; only the dot pulses, never the text. */
+.rebuild-card { margin-top: 1.5rem; padding: 1.25rem 1.5rem; }
+.rebuild-card h1 { margin: 0; font-size: 1.125rem; letter-spacing: 0; }
+.rebuild-card > p.small { margin: 0.25rem 0 0; }
+.rebuild { list-style: none; margin: 0.75rem 0 0; padding: 0; }
+.rebuild li { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 0.9fr) minmax(0, 1.3fr) auto; grid-template-areas: "label api id ok"; gap: 0.75rem; align-items: baseline; padding: 0.5rem 0; border-top: 1px solid var(--rule); font-size: var(--text-sm); }
+.rebuild-card .rebuild li { animation: arrive 200ms ease-out; }
+.rebuild li:first-child { border-top: 0; }
+.rb-label { grid-area: label; font-weight: 600; }
+.rb-api { grid-area: api; color: var(--ink-muted); }
+.rebuild .mono { grid-area: id; color: var(--ink-soft); }
+.rb-ok { grid-area: ok; font-weight: 700; color: var(--pass-ink); white-space: nowrap; }
+.rb-ok[data-ok="false"] { color: var(--caution-ink); }
+.rb-wait { margin: 0.75rem 0 0; font-size: var(--text-sm); color: var(--ink-muted); }
+.rb-wait::before { content: ""; display: inline-block; width: 0.5rem; height: 0.5rem; margin-right: 0.5rem; border-radius: 50%; background: var(--accent); animation: pulse 1.2s ease-in-out infinite; }
+.rebuilt { padding: 0 1.5rem 0.875rem; font-size: var(--text-sm); }
+.rebuilt summary { cursor: pointer; color: var(--ink-soft); }
+@keyframes arrive { from { opacity: 0; transform: translateY(6px); } }
+@media (max-width: 640px) { .rebuild li { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "label ok" "api api" "id id"; gap: 0.125rem 0.75rem; } }
+@media (prefers-reduced-motion: reduce) { .rebuild-card .rebuild li, .rb-wait::before { animation: none; } }
 
 /* Shopper flow */
 .flow-step { margin-top: 1.5rem; padding: 1.5rem 1.75rem; }

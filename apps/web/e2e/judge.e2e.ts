@@ -53,6 +53,11 @@ if (!agentPass) process.exitCode = 1;
 
 await page.getByRole("link", { name: "Check this charge" }).first().click();
 await page.waitForSelector("text=Re-checked in your browser", { timeout: 20_000 });
+// The case arrived as a stream of PayPal records (lib/case-stream) and says how it was rebuilt.
+const rebuilt = (await page.textContent(".rebuilt summary")) ?? "";
+const streamed = /^Rebuilt live from \d+ PayPal records? in /.test(rebuilt);
+console.log(`${streamed ? "PASS" : "FAIL"}  case view: rebuilt live from PayPal's records — ${rebuilt}`);
+if (!streamed) process.exitCode = 1;
 const verdict = await page.textContent(".rec-banner");
 // A fresh judge charge has no tracker and no history: a no-suggestion row (11 or 12), never a verdict.
 const ok = /Needs review/.test(verdict ?? "");

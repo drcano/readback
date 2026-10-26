@@ -1,7 +1,9 @@
 // "How we know, from PayPal's records": the four check groups as a numbered chain, each with its
 // plain-language result and the facts behind it, all read from the bundle and readback-core's result.
 import { type CaseBundle, type CaseResult, formatCents, groupFingerprint, type Light } from "@readback/core";
+import type { CaseRecord } from "@/lib/case-stream";
 import { stepTitle } from "@/lib/labels";
+import { RebuiltSummary } from "./LiveRebuild";
 
 const SYMBOL = { pass: "✓", caution: "!", fail: "✕" } as const;
 
@@ -25,7 +27,7 @@ function factsFor(group: Light["group"], bundle: CaseBundle, result: CaseResult)
   }
 }
 
-export function EvidenceChain({ bundle, result, groups, verify }: { bundle: CaseBundle; result: CaseResult; groups: Light[]; verify: { ms: number; matchesServer: boolean | null } }) {
+export function EvidenceChain({ bundle, result, groups, verify, rebuilt }: { bundle: CaseBundle; result: CaseResult; groups: Light[]; verify: { ms: number; matchesServer: boolean | null }; rebuilt: { records: CaseRecord[]; ms: number } | null }) {
   return (
     <section className="card chain" aria-labelledby="chain-h">
       <div className="chain-head">
@@ -34,6 +36,7 @@ export function EvidenceChain({ bundle, result, groups, verify }: { bundle: Case
           {verify.matchesServer === false ? `✕ Re-checked in your browser: does NOT match the server` : `✓ Re-checked in your browser in ${verify.ms < 1 ? "under 1" : verify.ms} ms${verify.matchesServer ? " · matches" : ""}`}
         </span>
       </div>
+      {rebuilt && rebuilt.records.length > 0 && <RebuiltSummary records={rebuilt.records} ms={rebuilt.ms} />}
       <ol>
         {groups.map((l, i) => (
           <li key={l.group} className="link" data-state={l.state}>

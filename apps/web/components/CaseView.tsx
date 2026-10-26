@@ -1,15 +1,18 @@
 "use client";
-// The case view (SPEC §5.6). Fetches the case bundle from /api/cases/[id] (live PayPal data), then
-// re-runs every check, including the agent's signature, here in the browser with readback-core.
-// Fixture IDs (fixture-hero, fixture-twist) build the case in the browser and are labeled as such.
+// The case view (SPEC §5.6). Streams the case from /api/cases/[id] (live PayPal data), showing each
+// PayPal record as it's read, then re-runs every check, including the agent's signature, here in
+// the browser with readback-core. Fixture IDs (fixture-hero, fixture-twist) build the case in the
+// browser and are labeled as such.
 import { type CaseResult, evaluateCase, lights } from "@readback/core";
 import { useCallback, useEffect, useState } from "react";
-import { type Loaded, loadCase as load } from "@/lib/case-client";
+import { type Loaded, loadCaseLive } from "@/lib/case-client";
+import type { CaseRecord } from "@/lib/case-stream";
 import { claimQuote, paypalRuling, reasonLabel, recommendation, stageLabel } from "@/lib/labels";
 import { evidenceStatement } from "@/lib/evidence";
 import { CaseActions, CaseFacts, EvidenceToPayPal } from "./CaseSide";
 import { EvidenceChain } from "./EvidenceChain";
 import { CheckTable } from "./CheckTable";
+import { LiveRebuild } from "./LiveRebuild";
 import { Tape } from "./Tape";
 
 const fmtDate = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
@@ -23,6 +26,8 @@ export function CaseView({ id }: { id: string }) {
   const [verify, setVerify] = useState<Verify | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [records, setRecords] = useState<CaseRecord[]>([]);
+  const [rebuildMs, setRebuildMs] = useState(0);
 
   const reverify = useCallback(async (data: Loaded) => {
     setBusy(true);
@@ -37,8 +42,11 @@ export function CaseView({ id }: { id: string }) {
   }, []);
 
   useEffect(() => {
-    load(id)
+    setRecords([]);
+    const t0 = performance.now();
+    loadCaseLive(id, (r) => setRecords((rs) => [...rs, r]))
       .then((data) => {
+        setRebuildMs(Math.round(performance.now() - t0));
         setLoaded(data);
         return reverify(data);
       })
@@ -46,7 +54,7 @@ export function CaseView({ id }: { id: string }) {
   }, [id, reverify]);
 
   if (error) return <p role="alert" className="banner">{error}</p>;
-  if (!loaded || !verify) return <p aria-busy="true" className="lede">Fetching the case from PayPal and re-checking it in your browser…</p>;
+  if (!loaded || !verify) return <LiveRebuild records={records} verifying={loaded !== null} fixture={id.startsWith("fixture-")} />;
 
   const { bundle } = loaded;
   const { result } = verify;
@@ -96,7 +104,7 @@ export function CaseView({ id }: { id: string }) {
           {c.notes.map((n) => <p key={n} className="muted">{n}</p>)}
         </section>
 
-        <EvidenceChain bundle={bundle} result={result} groups={groups} verify={verify} />
+        <EvidenceChain bundle={bundle} result={result} groups={groups} verify={verify} rebuilt={loaded.fixture ? null : { records, ms: rebuildMs }} />
 
         <details className="card more">
           <summary>All 11 checks and the PayPal records behind them</summary>
