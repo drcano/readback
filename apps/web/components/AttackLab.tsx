@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 const LAYERS: { id: Layer; name: string; who: string }[] = [
   { id: "runtime", name: "Agent runtime", who: "her agent: signs only what fits her terms" },
   { id: "gate", name: "Checkout gate", who: "the store: verifies before charging" },
-  { id: "paypal", name: "PayPal", who: "duplicate guard, cancelled agreements" },
+  { id: "paypal", name: "PayPal (stand-in)", who: "duplicate guard, cancelled agreements, as the sandbox was recorded refusing them" },
   { id: "investigator", name: "Investigator", who: "rebuilds a dispute from PayPal's records" },
 ];
 const WORD: Record<Outcome, string> = { passed: "Passed", stopped: "Stopped here", caught: "Caught here", bypassed: "Bypassed", "not reached": "Not reached", "no ruling": "No ruling yet" };
@@ -46,7 +46,7 @@ export function AttackLab() {
     <section className="card lab" aria-labelledby="lab-h">
       <div className="pair-head">
         <h2 id="lab-h">Try to break it</h2>
-        <span className="muted small">Real code, in your browser. Every attack assumes her AI assistant was fooled.</span>
+        <span className="muted small">The real agent runtime, gate and investigator code, in your browser. PayPal is an in-memory stand-in that refuses what the sandbox was recorded refusing (spike steps 4–5). Every attack assumes her AI assistant was fooled.</span>
       </div>
       <div className="chips lab-picker" role="group" aria-label="Choose an attack">
         {ATTACKS.map((a) => (

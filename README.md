@@ -81,7 +81,7 @@ Claude never holds a key and never makes an allow/deny or ruling decision. Produ
 
 **Interoperability.** Readback runs AP2 v0.2's autonomous-purchase model on PayPal's existing rails, and `/ap2` verifies AP2's own published mandate chain in the browser.
 
-**Try to break it.** `/judge` runs eight attacks through the product's real layers in your browser and shows where each one dies: a poisoned product page stops at the agent runtime; a forged key, an edited request and a fake sale price stop at the checkout gate; a second bag and a charge after cancelling stop at PayPal; and the store charging her wallet itself gets past all three and is caught by the investigator. (The lab's dishonest store leaves its invoice label; one that strips every label leaves the charge unlinked from merchant-side data, so Readback makes no suggestion either way; THREAT-MODEL T3.)
+**Try to break it.** `/judge` runs eight attacks through the product's real layers in your browser and shows where each one dies: a poisoned product page stops at the agent runtime; a forged key, an edited request and a fake sale price stop at the checkout gate; a second bag and a charge after cancelling stop at PayPal (in the lab, an in-memory stand-in that refuses what the sandbox was recorded refusing, spike steps 4–5); and the store charging her wallet itself gets past all three and is caught by the investigator. (The lab's dishonest store leaves its invoice label; one that strips every label leaves the charge unlinked from merchant-side data, so Readback makes no suggestion either way; THREAT-MODEL T3.)
 
 ![Attack lab: where each attack was stopped](docs/assets/attack-lab.png)
 
