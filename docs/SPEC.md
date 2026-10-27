@@ -405,7 +405,8 @@ Sam can:
 |---|---|---|---|
 | 0 | Reason is CREDIT_NOT_PROCESSED, PAYMENT_BY_OTHER_MEANS, PROBLEM_WITH_REMITTANCE, or OTHER | Out of scope | None (checks shown) |
 | 1 | Check 1 or 2a fails | Not an agent-agreement charge | None |
-| 2 | Check 4 fails | Charged after revocation | `BUYER_FAVOR` |
+| 2 | Check 4 fails because the charge came after the agreement was cancelled (or for any reason other than the next row's) | Charged after revocation | `BUYER_FAVOR` |
+| 0 | Check 4 fails only because PayPal shows the charge not completed (declined, failed, or pending for a reason other than a dispute hold) | The charge didn't complete; nothing to rule on yet (`CHARGE_NOT_COMPLETED`) | None |
 | 3 | Check 2b or 3 fails | No valid agent request | `BUYER_FAVOR` |
 | 4 | Any of checks 5–9 fails | Charged outside approved terms | `BUYER_FAVOR` |
 | 5 | NOT_RECEIVED and check 10 fails | Non-fulfillment | `BUYER_FAVOR` |

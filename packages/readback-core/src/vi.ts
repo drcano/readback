@@ -99,7 +99,8 @@ export async function evaluateViChain(chain: ViChain, issuer?: { jwk: PublicJwk;
     const purchase = { payeeId, amountCents, currency };
 
     const l2Instrument = obj(mandate["payment_instrument"]);
-    if (l2Instrument["id"] !== undefined) {
+    if (l2Instrument["id"] === undefined) add("Payment instrument is the one she authorized", "unresolved", "Her mandate names no payment instrument to compare with.");
+    else {
       const l3Instrument = obj(payment["payment_instrument"]);
       pass(l3Instrument["id"] === l2Instrument["id"] && l3Instrument["type"] === l2Instrument["type"], "Payment instrument is the one she authorized", "L3a's instrument matches L2's.", "L3a pays with a different instrument than L2 authorized.");
     }

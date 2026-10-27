@@ -29,7 +29,8 @@ export async function evaluateCase(bundle: CaseBundle): Promise<CaseResult> {
   const mode = bundle.dispute ? "dispute" : "preview";
   const reason: DisputeReason = bundle.dispute?.reason ?? "UNAUTHORISED";
   const failed = checks.filter((c) => !c.pass).map((c) => c.id);
-  const c = applyModifiers(classify(reason, new Set(failed)), checks, facts);
+  const codes = new Set(checks.flatMap((k) => k.failures.map((x) => x.code)));
+  const c = applyModifiers(classify(reason, new Set(failed), codes), checks, facts);
   const classification = { ...c, notes: [...c.notes, ...contextNotes(bundle)] };
   return { mode, reason, facts, checks, failed, classification };
 }
@@ -54,11 +55,17 @@ function row(row: number, code: string, label: string, suggestion: Suggestion, n
   return { row, code, label, suggestion, notes };
 }
 
-export function classify(reason: DisputeReason, failed: ReadonlySet<CheckId>): Classification {
+// `codes` are the failure codes behind `failed`: check 4 fails for two different reasons, and only
+// one of them is a charge after revocation.
+export function classify(reason: DisputeReason, failed: ReadonlySet<CheckId>, codes: ReadonlySet<string> = new Set()): Classification {
   const any = (...ids: CheckId[]) => ids.some((id) => failed.has(id));
   if (OUT_OF_SCOPE.includes(reason)) return row(0, "OUT_OF_SCOPE", "Out of scope", null);
   if (any("1", "2a")) return row(1, "NOT_AGENT_AGREEMENT", "Not an agent-agreement charge", null);
-  if (any("4")) return row(2, "CHARGED_AFTER_REVOCATION", "Charged after revocation", "BUYER_FAVOR");
+  if (any("4") && (codes.has("CHARGED_AFTER_REVOCATION") || !codes.has("CAPTURE_NOT_COMPLETED"))) {
+    return row(2, "CHARGED_AFTER_REVOCATION", "Charged after revocation", "BUYER_FAVOR");
+  }
+  // Declined, failed or held for review: no money moved (or not yet), so there's nothing to rule on.
+  if (any("4")) return row(0, "CHARGE_NOT_COMPLETED", "The charge didn't complete; nothing to rule on yet", null, ["PayPal shows this charge as not completed."]);
   if (any("2b", "3")) return row(3, "NO_VALID_AGENT_REQUEST", "No valid agent request", "BUYER_FAVOR");
   if (any("5", "6", "7", "8", "9")) return row(4, "OUTSIDE_TERMS", "Charged outside approved terms", "BUYER_FAVOR");
   switch (reason) {

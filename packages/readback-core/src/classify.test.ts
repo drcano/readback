@@ -41,6 +41,27 @@ describe("same claim, two verdicts", () => {
     expect((await outcome(b)).failed).toContain("4");
   });
 
+  // Edge-case review, Oct 27: this used to read "Charged after revocation", BUYER_FAVOR, and that
+  // label went into the evidence sent to PayPal, for a charge nobody revoked.
+  it("a capture that didn't complete (declined, failed, held for review) isn't 'charged after revocation': no ruling", async () => {
+    for (const [status, reason] of [["DECLINED"], ["FAILED"], ["PENDING", "PENDING_REVIEW"]] as const) {
+      const b = clone();
+      b.capture.status = status;
+      if (reason) b.capture.status_details = { reason };
+      const r = await evaluateCase(b);
+      expect([status, r.classification.code, r.classification.suggestion]).toEqual([status, "CHARGE_NOT_COMPLETED", null]);
+    }
+  });
+
+  it("an unreadable timestamp never moves a case toward the merchant", async () => {
+    const soon = clone();
+    soon.now = "soon";
+    expect((await evaluateCase(soon)).classification.suggestion).toBeNull(); // provisional, not final
+    const yesterday = clone();
+    yesterday.capture.create_time = "yesterday";
+    expect((await outcome(yesterday)).failed).toContain("3"); // outside the signed window
+  });
+
   it("twist: the merchant charged her wallet directly → row 3, BUYER_FAVOR", async () => {
     const r = await outcome(directCharge(hero));
     expect(r).toMatchObject({ row: 3, suggestion: "BUYER_FAVOR" });

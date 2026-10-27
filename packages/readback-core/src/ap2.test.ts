@@ -45,7 +45,7 @@ describe("AP2 import: the official v0.2.0 example", () => {
 });
 
 // A minimal SD-JWT chain builder, to test outcomes the official example doesn't cover.
-async function chain(opts: { maxCents: number; amountCents: number; payeeId: string; extra?: object[]; signer?: "agent" | "other"; leakPrivate?: boolean; hideProps?: boolean }) {
+async function chain(opts: { maxCents: unknown; amountCents: unknown; payeeId: string; extra?: object[]; signer?: "agent" | "other"; leakPrivate?: boolean; hideProps?: boolean }) {
   const agent = await generateAgentKey(true);
   const other = await generateAgentKey(true);
   const issuer = await generateKeyPair("ES256");
@@ -106,6 +106,15 @@ describe("AP2 import: constructed chains", () => {
   it("instrument limits → unresolved", async () => {
     const r = await evaluateAp2Chain(await chain({ maxCents: 6500, amountCents: 100, payeeId: "merchant_1", extra: [{ type: "payment.allowed_payment_instruments" }] }));
     expect(r.verdict).toBe("unresolved");
+  });
+  // Edge-case review, Oct 27: Number() used to turn "6499", null, [] and true into amounts that passed.
+  it("amounts and limits must be integers, never coerced", async () => {
+    for (const amountCents of ["6499", null, [6499], true, "0x1963"]) {
+      expect([amountCents, (await evaluateAp2Chain(await chain({ maxCents: 6500, amountCents, payeeId: "merchant_1" }))).verdict]).toEqual([amountCents, "deny"]);
+    }
+    for (const maxCents of ["6500", null]) {
+      expect([maxCents, (await evaluateAp2Chain(await chain({ maxCents, amountCents: 0, payeeId: "merchant_1" }))).verdict]).toEqual([maxCents, "deny"]);
+    }
   });
   it("fails closed on a cnf carrying a private key, or on hidden properties", async () => {
     expect((await evaluateAp2Chain(await chain({ maxCents: 6500, amountCents: 100, payeeId: "merchant_1", leakPrivate: true }))).verdict).toBe("deny");

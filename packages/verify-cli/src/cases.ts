@@ -48,6 +48,7 @@ async function hideAddress(a: Address | undefined): Promise<Address | undefined>
 
 const DAY_MS = 86_400_000;
 const WINDOW_DAYS = 31; // Transaction Search's maximum window
+const SEARCH_YEARS = 3; // how far back Transaction Search reaches
 
 // The history walk checks at most this many earlier charges for disputes (see findHistory).
 export const HISTORY_LOOKUP_BUDGET = 10;
@@ -67,7 +68,7 @@ export async function buildCaseBundle(id: string, paypal: PayPalClient, now: Dat
     const d = await paypal.get(`/v1/customer/disputes/${encodeURIComponent(id)}`, DisputeSchema);
     if (!d.ok) return failed(d.status, "Dispute not found at PayPal.");
     dispute = d.data;
-    const txn = d.data.disputed_transactions?.[0]?.seller_transaction_id;
+    const txn = d.data.disputed_transactions?.find((t) => t.seller_transaction_id)?.seller_transaction_id;
     if (!txn) return { ok: false, status: 422, message: "The dispute names no seller transaction." };
     captureId = txn;
   }
@@ -140,7 +141,10 @@ export async function findHistory(
 ): Promise<{ entries: HistoryEntry[]; complete: boolean; limited: boolean }> {
   const prefix = `rb1:${tokenId}:`;
   const entries: HistoryEntry[] = [];
-  for (let from = start.getTime(); from < now.getTime(); from += WINDOW_DAYS * DAY_MS) {
+  // Transaction Search keeps three years. Starting earlier would only spend calls on empty windows,
+  // and fewer entries can only make the history check stricter, never pass it.
+  const earliest = Math.max(start.getTime(), now.getTime() - SEARCH_YEARS * 365 * DAY_MS);
+  for (let from = earliest; from < now.getTime(); from += WINDOW_DAYS * DAY_MS) {
     const to = Math.min(from + WINDOW_DAYS * DAY_MS, now.getTime());
     for (let page = 1; ; page++) {
       const q = new URLSearchParams({ start_date: new Date(from).toISOString(), end_date: new Date(to).toISOString(), fields: "transaction_info", page_size: "500", page: String(page) });

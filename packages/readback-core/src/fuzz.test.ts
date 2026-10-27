@@ -48,6 +48,8 @@ describe("tamper fuzzing", () => {
   it("the hero bundle parses with the case schema", () => {
     expect(CaseBundleSchema.parse(hero.bundle)).toEqual(hero.bundle);
     expect(CaseBundleSchema.safeParse({ ...hero.bundle, capture: undefined }).success).toBe(false);
+    expect(CaseBundleSchema.safeParse({ ...hero.bundle, now: "soon" }).success).toBe(false);
+    expect(CaseBundleSchema.safeParse({ ...hero.bundle, capture: { ...hero.bundle.capture, create_time: "yesterday" } }).success).toBe(false);
   });
 
   it("no single mutation of a field the checks read still earns SELLER_FAVOR (property)", async () => {

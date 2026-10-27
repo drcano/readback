@@ -66,9 +66,9 @@ export async function evaluateAp2Chain(chain: string): Promise<Ap2Result> {
     if (cm["vct"] !== "mandate.payment.1") throw new Error("not an AP2 closed payment mandate");
     const amount = obj(cm["payment_amount"]);
     const payee = obj(cm["payee"]);
-    const amountCents = Number(amount["amount"]);
+    const amountCents = amount["amount"];
     const currency = String(amount["currency"] ?? "");
-    if (!Number.isInteger(amountCents) || amountCents < 0) throw new Error("closed mandate amount isn't integer minor units");
+    if (typeof amountCents !== "number" || !Number.isInteger(amountCents) || amountCents < 0) throw new Error("closed mandate amount isn't integer minor units");
     const purchase = { payeeId: String(payee["id"] ?? ""), amountCents, currency };
     const iat = Number(closed.payload["iat"]);
 
@@ -77,7 +77,7 @@ export async function evaluateAp2Chain(chain: string): Promise<Ap2Result> {
     if (Number.isFinite(openIat) && Number.isFinite(openExp)) {
       const ok = iat >= openIat && iat <= openExp;
       add("Signed while the open mandate was valid", ok ? "pass" : "fail", ok ? "Closed mandate iat is within the open mandate's iat..exp." : "Signed outside the open mandate's validity window.");
-    }
+    } else add("Signed while the open mandate was valid", "unresolved", "The open mandate carries no validity window (iat, exp) to check.");
 
     // Constraints. AP2: an unknown constraint MUST fail evaluation (unresolved_constraint).
     const constraints = om["constraints"];
@@ -86,9 +86,10 @@ export async function evaluateAp2Chain(chain: string): Promise<Ap2Result> {
       const c = obj(raw);
       switch (c["type"]) {
         case "payment.amount_range": {
-          const max = Number(c["max"]);
-          const min = c["min"] === undefined ? 0 : Number(c["min"]);
-          const ok = c["currency"] === currency && Number.isInteger(max) && amountCents <= max && amountCents >= min;
+          const int = (v: Json): v is number => typeof v === "number" && Number.isInteger(v);
+          const max = int(c["max"]) ? c["max"] : NaN;
+          const min = c["min"] === undefined ? 0 : int(c["min"]) ? c["min"] : NaN;
+          const ok = c["currency"] === currency && Number.isInteger(max) && Number.isInteger(min) && amountCents <= max && amountCents >= min;
           if (c["currency"] === "USD" && Number.isInteger(max)) mapped.capCents = max;
           add("Amount within range", ok ? "pass" : "fail", `${currency} ${(amountCents / 100).toFixed(2)} vs ${String(c["currency"])} ${(min / 100).toFixed(2)}–${(max / 100).toFixed(2)}.`);
           break;

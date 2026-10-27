@@ -70,7 +70,8 @@ export async function deriveFacts(b: CaseBundle): Promise<CaseFacts> {
     mandateFailure: verified === null ? { code: "NO_MANDATE", message: "The charge carries no signed request from an agent." } : verified.ok ? null : verified.error,
     captureSec,
     // Provisional if history may be lagging (capture under 3 hours old) or the search was incomplete.
-    provisional: toSec(b.now) - captureSec < SEARCH_LAG_SEC || !b.historyComplete,
+    // Written so an unreadable time (NaN) makes it provisional, never final.
+    provisional: !(toSec(b.now) - captureSec >= SEARCH_LAG_SEC) || !b.historyComplete,
   };
 }
 
@@ -140,7 +141,7 @@ export async function runChecks(b: CaseBundle): Promise<{ facts: CaseFacts; chec
       // The gate accepts iat up to one skew ahead of its own clock, and PayPal's clock may be one skew
       // behind the gate's: the earliest honest capture is two skews before iat (audit Oct 25, T27).
       // The gate stops one skew before exp, so the latest honest capture is within one skew after it.
-      if (facts.captureSec < sig.iat - 2 * CLOCK_SKEW_SEC || facts.captureSec > sig.exp + CLOCK_SKEW_SEC) {
+      if (!(facts.captureSec >= sig.iat - 2 * CLOCK_SKEW_SEC && facts.captureSec <= sig.exp + CLOCK_SKEW_SEC)) {
         out.push(f("CAPTURED_OUTSIDE_WINDOW", "The charge happened outside the signed request's five-minute window."));
       }
       const reused = otherCaptures.some((h) => h.customId && parseCustomId(h.customId)?.mandateHash16 === mandate.mandateHash.slice(0, 16));
@@ -155,7 +156,7 @@ export async function runChecks(b: CaseBundle): Promise<{ facts: CaseFacts; chec
       // money moved, the dispute is holding it. Every disputed charge looks like this.
       const disputeHold = b.capture.status === "PENDING" && b.capture.status_details?.reason === "BUYER_COMPLAINT";
       if (!COMPLETED_CAPTURE.has(b.capture.status) && !disputeHold) out.push(f("CAPTURE_NOT_COMPLETED", "PayPal didn't complete this charge."));
-      if (b.tokenDeletedAt !== null && toSec(b.tokenDeletedAt) <= facts.captureSec) {
+      if (b.tokenDeletedAt !== null && !(toSec(b.tokenDeletedAt) > facts.captureSec)) {
         out.push(f("CHARGED_AFTER_REVOCATION", "The charge happened after the agreement was cancelled."));
       }
       return { failures: out };
@@ -200,7 +201,7 @@ export async function runChecks(b: CaseBundle): Promise<{ facts: CaseFacts; chec
       // This must be the earliest charge of its period. While PayPal's duplicate-invoice blocking
       // is on it can't be otherwise for labeled charges; it matters for unlabeled ones.
       const earlierSamePeriod = otherCaptures.some(
-        (h) => h.customId && parseCustomId(h.customId)?.period === p && toSec(h.captureTime) < facts.captureSec,
+        (h) => h.customId && parseCustomId(h.customId)?.period === p && !(toSec(h.captureTime) >= facts.captureSec),
       );
       if (earlierSamePeriod) out.push(f("NOT_FIRST_IN_PERIOD", "Another charge was already made in this period."));
       return { failures: out, secondary: facts.secondaryTerms, provisional: facts.provisional };

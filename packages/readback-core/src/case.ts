@@ -6,6 +6,9 @@
 // Field paths come from PayPal's OpenAPI specs (github.com/paypal/paypal-rest-api-specifications).
 import { z } from "zod";
 
+// A timestamp Readback compares must parse; an unreadable one is an unexpected shape (fail closed).
+const Timestamp = z.string().refine((v) => Number.isFinite(Date.parse(v)), "not a timestamp");
+
 const Money = z.object({ currency_code: z.string(), value: z.string() });
 
 export const AddressSchema = z.object({
@@ -94,7 +97,7 @@ export const CaptureSchema = z.object({
   status: z.string(),
   status_details: z.object({ reason: z.string().optional() }).optional(),
   amount: Money,
-  create_time: z.string(),
+  create_time: Timestamp,
   custom_id: z.string().optional(),
   invoice_id: z.string().optional(),
   seller_protection: z
@@ -145,7 +148,7 @@ export type Dispute = z.infer<typeof DisputeSchema>;
 // rb1:<tokenId>: prefix on custom_field, with its dispute status looked up separately.
 export const HistoryEntrySchema = z.object({
   captureId: z.string(),
-  captureTime: z.string(),
+  captureTime: Timestamp,
   customId: z.string().optional(),
   amount: z.string().optional(), // USD as PayPal reports it; for display, never compared
   disputed: z.boolean(),
@@ -161,10 +164,10 @@ export const CaseBundleSchema = z.object({
   capture: CaptureSchema,
   order: OrderSchema,
   token: PaymentTokenSchema.nullable(), // null = GET returned 404 (agreement deleted)
-  tokenDeletedAt: z.string().nullable(), // from VAULT.PAYMENT-TOKEN.DELETED, if retrievable
+  tokenDeletedAt: Timestamp.nullable(), // from VAULT.PAYMENT-TOKEN.DELETED, if retrievable
   history: z.array(HistoryEntrySchema),
   historyComplete: z.boolean(), // false if Transaction Search failed or was cut short
   historyLimited: z.boolean().optional(), // the dispute lookups hit their budget before two charges qualified
-  now: z.string(), // when the bundle was fetched
+  now: Timestamp, // when the bundle was fetched
 });
 export type CaseBundle = z.infer<typeof CaseBundleSchema>;
