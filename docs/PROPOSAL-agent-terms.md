@@ -98,6 +98,7 @@ agent_verification:
 - PayPal verifies the mandate against the stored terms.
 - With `require_agent_mandate: true`, PayPal refuses an unsigned or failing charge, the same way it refuses charges on a cancelled agreement today.
 - The verdict is recorded on the capture and exposed on the dispute's `disputed_transactions[]`.
+- **The buyer's receipt shows the signature in words, not as a string.** Today the mandate has to ride in the item description, the only order field that holds it and returns it whole (spike step 1). So the buyer's receipt prints it as a long unreadable JWS (spike step 7, Oct 26). With `agent_mandate` as its own field, the receipt can say "Signed by your agent GAX4 1xq- rZuP w9cM" next to the item, and show the verification status.
 
 ### 4. Seller Protection and adjudication
 
