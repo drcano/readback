@@ -1,0 +1,174 @@
+{
+  "id": "0V726197MB950525F",
+  "intent": "CAPTURE",
+  "status": "COMPLETED",
+  "payment_source": {
+    "paypal": {
+      "email_address": "maya@example.com",
+      "account_id": "FAKEPAYER0001",
+      "account_status": "VERIFIED",
+      "name": {
+        "given_name": "Maya",
+        "surname": "Example"
+      },
+      "address": {
+        "country_code": "US"
+      },
+      "stored_credential": {
+        "payment_initiator": "MERCHANT",
+        "usage_pattern": "RECURRING_PREPAID",
+        "usage": "SUBSEQUENT"
+      }
+    }
+  },
+  "purchase_units": [
+    {
+      "reference_id": "default",
+      "amount": {
+        "currency_code": "USD",
+        "value": "64.99",
+        "breakdown": {
+          "item_total": {
+            "currency_code": "USD",
+            "value": "64.99"
+          }
+        }
+      },
+      "payee": {
+        "email_address": "maya@example.com",
+        "merchant_id": "CECTB4SU6GCRL"
+      },
+      "description": "RB1 Good Boy Provisions | GBP-SR24 x1/2d | max USD 65.00 | 2026-10-27..2027-03-31 | agent GAX41xq-rZuPw9cM",
+      "custom_id": "rb1:0k01910928645341n:5bea9dfb64b5cf4b:p001:2219321d2f88550b",
+      "invoice_id": "RB-0k01910928645341n-P001",
+      "items": [
+        {
+          "name": "Salmon & Rice Adult (24 lb)",
+          "unit_amount": {
+            "currency_code": "USD",
+            "value": "64.99"
+          },
+          "quantity": "1",
+          "description": "eyJhbGciOiJFUzI1NiIsInR5cCI6InJiLW1hbmRhdGUrand0IiwiandrIjp7Imt0eSI6IkVDIiwiY3J2IjoiUC0yNTYiLCJ4IjoiakpmNW9EdjdObE9JS3NtSk1mVHVXSl9YWGx2TktOT1l0anBsTE9HdFJFayIsInkiOiItZ09YTVBGaV9kTGk2UC12Q3RrRlpWZFprQm93QTE2dms1aFRmbk4zYUVzIn19.eyJ2IjoxLCJhZ3IiOiIwazAxOTEwOTI4NjQ1MzQxbiIsInRoIjoiNWJlYTlkZmI2NGI1Y2Y0YiIsInNrdSI6IkdCUC1TUjI0IiwicXR5IjoxLCJ1bml0IjoiNjQuOTkiLCJhbXQiOiI2NC45OSIsImN1ciI6IlVTRCIsInAiOjEsImlhdCI6MTc5MzA2ODI2MSwiZXhwIjoxNzkzMDY4NTYxLCJqdGkiOiI0YzU0MDRmZi00MTIyLTRkNWEtYTRlOC1kNTkyZGY3NTU3MTYifQ.7U0xWAXmrmg9wfQI4_-TN44HSgXecD9MhzcMiqUG5IiZz4jSClAcjNjtxqZ_InFc22u0zr_Bn6eu-DF5seW8tg",
+          "sku": "GBP-SR24",
+          "category": "PHYSICAL_GOODS"
+        }
+      ],
+      "shipping": {
+        "name": {
+          "full_name": "Maya Example"
+        },
+        "address": {
+          "address_line_1": "1 Example St",
+          "admin_area_2": "Springfield",
+          "admin_area_1": "CA",
+          "postal_code": "00000",
+          "country_code": "US"
+        },
+        "type": "SHIPPING",
+        "trackers": [
+          {
+            "id": "8V675089S38437820-9400111202555822193212",
+            "status": "SHIPPED",
+            "items": [
+              {
+                "name": "Salmon & Rice Adult (24 lb)",
+                "sku": "GBP-SR24",
+                "quantity": "1",
+                "upc": {}
+              }
+            ],
+            "links": [
+              {
+                "href": "https://api.sandbox.paypal.com/v2/checkout/orders/0V726197MB950525F",
+                "rel": "up",
+                "method": "GET"
+              },
+              {
+                "href": "https://api.sandbox.paypal.com/v2/checkout/orders/0V726197MB950525F/trackers/8V675089S38437820-9400111202555822193212",
+                "rel": "update",
+                "method": "PATCH"
+              }
+            ],
+            "notify_payer": false
+          }
+        ]
+      },
+      "payments": {
+        "captures": [
+          {
+            "id": "8V675089S38437820",
+            "status": "COMPLETED",
+            "amount": {
+              "currency_code": "USD",
+              "value": "64.99"
+            },
+            "final_capture": true,
+            "seller_protection": {
+              "status": "ELIGIBLE",
+              "dispute_categories": [
+                "ITEM_NOT_RECEIVED",
+                "UNAUTHORIZED_TRANSACTION"
+              ]
+            },
+            "seller_receivable_breakdown": {
+              "gross_amount": {
+                "currency_code": "USD",
+                "value": "64.99"
+              },
+              "paypal_fee": {
+                "currency_code": "USD",
+                "value": "2.76"
+              },
+              "net_amount": {
+                "currency_code": "USD",
+                "value": "62.23"
+              }
+            },
+            "invoice_id": "RB-0k01910928645341n-P001",
+            "custom_id": "rb1:0k01910928645341n:5bea9dfb64b5cf4b:p001:2219321d2f88550b",
+            "links": [
+              {
+                "href": "https://api.sandbox.paypal.com/v2/payments/captures/8V675089S38437820",
+                "rel": "self",
+                "method": "GET"
+              },
+              {
+                "href": "https://api.sandbox.paypal.com/v2/payments/captures/8V675089S38437820/refund",
+                "rel": "refund",
+                "method": "POST"
+              },
+              {
+                "href": "https://api.sandbox.paypal.com/v2/checkout/orders/0V726197MB950525F",
+                "rel": "up",
+                "method": "GET"
+              }
+            ],
+            "create_time": "2026-10-27T02:31:03Z",
+            "update_time": "2026-10-27T02:31:03Z"
+          }
+        ]
+      }
+    }
+  ],
+  "payer": {
+    "name": {
+      "given_name": "Maya",
+      "surname": "Example"
+    },
+    "email_address": "maya@example.com",
+    "payer_id": "FAKEPAYER0001",
+    "address": {
+      "country_code": "US"
+    }
+  },
+  "create_time": "2026-10-27T02:31:03Z",
+  "update_time": "2026-10-27T02:31:03Z",
+  "links": [
+    {
+      "href": "https://api.sandbox.paypal.com/v2/checkout/orders/0V726197MB950525F",
+      "rel": "self",
+      "method": "GET"
+    }
+  ]
+}

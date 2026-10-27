@@ -1,0 +1,115 @@
+{
+  "dispute_id": "PP-R-YOK-10194719",
+  "create_time": "2026-10-27T02:36:04.226Z",
+  "update_time": "2026-10-27T02:39:23.769Z",
+  "disputed_transactions": [
+    {
+      "buyer_transaction_id": "0GW849381U371522W",
+      "seller_transaction_id": "8V675089S38437820",
+      "create_time": "2026-10-27T02:31:03.000Z",
+      "transaction_status": "HELD",
+      "gross_amount": {
+        "currency_code": "USD",
+        "value": "64.99"
+      },
+      "invoice_number": "RB-0k01910928645341n-P001",
+      "custom": "rb1:0k01910928645341n:5bea9dfb64b5cf4b:p001:2219321d2f88550b",
+      "buyer": {
+        "email": "maya@example.com",
+        "payer_id": "FAKEPAYER0001",
+        "name": "Maya Example"
+      },
+      "seller": {
+        "email": "maya@example.com",
+        "merchant_id": "CECTB4SU6GCRL",
+        "name": "Sandbox Merchant"
+      },
+      "items": [
+        {
+          "item_id": "GBP-SR24",
+          "item_description": "eyJhbGciOiJFUzI1NiIsInR5cCI6InJiLW1hbmRhdGUrand0IiwiandrIjp7Imt0eSI6IkVDIiwiY3J2IjoiUC0yNTYiLCJ4IjoiakpmNW9EdjdObE9JS3NtSk1mVHVXSl9YWGx2TktOT1l0anBsTE9HdFJFayIsInkiOiItZ09YTVBGaV9kTGk2UC12Q3RrRlpWZFprQm93QTE2dms1aFRmbk4zYUVzIn19.eyJ2IjoxLCJhZ3IiOiIwazAxOTEwOTI4NjQ1MzQxbiIsInRoIjoiNWJlYTlkZmI2NGI1Y2Y0YiIsInNrdSI6IkdCUC1TUjI0IiwicXR5IjoxLCJ1bml0IjoiNjQuOTkiLCJhbXQiOiI2NC45OSIsImN1ciI6IlVTRCIsInAiOjEsImlhdCI6MTc5MzA2ODI2MSwiZXhwIjoxNzkzMDY4NTYxLCJqdGkiOiI0YzU0MDRmZi00MTIyLTRkNWEtYTRlOC1kNTkyZGY3NTU3MTYifQ.7U0xWAXmrmg9wfQI4_-TN44HSgXecD9MhzcMiqUG5IiZz4jSClAcjNjtxqZ_InFc22u0zr_Bn6eu-DF5seW8tg"
+        }
+      ],
+      "seller_protection_eligible": true,
+      "seller_protection_type": "EXPANDED_SELLER_PROTECTION"
+    }
+  ],
+  "reason": "UNAUTHORISED",
+  "status": "WAITING_FOR_SELLER_RESPONSE",
+  "dispute_amount": {
+    "currency_code": "USD",
+    "value": "64.99"
+  },
+  "dispute_state": "REQUIRED_ACTION",
+  "fund_movements": [
+    {
+      "party": "RECEIVER",
+      "amount": {
+        "currency_code": "USD",
+        "value": "62.23"
+      },
+      "initiated_time": "2026-10-27T02:39:04.000Z",
+      "type": "DEBIT",
+      "reason": "HOLD_PLACED"
+    }
+  ],
+  "dispute_life_cycle_stage": "CHARGEBACK",
+  "dispute_channel": "INTERNAL",
+  "extensions": {
+    "buyer_contacted_time": "2026-10-27T02:34:38.788Z"
+  },
+  "evidences": [
+    {
+      "evidence_type": "PROOF_OF_FULFILLMENT",
+      "source": "REQUESTED_FROM_SELLER",
+      "date": "2026-10-27T02:39:23.769Z"
+    },
+    {
+      "evidence_type": "PROOF_OF_REFUND",
+      "source": "REQUESTED_FROM_SELLER",
+      "date": "2026-10-27T02:39:23.769Z"
+    },
+    {
+      "evidence_type": "OTHER",
+      "source": "REQUESTED_FROM_SELLER",
+      "date": "2026-10-27T02:39:23.769Z"
+    }
+  ],
+  "seller_response_due_date": "2026-11-06T04:59:59.000Z",
+  "offer": {
+    "buyer_requested_amount": {
+      "currency_code": "USD",
+      "value": "64.99"
+    }
+  },
+  "refund_details": {
+    "allowed_refund_amount": {
+      "currency_code": "USD",
+      "value": "64.99"
+    }
+  },
+  "allowed_response_options": {
+    "accept_claim": {
+      "accept_claim_types": [
+        "REFUND"
+      ]
+    }
+  },
+  "links": [
+    {
+      "href": "https://api-m.sandbox.paypal.com/v1/customer/disputes/PP-R-YOK-10194719",
+      "rel": "self",
+      "method": "GET"
+    },
+    {
+      "href": "https://api-m.sandbox.paypal.com/v1/customer/disputes/PP-R-YOK-10194719/accept-claim",
+      "rel": "accept_claim",
+      "method": "POST"
+    },
+    {
+      "href": "https://api-m.sandbox.paypal.com/v1/customer/disputes/PP-R-YOK-10194719/provide-evidence",
+      "rel": "provide_evidence",
+      "method": "POST"
+    }
+  ]
+}
