@@ -2,16 +2,26 @@
 
 *The one change PayPal would make to run Readback natively. **This is a proposal, not an existing PayPal API.** Field names are illustrative. It is written against the public Payment Method Tokens v3 spec (`vault_payment_tokens_v3.json`, v3.4), where `paypal_wallet_request` is `wallet_base` plus `billing_plan` and `experience_context`.*
 
+## Headline: PayPal erases the consent record at the moment a dispute needs it
+
+We filed the "my AI bought that" claim twice in the sandbox, on separate test agreements, both times through the buyer's own "I suspect the subscription or recurring payment was set up by someone else" option (spike step 7, Oct 26–27):
+- **Run 1.** PayPal recorded the claim as `UNAUTHORISED` (`PP-R-QMJ-10194712`), and within 30 minutes deleted the agreement: its payment token returns 404.
+- **Run 2.** The buyer completed PayPal's "Secure your account" step. The same happened (`PP-R-YOK-10194719`): the token was there at filing and gone about 3 minutes later.
+
+From then on, the only copy of what the shopper approved is the one the merchant wrote on each order. An honest investigator can't rule for the merchant on the merchant's own copy, and Readback, by design, doesn't. So today, the claim itself destroys the evidence that would settle it. That's why our demo never files a claim on Maya's agreement: its two verdicts are read in preview, while the agreement is still alive.
+
+The fix is one field: keep `agent_terms` on the deleted token, with `deleted_at` (section 2 below). Everything else in this proposal makes the record stronger; this part makes it survive.
+
 ## Why
 
-Readback runs on today's rails. Four gaps remain because the merchant, not PayPal, carries some facts. Each was measured against the sandbox (`docs/decisions/0001-sandbox-spike.md`, 2026-10-15):
+Readback runs on today's rails. Four gaps remain because the merchant, not PayPal, carries some facts. Each was measured against the sandbox (`docs/decisions/0001-sandbox-spike.md`, 2026-10-15 to 2026-10-27):
 
 | Gap | Today | Threat |
 |---|---|---|
 | The agent key fingerprint is written into the terms by the merchant's setup flow | A dishonest merchant could insert its own key | T21 |
 | PayPal's approval page shows only the merchant-supplied `billing_plan.name`, never the stored `description` | The buyer can't see the terms PayPal actually stores; a merchant can show her fingerprint and store its own | T21 |
 | Orders don't say which saved agreement paid (no `attributes.vault.id` on a vault charge) | The link rests on merchant labels plus PayPal's payer match; a charge with labels and mandate stripped can't be linked from merchant-side data | T3 |
-| Terms disappear from the merchant's view when the shopper deletes the agreement | Readback falls back to merchant-written copies and withholds seller-favor outcomes | T10 |
+| Terms disappear when the agreement is deleted, and an unauthorized claim deletes it within minutes (spike step 7) | Readback falls back to merchant-written copies and withholds seller-favor outcomes, exactly when a dispute needs them | T10 |
 | The signed mandate rides in a merchant-written order field | A merchant can omit it; Readback detects that after the fact | T3, T24 |
 
 Each gap closes if PayPal holds the agent terms itself, fetches the agent's key itself, records whether each charge was signed, and **shows the stored terms on its approval page**. The last part needs no new field: displaying the existing `description` (or echoing `vault.id` on vault orders) would already narrow T21 and T3 today.
@@ -111,7 +121,7 @@ agent_verification:
 | Readback check or threat | Today (merchant-side build) | With `agent_terms` |
 |---|---|---|
 | T21: key swap at setup | Shopper compares fingerprints by eye against a merchant-supplied plan name that isn't stored | **Mostly closed.** PayPal fetches and displays the key and the agent's domain; a merchant-chosen `jwk_uri` remains an open question |
-| T10: terms after revocation | Merchant-written copy, seller-favor withheld | **Closed.** `deleted_at` retained, terms still returned |
+| T10: terms after revocation, including after an unauthorized claim | Merchant-written copy, seller-favor withheld | **Closed.** `deleted_at` retained, terms still returned |
 | T3/T24: unsigned direct charges | Detected after the fact, suggested for the buyer | **Prevented** at charge time |
 | Check 3: requested by her agent | Re-derived from a merchant-written field | **PayPal-attested** (`agent_verification`) |
 | Check 11: history | Transaction Search, up to a 3-hour lag | Internal history, no lag |

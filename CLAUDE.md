@@ -182,7 +182,7 @@ Dante is learning TypeScript through this build:
   3. Do UNAUTHORISED disputes open in INQUIRY in sandbox?
 - Confirm "block accidental payments" (unique invoice IDs) is on in the sandbox business account.
 - Add the agent runtime as a custom connector in his Claude app (custom connectors work on every plan; Free allows one).
-- Hand-open about 15 sandbox disputes in week 3 (API creation is limited-release), across the classifications, **on separate agreements**. On the hero agreement, dispute only the hero capture and the unsigned twist charge.
+- Hand-open about 15 sandbox disputes in week 3 (API creation is limited-release), across the classifications, **on separate agreements**. **Never file a claim on the hero agreement:** an unauthorized claim makes PayPal delete it within minutes (spike step 7), so the hero pair (its signed charge and the twist charge) is read in preview mode.
 - Run `pnpm seed:charge` on Oct 21, 23, and 28 at minimum, then daily from Nov 1 as needed (SPEC §2).
 - Create two sandbox buyer accounts: Maya's (hero) and a judge account.
 - **Build in public:** ask the Discord questions this week, open the toolkit PR early, and post short progress updates where PayPal's developer community will see them.
@@ -200,7 +200,7 @@ Dante is learning TypeScript through this build:
 - PayPal's duplicate-invoice guard;
 - the dispute lifecycle (escalate → require-evidence → provide-evidence → adjudicate) and `disputed_transactions[]`.
 
-**Demo-critical path, green on the hosted URL by Sun Nov 1 before anything else starts:** approve on PayPal → signed charge → PayPal refuses the duplicate → a dispute arrives → the case view shows both verdicts (`SELLER_FAVOR` for a signed in-terms charge, `BUYER_FAVOR` for an unsigned charge the merchant made directly), re-verified in the browser. Cut order if behind is in SPEC §9.
+**Demo-critical path, green on the hosted URL by Sun Nov 1 before anything else starts:** approve on PayPal → signed charge → PayPal refuses the duplicate → the case view shows both verdicts on the hero agreement, read in preview (`SELLER_FAVOR` for a signed in-terms charge, `BUYER_FAVOR` for an unsigned charge the merchant made directly), re-verified in the browser → a real dispute, on a test agreement, arrives and is answered. No claim is ever filed on the hero agreement (PayPal deletes it; spike step 7). Cut order if behind is in SPEC §9.
 
 Record findings in `docs/decisions/0001-sandbox-spike.md` and save scrubbed responses as fixtures before writing `readback-core`.
 

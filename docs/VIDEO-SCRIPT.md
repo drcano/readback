@@ -26,25 +26,19 @@ On screen throughout: a role chip (Shopper / Agent / PayPal / Investigator), cap
 
 **VO:** When she asks, her agent signs one exact order, and the store charges it under her agreement. Ask twice, and PayPal itself says no. A poisoned product page can't talk it into more, because the agent won't sign it and the store won't charge it.
 
-## 0:55–1:15 · Inquiry (only if the sandbox allows) · chip: Shopper
+## 0:55–1:55 · Investigator · chip: Investigator
 
-**Shot:** the dispute opens; Maya gets her own approval back in plain words, and closes it herself.
+**Shot:** home page, "Same claim, two verdicts", then "Open the case" on Charge A: her signed charge on her real sandbox agreement, read as if she disputed it ("If she disputed this charge…"). The live rebuild: the dispute-free case pulls each PayPal record as it arrives (charge, order with the signed request, her approved terms, earlier charges). Consent, Agent, Terms and Delivery go green, each captioned with the PayPal object behind it. "Re-checked in your browser · matches." Recommendation: uphold the charge.
 
-**VO:** Most of these should end right here: she sees what she agreed to, in her own words.
-
-> **Settled (spike step 7, Oct 26):** an unauthorized claim skips the inquiry stage and goes straight to the chargeback stage. Cut this beat and give the 20 seconds to the investigator and the twist.
-
-## 1:15–1:55 · Investigator · chip: Investigator
-
-**Shot:** the queue (AG Studio after Nov 1). The hero row: "I didn't make this purchase." One click into the case. Consent, Agent, Terms and Delivery go green one by one, each captioned with the PayPal object behind it. "Re-checked in your browser in 1 ms · matches." Recommendation: uphold the charge. If PayPal has already ruled, its ruling leads the page, and Readback's check shows it agrees.
-
-**VO:** The claim that escalates lands with an investigator. Readback rebuilds it from PayPal's own records: her approval, her agent's signature, the limits, the shipment. It checks all of it again, right here in the browser. Her agent asked for this exact order, inside the limits she approved. The charge stands.
+**VO:** When she says "I didn't buy this," Readback rebuilds the charge from PayPal's own records: her approval, her agent's signature, the limits, the shipment. It checks all of it again, right here in the browser. Her agent asked for this exact order, inside the limits she approved. The charge stands.
 
 ## 1:55–2:25 · The twist · chip: Investigator
 
-**Shot:** the next row. Same shopper, same claim, $59, every limit respected. Agent: **red**. "Her agent did not ask for this order." Recommendation: refund the buyer. Cut: judge mode, "Be a dishonest merchant", then **"Your two verdicts"**: the judge's own two charges side by side, their agent's next to the store's, the same red light on their own key.
+**Shot:** Charge B, same agreement: the store's own charge, $59, every limit respected. Agent: **red**. "Her agent did not ask for this order." Recommendation: refund the buyer. Cut: judge mode, "Be a dishonest merchant", then **"Your two verdicts"**: the judge's own two charges side by side, the same red light on their own key. Then, four seconds: a real unauthorized claim on a test agreement, `PP-R-YOK-10194719`, and the caption **"PayPal deleted her agreement 3 minutes after the claim. We're asking PayPal to keep it."** Cut to `/proposal`.
 
-**VO:** Same claim. Same shopper. Every limit respected. But her agent never asked: the store charged her wallet on its own. So Readback says refund her, against the very merchant running it. That's why it can be believed.
+**VO:** Same claim. Same shopper. Every limit respected. But her agent never asked: the store charged her wallet on its own. So Readback says refund her, against the very merchant running it. That's why it can be believed. And when we filed the real claim, PayPal deleted her agreement within minutes, erasing the record that settles it. That's the one change we're asking PayPal for.
+
+> **Why preview (spike step 7, Oct 26–27):** an unauthorized claim makes PayPal delete the agreement within minutes, so a claim on Maya's agreement would leave only the merchant's copy of her terms, and Readback won't rule for the merchant on that. The two verdicts are read as if disputed, on her live agreement; real disputes are shown on test agreements. The inquiry beat is cut: unauthorized claims skip inquiry.
 
 ## 2:25–2:50 · Proof · chip: none
 
@@ -62,11 +56,11 @@ On screen throughout: a role chip (Shopper / Agent / PayPal / Investigator), cap
 
 ## Before recording
 
-| Needs | Status (Oct 25) |
+| Needs | Status (Oct 27) |
 |---|---|
 | Hosted site on Render | Blocked: GitHub account suspended, so Render has no repo |
-| Hero dispute (UNAUTHORISED) on a recent hero capture | To open by hand. The sandbox decided the first dispute alone in about 14 hours, so open it the day before recording, and decide whether to show it open or already ruled |
-| Unsigned twist charge on the hero agreement, then its dispute | Use "Be a dishonest merchant" once (one per agreement), close to recording |
+| Hero pair | Done Oct 27, in preview: her signed charge (`HERO_CASE_ID`, use the latest seed charge) and the twist `8T065472KN058961S` (`TWIST_CASE_ID`). Never file a claim on Maya's agreement |
+| A real dispute to show | `PP-R-YOK-10194719` (test agreement, unauthorized, agreement deleted) and the refund case `PP-R-CFY-10194687` |
 | AG Studio queue | Trial starts Nov 1; until then it's AG Grid Community |
 | Agent Toolkit change | Prepared locally; it can be called a PR only once it's actually opened |
 | Eval numbers | 59/59 scenarios and a 2,000-mutation tamper sample with 0 kept (`evals/results/latest.json`); re-read them on recording day |

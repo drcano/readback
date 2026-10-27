@@ -116,7 +116,7 @@ Where the dispute opens in inquiry, Readback first sends her the terms she appro
 
 ### T10. Terms become unreadable after revocation
 
-*Example:* the shopper deletes the agreement, then disputes an earlier charge. The merchant can no longer GET the token.
+*Example:* the shopper deletes the agreement, then disputes an earlier charge. The merchant can no longer GET the token. **Measured (spike step 7, Oct 26–27):** this is also what an unauthorized claim does. PayPal deletes the agreement within minutes of the claim, whether or not the buyer secures her account. So every unauthorized dispute on an agent agreement lands here, and the demo reads its hero pair in preview, before any claim.
 
 **Mitigation:**
 - Every charge carries the full terms string in `purchase_units[0].description`. The investigator view falls back to that copy and labels the result **secondary evidence**.
