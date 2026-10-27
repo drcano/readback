@@ -1,0 +1,325 @@
+From 5e7dac7e4c12456fcd14cb696053caeeb2e37621 Mon Sep 17 00:00:00 2001
+From: drcano <156254264+drcano@users.noreply.github.com>
+Date: Sun, 25 Oct 2026 15:47:01 -0700
+Subject: [PATCH 4/7] feat(disputes): add verify_agent_purchase tool
+
+Given a dispute or capture ID, rebuilds an AI-agent purchase from
+PayPal's own records (dispute -> capture -> order -> vault payment
+token) and returns the verifier's verdict.
+
+The tool stays thin: the verifier is injected through
+context.agentPurchaseVerifier and receives a read-only get() over the
+toolkit's authenticated HTTP layer (relative paths only; errors are
+returned, not thrown, so the verifier can fail closed). The intended
+verifier is verifyCase from @readback/verify@^0.1.0, which is not yet
+published; tests use a stub that walks the same chain.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ .../__tests__/verifyAgentPurchase.test.ts     | 93 +++++++++++++++++++
+ typescript/src/shared/api.ts                  |  3 +
+ typescript/src/shared/configuration.ts        | 24 +++++
+ typescript/src/shared/functions.ts            | 43 ++++++++-
+ typescript/src/shared/parameters.ts           |  4 +
+ typescript/src/shared/prompts.ts              |  6 ++
+ typescript/src/shared/tools.ts                | 13 +++
+ 7 files changed, 185 insertions(+), 1 deletion(-)
+ create mode 100644 typescript/src/shared/__tests__/verifyAgentPurchase.test.ts
+
+diff --git a/typescript/src/shared/__tests__/verifyAgentPurchase.test.ts b/typescript/src/shared/__tests__/verifyAgentPurchase.test.ts
+new file mode 100644
+index 0000000..bded5fd
+--- /dev/null
++++ b/typescript/src/shared/__tests__/verifyAgentPurchase.test.ts
+@@ -0,0 +1,93 @@
++import axios from 'axios';
++import { verifyAgentPurchase } from '../functions';
++import tools from '../tools';
++import { verifyAgentPurchaseParameters } from '../parameters';
++import type { AgentPurchaseVerifier } from '../configuration';
++import type PayPalClient from '../client';
++
++const API = 'https://api.sandbox.paypal.com';
++const fakeClient = {
++  getBaseUrl: () => API,
++  getHeaders: async () => ({ 'Content-Type': 'application/json', Authorization: 'Bearer test' }),
++} as unknown as PayPalClient;
++
++// Minimal PayPal objects for one agent purchase.
++const records: Record<string, unknown> = {
++  '/v1/customer/disputes/PP-D-12345': { dispute_id: 'PP-D-12345', disputed_transactions: [{ seller_transaction_id: 'CAP0000000000001' }] },
++  '/v2/payments/captures/CAP0000000000001': { id: 'CAP0000000000001', supplementary_data: { related_ids: { order_id: 'ORDER00000000001' } } },
++  '/v2/checkout/orders/ORDER00000000001': { id: 'ORDER00000000001', purchase_units: [{ custom_id: 'rb1:TOKEN1:x:p001:y' }] },
++  '/v3/vault/payment-tokens/TOKEN1': { id: 'TOKEN1', payment_source: { paypal: { description: 'terms' } } },
++};
++
++// Stands in for @readback/verify's verifyCase: walks the chain through the injected get().
++const stubVerifier: AgentPurchaseVerifier = async (id, paypal) => {
++  const dispute = await paypal.get<any>(`/v1/customer/disputes/${id}`);
++  if (!dispute.ok) return { verdict: 'UNVERIFIED', issues: dispute.issues };
++  const capture = await paypal.get<any>(`/v2/payments/captures/${dispute.data.disputed_transactions[0].seller_transaction_id}`);
++  if (!capture.ok) return { verdict: 'UNVERIFIED' };
++  const order = await paypal.get<any>(`/v2/checkout/orders/${capture.data.supplementary_data.related_ids.order_id}`);
++  if (!order.ok) return { verdict: 'UNVERIFIED' };
++  const token = await paypal.get<any>(`/v3/vault/payment-tokens/${order.data.purchase_units[0].custom_id.split(':')[1]}`);
++  return { verdict: token.ok ? 'SELLER_FAVOR' : 'UNVERIFIED' };
++};
++
++function servePayPal() {
++  return jest.spyOn(axios, 'get').mockImplementation(async (url: string) => {
++    const path = url.slice(API.length);
++    if (path in records) return { status: 200, data: records[path], headers: { 'paypal-debug-id': 'dbg1' } };
++    throw { response: { status: 404, data: { name: 'RESOURCE_NOT_FOUND', details: [{ issue: 'INVALID_RESOURCE_ID' }] }, headers: {} } };
++  });
++}
++
++afterEach(() => jest.restoreAllMocks());
++
++describe('verify_agent_purchase', () => {
++  it('walks dispute -> capture -> order -> payment token through the toolkit HTTP layer and returns the verdict', async () => {
++    const get = servePayPal();
++    const out = await verifyAgentPurchase(fakeClient, { agentPurchaseVerifier: stubVerifier }, { id: 'PP-D-12345' });
++
++    expect(out).toEqual({ verdict: 'SELLER_FAVOR' });
++    expect(get.mock.calls.map(([url]) => url)).toEqual(Object.keys(records).map((p) => API + p));
++    for (const [, config] of get.mock.calls) expect(config?.headers?.Authorization).toBe('Bearer test');
++  });
++
++  it('returns PayPal errors to the verifier instead of throwing', async () => {
++    servePayPal();
++    const out = await verifyAgentPurchase(fakeClient, { agentPurchaseVerifier: stubVerifier }, { id: 'PP-D-99999' });
++    expect(out).toEqual({ verdict: 'UNVERIFIED', issues: ['INVALID_RESOURCE_ID'] });
++  });
++
++  it('applies the verifier schema and refuses absolute or protocol-relative paths', async () => {
++    const get = servePayPal();
++    const results: unknown[] = [];
++    await verifyAgentPurchase(fakeClient, {
++      agentPurchaseVerifier: async (_id, paypal) => {
++        results.push(await paypal.get('/v2/payments/captures/CAP0000000000001', { safeParse: () => ({ success: false }) }));
++        results.push(await paypal.get('@evil.example/steal'));
++        results.push(await paypal.get('//evil.example/steal'));
++      },
++    }, { id: 'CAP0000000000001' });
++
++    expect(results).toEqual([
++      { ok: false, status: 502, issues: ['UNEXPECTED_RESPONSE_SHAPE'], debugId: 'dbg1' },
++      { ok: false, status: 400, issues: ['INVALID_PATH'], debugId: null },
++      { ok: false, status: 400, issues: ['INVALID_PATH'], debugId: null },
++    ]);
++    expect(get).toHaveBeenCalledTimes(1);
++  });
++
++  it('fails clearly when no verifier is configured', async () => {
++    await expect(verifyAgentPurchase(fakeClient, {}, { id: 'PP-D-12345' })).rejects.toMatchObject({ code: 'VERIFIER_NOT_CONFIGURED' });
++  });
++
++  it('accepts short dispute IDs and capture IDs, rejects path tricks', () => {
++    const schema = verifyAgentPurchaseParameters({});
++    expect(schema.safeParse({ id: 'PP-D-27803' }).success).toBe(true);
++    expect(schema.safeParse({ id: '8MC585209K746392H' }).success).toBe(true);
++    expect(schema.safeParse({ id: 'PP-D-1/../../v1/x' }).success).toBe(false);
++  });
++
++  it('is registered as a read-only disputes tool', () => {
++    expect(tools({}).find((t) => t.method === 'verify_agent_purchase')?.actions).toEqual({ disputes: { get: true } });
++  });
++});
+diff --git a/typescript/src/shared/api.ts b/typescript/src/shared/api.ts
+index 1a9a376..e0befdf 100644
+--- a/typescript/src/shared/api.ts
++++ b/typescript/src/shared/api.ts
+@@ -34,6 +34,7 @@ import {
+   getDispute,
+   acceptDisputeClaim,
+   provideDisputeEvidence,
++  verifyAgentPurchase,
+   captureOrder, listTransactions,
+   createSubscription,
+   showProductDetails,
+@@ -185,6 +186,8 @@ class PayPalAPI {
+         return acceptDisputeClaim(this.paypalClient, this.context, arg);
+       case 'provide_dispute_evidence':
+         return provideDisputeEvidence(this.paypalClient, this.context, arg);
++      case 'verify_agent_purchase':
++        return verifyAgentPurchase(this.paypalClient, this.context, arg);
+       case 'list_transactions':
+         return listTransactions(this.paypalClient, this.context, arg);
+       case 'update_plan':
+diff --git a/typescript/src/shared/configuration.ts b/typescript/src/shared/configuration.ts
+index b2f953e..f725a84 100644
+--- a/typescript/src/shared/configuration.ts
++++ b/typescript/src/shared/configuration.ts
+@@ -5,9 +5,33 @@ export type Context = {
+   request_id?: string;
+   tenant_context?: any;
+   debug?: boolean;
++  // Verifier behind the verify_agent_purchase tool; see AgentPurchaseVerifier.
++  agentPurchaseVerifier?: AgentPurchaseVerifier;
+   [key: string]: any;
+ };
+ 
++// Read-only PayPal GET over the toolkit's own HTTP layer, handed to the verifier. Errors are
++// returned, not thrown, so the verifier can fail closed. The shape matches @readback/verify's
++// PayPalClient.get(path, schema).
++export type PayPalGetResult<T> =
++  | { ok: true; status: number; data: T; debugId: string | null }
++  | { ok: false; status: number; issues: string[]; debugId: string | null };
++export type PayPalGet = <T = unknown>(
++  path: string,
++  schema?: { safeParse(value: unknown): { success: true; data: T } | { success: false } }
++) => Promise<PayPalGetResult<T>>;
++
++// Rebuilds an agent purchase from PayPal (dispute -> capture -> order -> vault payment token)
++// and returns a verdict. TODO(@readback/verify@^0.1.0, unpublished): the intended default is
++//   (id, paypal, now) => verifyCase(id, paypal, now)  from '@readback/verify'
++// It is ESM-only and needs Node >= 22.18, while this package also ships CJS for node18, so it
++// would be loaded with a dynamic import(); until it is on npm, callers inject it here.
++export type AgentPurchaseVerifier = (
++  id: string,
++  paypal: { get: PayPalGet },
++  now: Date
++) => Promise<unknown>;
++
+ export type Configuration = {
+   actions: {
+     [product: string]: {
+diff --git a/typescript/src/shared/functions.ts b/typescript/src/shared/functions.ts
+index 66e67cb..5ab36ae 100644
+--- a/typescript/src/shared/functions.ts
++++ b/typescript/src/shared/functions.ts
+@@ -1,5 +1,5 @@
+ import axios from 'axios';
+-import type { Context } from './configuration';
++import type { Context, PayPalGet } from './configuration';
+ import {
+   getInvoicParameters,
+   cancelSentInvoiceParameters,
+@@ -25,6 +25,7 @@ import {
+   captureOrderParameters,
+   acceptDisputeClaimParameters,
+   provideDisputeEvidenceParameters,
++  verifyAgentPurchaseParameters,
+   listTransactionsParameters,
+   createProductParameters,
+   listProductsParameters,
+@@ -1348,6 +1349,46 @@ export async function provideDisputeEvidence(
+   }
+ }
+ 
++// Thin by design: the verifier (Readback's, injected via context) owns the checks; the toolkit
++// only supplies authenticated, read-only GETs against PayPal's API base.
++export async function verifyAgentPurchase(
++  client: PayPalClient,
++  context: Context,
++  params: TypeOf<ReturnType<typeof verifyAgentPurchaseParameters>>
++): Promise<any> {
++  const verifier = context.agentPurchaseVerifier;
++  if (!verifier) {
++    throw new LlmError({
++      code: 'VERIFIER_NOT_CONFIGURED',
++      message: 'verify_agent_purchase needs context.agentPurchaseVerifier (e.g. verifyCase from @readback/verify).',
++    });
++  }
++  const headers = await client.getHeaders();
++
++  const get: PayPalGet = async (path, schema) => {
++    // Relative paths only, so a verifier can't redirect the bearer token to another host.
++    if (!path.startsWith('/') || path.startsWith('//')) {
++      return { ok: false, status: 400, issues: ['INVALID_PATH'], debugId: null };
++    }
++    try {
++      const response = await axios.get(`${client.getBaseUrl()}${path}`, { headers });
++      const debugId = response.headers?.['paypal-debug-id'] ?? null;
++      if (!schema) return { ok: true, status: response.status, data: response.data, debugId };
++      const parsed = schema.safeParse(response.data);
++      return parsed.success
++        ? { ok: true, status: response.status, data: parsed.data, debugId }
++        : { ok: false, status: 502, issues: ['UNEXPECTED_RESPONSE_SHAPE'], debugId };
++    } catch (error: any) {
++      const res = error?.response;
++      if (!res) return { ok: false, status: 504, issues: ['PAYPAL_UNREACHABLE'], debugId: null };
++      const issues = res.data?.details?.map((d: any) => d?.issue ?? 'UNKNOWN') ?? [res.data?.name ?? `HTTP_${res.status}`];
++      return { ok: false, status: res.status, issues, debugId: res.headers?.['paypal-debug-id'] ?? null };
++    }
++  };
++
++  return verifier(params.id, { get }, new Date());
++}
++
+ export async function listTransactions(
+   client: PayPalClient,
+   context: Context,
+diff --git a/typescript/src/shared/parameters.ts b/typescript/src/shared/parameters.ts
+index faa2cc2..23f7c7d 100644
+--- a/typescript/src/shared/parameters.ts
++++ b/typescript/src/shared/parameters.ts
+@@ -667,6 +667,10 @@ export const provideDisputeEvidenceParameters = (context: Context) => z.object({
+   })).max(10).optional().describe('Optional files to attach.'),
+ });
+ 
++export const verifyAgentPurchaseParameters = (context: Context) => z.object({
++  id: z.string().regex(DISPUTE_ID_REGEX, "Invalid PayPal dispute or capture ID").describe('A dispute ID (PP-D-... or PP-R-...) or a capture ID.'),
++});
++
+ // === Transaction Search ===
+ 
+ export const listTransactionsParameters = (context: Context) => z.object({
+diff --git a/typescript/src/shared/prompts.ts b/typescript/src/shared/prompts.ts
+index 8df53ee..d90c6eb 100644
+--- a/typescript/src/shared/prompts.ts
++++ b/typescript/src/shared/prompts.ts
+@@ -321,6 +321,12 @@ Submit evidence for a dispute.
+ This tool reads the dispute first and uses whichever submission PayPal offers in the dispute's current state: provide-evidence (with the given evidence_type) or, if only that is offered, provide-supporting-info (notes and documents only). It fails if PayPal offers neither. The result names the action used. Documents are optional base64-encoded PDF, JPEG, GIF or PNG files.
+ `
+ 
++export const verifyAgentPurchasePrompt = (context: Context) => `
++Verify a purchase made by an AI agent, from PayPal's own records.
++
++Given a dispute ID or a capture ID, this tool rebuilds the purchase from PayPal (dispute, capture, order, and the vault payment token that holds the shopper's approved terms) and returns the verifier's verdict: whether the shopper's approved agent signed the request and whether the charge was within the approved terms. It is read-only and requires a verifier to be configured.
++`
++
+ export const listTransactionsPrompt = (context: Context) => `
+ List transactions from PayPal.
+ 
+diff --git a/typescript/src/shared/tools.ts b/typescript/src/shared/tools.ts
+index 2be0d1e..4ab610f 100644
+--- a/typescript/src/shared/tools.ts
++++ b/typescript/src/shared/tools.ts
+@@ -32,6 +32,7 @@ import {
+   listDisputesPrompt,
+   acceptDisputeClaimPrompt,
+   provideDisputeEvidencePrompt,
++  verifyAgentPurchasePrompt,
+   captureOrderPrompt,
+   listTransactionsPrompt,
+   createProductPrompt,
+@@ -83,6 +84,7 @@ import {
+   listDisputesParameters,
+   acceptDisputeClaimParameters,
+   provideDisputeEvidenceParameters,
++  verifyAgentPurchaseParameters,
+   captureOrderParameters,
+   listTransactionsParameters,
+   createProductParameters,
+@@ -590,6 +592,17 @@ const tools = (context: Context): Tool[] => [
+       },
+     },
+   },
++  {
++    method: 'verify_agent_purchase',
++    name: 'Verify agent purchase',
++    description: verifyAgentPurchasePrompt(context),
++    parameters: verifyAgentPurchaseParameters(context),
++    actions: {
++      disputes: {
++        get: true,
++      },
++    },
++  },
+   {
+     method: 'list_transactions',
+     name: 'List Transactions',
+-- 
+2.50.1 (Apple Git-155)
+

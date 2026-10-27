@@ -16,7 +16,7 @@ On screen throughout: a role chip (Shopper / Agent / PayPal / Investigator), cap
 
 ## 0:10–0:32 · Delegate · chip: Shopper
 
-**Shot:** `/shopper`. Maya types the story mandate. The readback card fills in: one bag a month, up to $65, until March 31, by her agent only. Her agent's fingerprint `GAX4 1xq- rZuP w9cM` appears. Cut to PayPal's sandbox approval page showing the same sixteen characters. She clicks Agree.
+**Shot:** `/shopper`. Maya types the story mandate. The readback card fills in: one bag a month, up to $65, until March 31, by her agent only. Her agent shows its fingerprint `GAX4 1xq- rZuP w9cM` in its own agent card (the shopper page never shows it, by design: THREAT-MODEL T21). Cut to PayPal's sandbox approval page showing the same sixteen characters. She clicks Agree.
 
 **VO:** Maya says it once. Her agent reads it back as exact terms, with its own key fingerprint, and PayPal shows her the same fingerprint before she approves. Those terms now live inside PayPal. Nobody can edit them, not the store, and not us.
 
@@ -32,7 +32,7 @@ On screen throughout: a role chip (Shopper / Agent / PayPal / Investigator), cap
 
 **VO:** Most of these should end right here: she sees what she agreed to, in her own words.
 
-> **Reality check (spike step 7):** the one sandbox dispute so far skipped the inquiry stage and went straight to PayPal review. If that holds, cut this beat and give the 20 seconds to the investigator and the twist.
+> **Settled (spike step 7, Oct 26):** an unauthorized claim skips the inquiry stage and goes straight to the chargeback stage. Cut this beat and give the 20 seconds to the investigator and the twist.
 
 ## 1:15–1:55 · Investigator · chip: Investigator
 
@@ -48,7 +48,7 @@ On screen throughout: a role chip (Shopper / Agent / PayPal / Investigator), cap
 
 ## 2:25–2:50 · Proof · chip: none
 
-**Shot:** **"Try to break it"**: "Run all 8 attacks" fills the grid, the red "Stopped here" cells stepping across runtime, gate and PayPal, with only the store's direct charge reaching the investigator (about 10 seconds). Then the scoreboard. Terminal: `npx @readback/verify <disputeId>` printing the four lights. The Agent Toolkit change. A caption: "Readback stores nothing."
+**Shot:** **"Try to break it"**: "Run all 8 attacks" fills the grid, the red "Stopped here" cells stepping across runtime, gate and PayPal, with only the store's direct charge reaching the investigator (about 10 seconds). Then the scoreboard. Terminal: `npx @readback/verify <disputeId>` printing the four lights (needs the npm packages published before recording). The Agent Toolkit change. A caption: "Readback stores nothing."
 
 **VO:** It's all checkable. Fifty-nine labeled scenarios, two thousand tampered requests, none accepted. One command re-runs any case from PayPal. And Readback stores nothing. Every fact is PayPal's.
 

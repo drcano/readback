@@ -1,0 +1,376 @@
+From b390ef05826040796c97b9a1c40e5cbc75170fde Mon Sep 17 00:00:00 2001
+From: drcano <156254264+drcano@users.noreply.github.com>
+Date: Sun, 25 Oct 2026 15:45:26 -0700
+Subject: [PATCH 3/7] feat(disputes): add provide_dispute_evidence tool
+
+Today's toolkit can list, get and accept disputes but cannot submit
+evidence. The new tool reads the dispute first and follows its own
+HATEOAS links: provide-evidence when offered, else
+provide-supporting-info (some states allow only that, and
+provide-evidence returns ACTION_NOT_ALLOWED_IN_CURRENT_DISPUTE_STATE),
+failing clearly if neither is offered.
+
+- multipart/form-data with an input JSON part; the JSON Content-Type
+  from getHeaders() is dropped so axios does not serialize the form as JSON
+- evidence_type limited to the enum in customer_disputes_v1.json
+- optional base64 documents attached as file parts
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ .../__tests__/provideDisputeEvidence.test.ts  | 85 +++++++++++++++++
+ typescript/src/shared/api.ts                  |  3 +
+ typescript/src/shared/functions.ts            | 57 ++++++++++++
+ typescript/src/shared/parameters.ts           | 92 +++++++++++++++++++
+ typescript/src/shared/prompts.ts              |  6 ++
+ typescript/src/shared/tools.ts                | 13 +++
+ 6 files changed, 256 insertions(+)
+ create mode 100644 typescript/src/shared/__tests__/provideDisputeEvidence.test.ts
+
+diff --git a/typescript/src/shared/__tests__/provideDisputeEvidence.test.ts b/typescript/src/shared/__tests__/provideDisputeEvidence.test.ts
+new file mode 100644
+index 0000000..e9bdd91
+--- /dev/null
++++ b/typescript/src/shared/__tests__/provideDisputeEvidence.test.ts
+@@ -0,0 +1,85 @@
++import axios from 'axios';
++import { provideDisputeEvidence } from '../functions';
++import { provideDisputeEvidenceParameters } from '../parameters';
++import tools from '../tools';
++import type PayPalClient from '../client';
++
++const BASE = 'https://api.sandbox.paypal.com/v1/customer/disputes/PP-D-12345';
++const fakeClient = {
++  getBaseUrl: () => 'https://api.sandbox.paypal.com',
++  getHeaders: async () => ({ 'Content-Type': 'application/json', Authorization: 'Bearer test' }),
++} as unknown as PayPalClient;
++
++function disputeOffering(...rels: string[]) {
++  return jest.spyOn(axios, 'get').mockResolvedValue({
++    status: 200,
++    data: { dispute_id: 'PP-D-12345', links: [{ rel: 'self' }, ...rels.map((rel) => ({ rel }))] },
++  });
++}
++
++const params = { dispute_id: 'PP-D-12345', evidence_type: 'BILLING_AGREEMENT' as const, notes: 'Signed by the approved agent key.' };
++
++async function inputPart(form: unknown): Promise<unknown> {
++  const part = (form as FormData).get('input') as Blob;
++  expect(part.type).toBe('application/json');
++  return JSON.parse(await part.text());
++}
++
++afterEach(() => jest.restoreAllMocks());
++
++describe('provide_dispute_evidence', () => {
++  it('posts multipart provide-evidence when the dispute offers it', async () => {
++    const get = disputeOffering('provide_evidence', 'provide_supporting_info');
++    const post = jest.spyOn(axios, 'post').mockResolvedValue({ status: 200, data: { links: [] } });
++
++    const out = await provideDisputeEvidence(fakeClient, {}, params);
++
++    expect(get).toHaveBeenCalledWith(BASE, expect.anything());
++    const [url, form, config] = post.mock.calls[0];
++    expect(url).toBe(`${BASE}/provide-evidence`);
++    expect(form).toBeInstanceOf(FormData);
++    expect(config?.headers).not.toHaveProperty('Content-Type');
++    expect(config?.params).toBeUndefined();
++    expect(await inputPart(form)).toEqual({ evidences: [{ evidence_type: 'BILLING_AGREEMENT', notes: params.notes }] });
++    expect(out).toEqual({ action: 'provide_evidence', response: { links: [] } });
++  });
++
++  it('falls back to provide-supporting-info (notes only) when that is all PayPal offers', async () => {
++    disputeOffering('provide_supporting_info', 'send_message');
++    const post = jest.spyOn(axios, 'post').mockResolvedValue({ status: 200, data: {} });
++
++    const out = await provideDisputeEvidence(fakeClient, {}, {
++      ...params,
++      documents: [{ name: 'receipt.pdf', content_type: 'application/pdf', content_base64: Buffer.from('%PDF-1.4').toString('base64') }],
++    });
++
++    const [url, form] = post.mock.calls[0];
++    expect(url).toBe(`${BASE}/provide-supporting-info`);
++    expect(await inputPart(form)).toEqual({ notes: params.notes });
++    const file = (form as FormData).get('supporting document') as File;
++    expect(file.name).toBe('receipt.pdf');
++    expect(await file.text()).toBe('%PDF-1.4');
++    expect(out.action).toBe('provide_supporting_info');
++  });
++
++  it('fails clearly and posts nothing when PayPal offers neither action', async () => {
++    disputeOffering('accept_claim', 'send_message');
++    const post = jest.spyOn(axios, 'post');
++
++    await expect(provideDisputeEvidence(fakeClient, {}, params)).rejects.toMatchObject({
++      code: 'DISPUTE_ACTION_NOT_OFFERED',
++      message: expect.stringContaining('Offered: accept_claim, send_message'),
++    });
++    expect(post).not.toHaveBeenCalled();
++  });
++
++  it('accepts only real PayPal evidence types', () => {
++    const schema = provideDisputeEvidenceParameters({});
++    expect(schema.safeParse(params).success).toBe(true);
++    expect(schema.safeParse({ ...params, evidence_type: 'PROOF_OF_AUTHORIZATION' }).success).toBe(false);
++  });
++
++  it('is registered as a disputes tool', () => {
++    expect(tools({}).find((t) => t.method === 'provide_dispute_evidence')?.actions).toEqual({ disputes: { create: true } });
++  });
++});
+diff --git a/typescript/src/shared/api.ts b/typescript/src/shared/api.ts
+index a37fb8a..1a9a376 100644
+--- a/typescript/src/shared/api.ts
++++ b/typescript/src/shared/api.ts
+@@ -33,6 +33,7 @@ import {
+   listDisputes,
+   getDispute,
+   acceptDisputeClaim,
++  provideDisputeEvidence,
+   captureOrder, listTransactions,
+   createSubscription,
+   showProductDetails,
+@@ -182,6 +183,8 @@ class PayPalAPI {
+         return getDispute(this.paypalClient, this.context, arg);
+       case 'accept_dispute_claim':
+         return acceptDisputeClaim(this.paypalClient, this.context, arg);
++      case 'provide_dispute_evidence':
++        return provideDisputeEvidence(this.paypalClient, this.context, arg);
+       case 'list_transactions':
+         return listTransactions(this.paypalClient, this.context, arg);
+       case 'update_plan':
+diff --git a/typescript/src/shared/functions.ts b/typescript/src/shared/functions.ts
+index 7688855..66e67cb 100644
+--- a/typescript/src/shared/functions.ts
++++ b/typescript/src/shared/functions.ts
+@@ -24,6 +24,7 @@ import {
+   listDisputesParameters,
+   captureOrderParameters,
+   acceptDisputeClaimParameters,
++  provideDisputeEvidenceParameters,
+   listTransactionsParameters,
+   createProductParameters,
+   listProductsParameters,
+@@ -1291,6 +1292,62 @@ export async function acceptDisputeClaim(
+   }
+ }
+ 
++// PayPal offers different actions in different dispute states: under some states only
++// provide-supporting-info is allowed and provide-evidence returns
++// ACTION_NOT_ALLOWED_IN_CURRENT_DISPUTE_STATE. So read the dispute's own HATEOAS links first.
++export async function provideDisputeEvidence(
++  client: PayPalClient,
++  context: Context,
++  params: TypeOf<ReturnType<typeof provideDisputeEvidenceParameters>>
++): Promise<any> {
++  const { dispute_id, evidence_type, notes, documents } = params;
++  const headers = await client.getHeaders();
++  const disputeUrl = `${client.getBaseUrl()}/v1/customer/disputes/${dispute_id}`;
++
++  let links: { rel?: string }[] = [];
++  try {
++    const response = await axios.get(disputeUrl, { headers });
++    links = response.data?.links ?? [];
++  } catch (error: any) {
++    logger('[provideDisputeEvidence] Error retrieving dispute:', error.message);
++    handleAxiosError(error);
++  }
++
++  const rels = links.map((l) => l.rel);
++  const action = rels.includes('provide_evidence') ? 'provide_evidence'
++    : rels.includes('provide_supporting_info') ? 'provide_supporting_info'
++    : null;
++  if (!action) {
++    throw new LlmError({
++      code: 'DISPUTE_ACTION_NOT_OFFERED',
++      message: `PayPal offers neither provide_evidence nor provide_supporting_info on dispute ${dispute_id} in its current state. Offered: ${rels.filter((r) => r && r !== 'self').join(', ') || 'none'}.`,
++    });
++  }
++
++  // Supporting info carries notes only; evidence_type applies to provide-evidence.
++  const input = action === 'provide_evidence' ? { evidences: [{ evidence_type, notes }] } : { notes };
++  const form = new FormData();
++  form.append('input', new Blob([JSON.stringify(input)], { type: 'application/json' }));
++  // Part names from customer_disputes_v1.json request bodies.
++  const filePart = action === 'provide_evidence' ? 'evidence-file' : 'supporting document';
++  for (const doc of documents ?? []) {
++    form.append(filePart, new Blob([Buffer.from(doc.content_base64, 'base64')], { type: doc.content_type }), doc.name);
++  }
++
++  // getHeaders() sets Content-Type: application/json, which would make axios serialize the
++  // form as JSON. Drop it so axios sets multipart/form-data with the boundary.
++  const { 'Content-Type': _json, ...multipartHeaders } = headers;
++  const url = `${disputeUrl}/${action.replace(/_/g, '-')}`;
++  try {
++    logger(`[provideDisputeEvidence] POST ${action}`);
++    const response = await axios.post(url, form, { headers: multipartHeaders });
++    return { action, response: response.data };
++  } catch (error: any) {
++    logger(`[provideDisputeEvidence] Error on ${action}:`, error.message);
++    handleAxiosError(error);
++  }
++}
++
+ export async function listTransactions(
+   client: PayPalClient,
+   context: Context,
+diff --git a/typescript/src/shared/parameters.ts b/typescript/src/shared/parameters.ts
+index 940ecab..faa2cc2 100644
+--- a/typescript/src/shared/parameters.ts
++++ b/typescript/src/shared/parameters.ts
+@@ -575,6 +575,98 @@ export const acceptDisputeClaimParameters = (context: Context) => z.object({
+   note: z.string().min(1).max(2000).describe("A note about why the seller is accepting the claim"),
+ });
+ 
++// evidence_type values from customer_disputes_v1.json (paypal-rest-api-specifications),
++// components.schemas.evidence.properties.evidence_type.x-enumDescriptions.
++export const DISPUTE_EVIDENCE_TYPES = [
++  'PROOF_OF_FULFILLMENT',
++  'PROOF_OF_REFUND',
++  'PROOF_OF_DELIVERY_SIGNATURE',
++  'PROOF_OF_RECEIPT_COPY',
++  'RETURN_POLICY',
++  'BILLING_AGREEMENT',
++  'PROOF_OF_RESHIPMENT',
++  'ITEM_DESCRIPTION',
++  'POLICE_REPORT',
++  'AFFIDAVIT',
++  'PAID_WITH_OTHER_METHOD',
++  'COPY_OF_CONTRACT',
++  'TERMINAL_ATM_RECEIPT',
++  'PRICE_DIFFERENCE_REASON',
++  'SOURCE_CONVERSION_RATE',
++  'BANK_STATEMENT',
++  'CREDIT_DUE_REASON',
++  'REQUEST_CREDIT_RECEIPT',
++  'PROOF_OF_RETURN',
++  'CREATE',
++  'CHANGE_REASON',
++  'PROOF_OF_REFUND_OUTSIDE_PAYPAL',
++  'RECEIPT_OF_MERCHANDISE',
++  'CUSTOMS_DOCUMENT',
++  'CUSTOMS_FEE_RECEIPT',
++  'INFORMATION_ON_RESOLUTION',
++  'ADDITIONAL_INFORMATION_OF_ITEM',
++  'DETAILS_OF_PURCHASE',
++  'PROOF_OF_SIGNIFICANT_DIFFERENCE',
++  'PROOF_OF_SOFTWARE_OR_SERVICE_NOT_AS_DESCRIBED',
++  'PROOF_OF_CONFISCATION',
++  'PROOF_OF_DAMAGE',
++  'COPY_OF_LAW_ENFORCEMENT_AGENCY_REPORT',
++  'ADDITIONAL_PROOF_OF_SHIPMENT',
++  'PROOF_OF_DENIAL_BY_CARRIER',
++  'THIRDPARTY_PROOF_FOR_DAMAGE_OR_SIGNIFICANT_DIFFERENCE',
++  'VALID_SUPPORTING_DOCUMENT',
++  'LEGIBLE_SUPPORTING_DOCUMENT',
++  'RETURN_TRACKING_INFORMATION',
++  'DELIVERY_RECEIPT',
++  'PROOF_OF_INSTORE_RECEIPT',
++  'ADDITIONAL_TRACKING_INFORMATION',
++  'PROOF_OF_SHIPMENT_POSTAGE',
++  'ONLINE_TRACKING_INFORMATION',
++  'PROOF_OF_INSTORE_REFUND',
++  'PROOF_FOR_SOFTWARE_OR_SERVICE_DELIVERED',
++  'RETURN_ADDRESS_FOR_SHIPPING',
++  'COPY_OF_THE_EPARCEL_MANIFEST',
++  'COPY_OF_SHIPPING_MANIFEST',
++  'APPEAL_AFFIDAVIT',
++  'RECEIPT_OF_REPLACEMENT',
++  'COPY_OF_DRIVERS_LICENSE',
++  'ACCOUNT_CHANGE_INFORMATION',
++  'DELIVERY_ADDRESS',
++  'CONFIRMATION_OF_RESOLUTION',
++  'MERCHANT_RESPONSE',
++  'PERMISSION_DESCRIPTION',
++  'STATUS_OF_MERCHANDISE',
++  'LOST_CARD_DETAILS',
++  'LAST_VALID_TRANSACTION_DETAILS',
++  'ADDITIONAL_PROOF_OF_RETURN',
++  'DECLARATION',
++  'PROOF_OF_MISSING_ITEMS',
++  'PROOF_OF_EMPTY_PACKAGE_OR_DIFFERENT_ITEM',
++  'PROOF_OF_ITEM_NOT_RECEIVED',
++  'ORDER_DETAILS',
++  'LISTING_URL',
++  'SHIPPING_INSURANCE',
++  'BUYER_RESPONSE',
++  'PHOTOS_OF_SHIPPED_ITEM',
++  'OTHER',
++  'CANCELLATION_DETAILS',
++  'MERCHANT_CONTACT_DETAILS',
++  'ITEM_DETAILS',
++  'CORRECT_RECIPIENT_INFORMATION',
++  'EXPLANATION_OF_FUNDS_NOT_DELIVERED',
++] as const;
++
++export const provideDisputeEvidenceParameters = (context: Context) => z.object({
++  dispute_id: z.string().regex(DISPUTE_ID_REGEX, "Invalid PayPal Dispute ID").describe('The ID of the dispute.'),
++  evidence_type: z.enum(DISPUTE_EVIDENCE_TYPES).describe('The evidence type. Used only when PayPal offers provide-evidence on the dispute; supporting info has no type.'),
++  notes: z.string().min(1).max(2000).describe('The evidence notes the merchant submits.'),
++  documents: z.array(z.object({
++    name: z.string().regex(/^[A-Za-z0-9-_,\s]+[.]{1}[A-Za-z]+$/, "Invalid document name").max(2000).describe('File name, e.g. receipt.pdf.'),
++    content_type: z.enum(['application/pdf', 'image/jpeg', 'image/gif', 'image/png']).describe('The file MIME type.'),
++    content_base64: z.string().min(1).describe('The file contents, base64-encoded.'),
++  })).max(10).optional().describe('Optional files to attach.'),
++});
++
+ // === Transaction Search ===
+ 
+ export const listTransactionsParameters = (context: Context) => z.object({
+diff --git a/typescript/src/shared/prompts.ts b/typescript/src/shared/prompts.ts
+index 64ea289..8df53ee 100644
+--- a/typescript/src/shared/prompts.ts
++++ b/typescript/src/shared/prompts.ts
+@@ -315,6 +315,12 @@ Accept liability for a dispute claim.
+ This tool is used to accept liability for a dispute claim. When you accept liability for a dispute claim, the dispute closes in the customer's favor and PayPal automatically refunds money to the customer from the merchant's account.
+ `
+ 
++export const provideDisputeEvidencePrompt = (context: Context) => `
++Submit evidence for a dispute.
++
++This tool reads the dispute first and uses whichever submission PayPal offers in the dispute's current state: provide-evidence (with the given evidence_type) or, if only that is offered, provide-supporting-info (notes and documents only). It fails if PayPal offers neither. The result names the action used. Documents are optional base64-encoded PDF, JPEG, GIF or PNG files.
++`
++
+ export const listTransactionsPrompt = (context: Context) => `
+ List transactions from PayPal.
+ 
+diff --git a/typescript/src/shared/tools.ts b/typescript/src/shared/tools.ts
+index 1b561b3..2be0d1e 100644
+--- a/typescript/src/shared/tools.ts
++++ b/typescript/src/shared/tools.ts
+@@ -31,6 +31,7 @@ import {
+   getDisputePrompt,
+   listDisputesPrompt,
+   acceptDisputeClaimPrompt,
++  provideDisputeEvidencePrompt,
+   captureOrderPrompt,
+   listTransactionsPrompt,
+   createProductPrompt,
+@@ -81,6 +82,7 @@ import {
+   getDisputeParameters,
+   listDisputesParameters,
+   acceptDisputeClaimParameters,
++  provideDisputeEvidenceParameters,
+   captureOrderParameters,
+   listTransactionsParameters,
+   createProductParameters,
+@@ -577,6 +579,17 @@ const tools = (context: Context): Tool[] => [
+       },
+     },
+   },
++  {
++    method: 'provide_dispute_evidence',
++    name: 'Provide dispute evidence',
++    description: provideDisputeEvidencePrompt(context),
++    parameters: provideDisputeEvidenceParameters(context),
++    actions: {
++      disputes: {
++        create: true,
++      },
++    },
++  },
+   {
+     method: 'list_transactions',
+     name: 'List Transactions',
+-- 
+2.50.1 (Apple Git-155)
+

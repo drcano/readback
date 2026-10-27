@@ -1,0 +1,48 @@
+From 1f6deceaf04332643973b6582dd378bd6b7a208f Mon Sep 17 00:00:00 2001
+From: drcano <156254264+drcano@users.noreply.github.com>
+Date: Sun, 25 Oct 2026 15:43:38 -0700
+Subject: [PATCH 2/7] fix(disputes): accept_dispute_claim note validation and
+ query-string leak
+
+- Move DISPUTE_ID_REGEX from note to dispute_id, where it belongs; note is
+  now 1-2000 characters, the bound PayPal's Disputes spec uses for notes
+- Stop passing tool params as axios params, which appended
+  ?dispute_id=...&note=... to the accept-claim POST URL
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ typescript/src/shared/functions.ts  | 2 +-
+ typescript/src/shared/parameters.ts | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/typescript/src/shared/functions.ts b/typescript/src/shared/functions.ts
+index b3c83e1..7688855 100644
+--- a/typescript/src/shared/functions.ts
++++ b/typescript/src/shared/functions.ts
+@@ -1282,7 +1282,7 @@ export async function acceptDisputeClaim(
+ 
+   try {
+     logger('[acceptClaim] Sending request to PayPal API');
+-    const response = await axios.post(url, { note: params.note }, { headers, params });
++    const response = await axios.post(url, { note: params.note }, { headers });
+     logger(`[acceptClaim] Disputes retrieved successfully. Status: ${response.status}`);
+     return response.data;
+   } catch (error: any) {
+diff --git a/typescript/src/shared/parameters.ts b/typescript/src/shared/parameters.ts
+index a0499ac..940ecab 100644
+--- a/typescript/src/shared/parameters.ts
++++ b/typescript/src/shared/parameters.ts
+@@ -571,8 +571,8 @@ export const getDisputeParameters = (context: Context) => z.object({
+ })
+ 
+ export const acceptDisputeClaimParameters = (context: Context) => z.object({
+-  dispute_id: z.string(),
+-  note: z.string().regex(DISPUTE_ID_REGEX, "Invalid PayPal Dispute ID").describe("A note about why the seller is accepting the claim"),
++  dispute_id: z.string().regex(DISPUTE_ID_REGEX, "Invalid PayPal Dispute ID").describe('The ID of the dispute.'),
++  note: z.string().min(1).max(2000).describe("A note about why the seller is accepting the claim"),
+ });
+ 
+ // === Transaction Search ===
+-- 
+2.50.1 (Apple Git-155)
+

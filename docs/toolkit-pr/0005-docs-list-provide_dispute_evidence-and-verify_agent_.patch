@@ -1,0 +1,74 @@
+From db485f2b1a47808ed80b3fd93f62dbe2c786931b Mon Sep 17 00:00:00 2001
+From: drcano <156254264+drcano@users.noreply.github.com>
+Date: Sun, 25 Oct 2026 15:47:34 -0700
+Subject: [PATCH 5/7] docs: list provide_dispute_evidence and
+ verify_agent_purchase
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ PROMPTS.md           | 21 +++++++++++++++++++++
+ README.md            |  2 ++
+ typescript/README.md |  2 ++
+ 3 files changed, 25 insertions(+)
+
+diff --git a/PROMPTS.md b/PROMPTS.md
+index 7538422..0f267de 100644
+--- a/PROMPTS.md
++++ b/PROMPTS.md
+@@ -253,6 +253,27 @@ The PayPal Agent toolkit provides the following tools:
+ > **Example Prompt**:
+ > Accept the dispute with ID {dispute_id}
+ 
++---
++
++**`provide_dispute_evidence`** - Submits evidence for a dispute, using provide-evidence or provide-supporting-info according to what PayPal offers in the dispute's current state.
++
++- `dispute_id` (string): The unique identifier of the dispute.
++- `evidence_type` (string): A PayPal evidence type, e.g. BILLING_AGREEMENT or PROOF_OF_FULFILLMENT.
++- `notes` (string): The evidence notes (1-2000 characters).
++- `documents` (array, optional): Files as `{ name, content_type, content_base64 }`.
++
++> **Example Prompt**:
++> Submit the signed billing agreement as evidence for dispute {dispute_id}
++
++---
++
++**`verify_agent_purchase`** - Rebuilds an AI-agent purchase from PayPal (dispute, capture, order, vault payment token) and returns the configured verifier's verdict.
++
++- `id` (string): A dispute ID or a capture ID.
++
++> **Example Prompt**:
++> Did my customer's agent really authorize the charge in dispute {dispute_id}?
++
+ ### **Shipment Tracking**
+ 
+ ---
+diff --git a/README.md b/README.md
+index 6dc6944..3d6dcad 100644
+--- a/README.md
++++ b/README.md
+@@ -44,6 +44,8 @@ The PayPal Agent toolkit provides the following tools:
+ - `list_disputes`: Retrieve a summary of all open disputes
+ - `get_dispute`: Retrieve detailed information of a specific dispute
+ - `accept_dispute_claim`: Accept a dispute claim
++- `provide_dispute_evidence`: Submit evidence (or supporting info, whichever PayPal offers) for a dispute
++- `verify_agent_purchase`: Verify an AI-agent purchase from PayPal's records (requires a configured verifier)
+ 
+ **Shipment Tracking**
+ 
+diff --git a/typescript/README.md b/typescript/README.md
+index 1b20781..3407c67 100644
+--- a/typescript/README.md
++++ b/typescript/README.md
+@@ -44,6 +44,8 @@ The PayPal Agent toolkit provides the following tools:
+ - `list_disputes`: Retrieve a summary of all open disputes
+ - `get_dispute`: Retrieve detailed information of a specific dispute
+ - `accept_dispute_claim`: Accept a dispute claim
++- `provide_dispute_evidence`: Submit evidence (or supporting info, whichever PayPal offers) for a dispute
++- `verify_agent_purchase`: Verify an AI-agent purchase from PayPal's records (requires a configured verifier)
+ 
+ **Shipment Tracking**
+ 
+-- 
+2.50.1 (Apple Git-155)
+

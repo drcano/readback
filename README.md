@@ -10,7 +10,7 @@ Agent purchase mandates and dispute evidence, built entirely on PayPal's own rec
 |---|---|
 | **Rulings** | 59/59 labeled scenarios behave as labeled. **0** wrong suggestions toward the seller, **0** toward the buyer ([results](evals/results/latest.json)) |
 | **Tampering** | 2,000 random single-field mutations of an upheld case: **0** still upheld. 10,000 more in the core test suite |
-| **Storage** | **Zero.** No database, no files, no caches. PayPal is the only system of record |
+| **Storage** | **Zero.** No database, no files, no caches of customer data. PayPal is the only system of record |
 | **Accessibility** | axe-core: **0** WCAG 2.1 AA violations on 8 pages, light and dark |
 
 **Try it:** run it locally in a few minutes ([Run it](#run-it)). Both verdicts, the investigator, the evals and the AP2 check work without any credentials, on labeled fixture data; approving and buying use the PayPal sandbox. <!-- TODO(submission): hosted URL and the YouTube video link go here. -->
@@ -37,7 +37,7 @@ Maya's assistant ──asks──▶ agent runtime ──signs (ES256)──▶ 
                        investigator view & re-verify in the browser ◀──reads─────────────┘
 ```
 
-1. **Consent on PayPal.** Maya says it once; her agent reads it back as exact terms. She approves them on **PayPal's own approval page**, which shows a summary with her agent's key fingerprint; she approves only if it matches what her agent shows. PayPal stores the exact terms (merchant, item, cap, cadence, dates, fingerprint) in the payment token's `description`, which can't be edited afterwards. The summary she saw isn't kept by PayPal, which is why a seller-favor ruling also needs history (see [Limitations](#limitations)).
+1. **Consent on PayPal.** Maya says it once; her agent reads it back as exact terms. She approves them on **PayPal's own approval page**, which shows a summary with her agent's key fingerprint; she approves only if it matches what her agent shows. (That summary is a line the merchant writes; PayPal doesn't show the stored terms, which is the one gap code can't close: THREAT-MODEL T21, and what we ask PayPal to change.) PayPal stores the exact terms (merchant, item, cap, cadence, dates, fingerprint) in the payment token's `description`, which can't be edited afterwards. The summary she saw isn't kept by PayPal, which is why a seller-favor ruling also needs history (see [Limitations](#limitations)).
 2. **Signed requests.** Each purchase is a closed mandate (compact JWS, ES256 over P-256) signed by her agent runtime, which refuses anything outside the terms *before* signing.
 3. **A deterministic gate.** The merchant's gate verifies the signature, re-reads the terms from PayPal, checks every limit, and charges the saved wallet with an `invoice_id` naming the period, so **PayPal itself refuses a second charge** in the same period.
 4. **Eleven checks.** When a dispute arrives, Readback rebuilds the case from PayPal's records (dispute → capture → order → terms), verifies the signature, runs eleven checks, and suggests an outcome only when the evidence supports one.
@@ -111,7 +111,7 @@ The investigator queue (AG Grid) shows each dispute's evidence at a glance. The 
 - **Merchants** get evidence that wins the disputes they should win, with a 10-line integration (below) and nothing new to store.
 - **PayPal** gets the record its own review currently lacks, on rails it already runs. [docs/PROPOSAL-agent-terms.md](docs/PROPOSAL-agent-terms.md) sketches the one API change (an `agent_terms` object on Vault payment tokens) that would move these checks inside PayPal.
 
-Developer surfaces: `@readback/core` (the checks), `npx @readback/verify <disputeId>` (re-derive any case from PayPal with the merchant's API credentials), and a prepared change to PayPal's Agent Toolkit adding `verify_agent_purchase` and `provide_dispute_evidence` and fixing two reproduced `accept_dispute_claim` bugs.
+Developer surfaces: `@readback/core` (the checks) and `@readback/verify` (re-derive any case from PayPal with the merchant's API credentials), both packaged for npm and published at submission (until then: `node packages/verify-cli/src/cli.ts <disputeId>`). And a prepared change to PayPal's Agent Toolkit, adding `verify_agent_purchase` and `provide_dispute_evidence` and fixing two `accept_dispute_claim` bugs reproduced with failing tests first: the patches and description are in [docs/toolkit-pr](docs/toolkit-pr/README.md). It becomes a pull request once our GitHub account is restored.
 
 ## Innovation
 
@@ -148,7 +148,7 @@ const res = await fetch(`${PAYPAL}/v2/checkout/orders`, {
 });
 ```
 
-`jws` is the agent's signed request, and `getToken` is your existing `GET /v3/vault/payment-tokens/{id}`. When a dispute arrives, `npx @readback/verify <disputeId>` (or `buildCaseBundle` + `evaluateCase`) rebuilds the case from PayPal alone:
+`jws` is the agent's signed request, and `getToken` is your existing `GET /v3/vault/payment-tokens/{id}`. When a dispute arrives, `npx @readback/verify <disputeId>` (once published; or `buildCaseBundle` + `evaluateCase`) rebuilds the case from PayPal alone:
 
 ```bash
 pnpm --filter existing-paypal-merchant start
@@ -190,7 +190,7 @@ Tests: `pnpm test` · browser: `pnpm test:browser` · evals: `pnpm eval` · end 
 | `packages/readback-core`: terms grammar, ES256 mandates, fingerprints, labels, gate decision, eleven checks, classification, AP2 import | Built and tested (see above) |
 | `apps/agent`: MCP agent runtime, stateless, two secret paths | Built; tested over MCP, with MCP Inspector, by the Claude harness, and live through the home page chat panel |
 | `apps/web`: shopper flow, judge mode, investigator queue and case view, checkout gate, agreements, webhooks | Built; tested against an in-memory PayPal fake and end to end in Chromium |
-| Sandbox spike | Steps 1, 2, 4, 6, 8 and 9 pass. Step 3's charge passes, but PayPal sends no vault echo; the labels-plus-payer fallback is in place. Step 5's merchant side is done; buyer-side cancel is *pending*. Step 7: a real dispute reads end to end, and the sandbox adjudicated one alone overnight. On a live dispute, Readback sent its evidence, then refunded, and PayPal ruled for the buyer about two minutes later. An unauthorized-claim dispute is *pending*. ([record](docs/decisions/0001-sandbox-spike.md)) |
+| Sandbox spike | Steps 1, 2, 4, 6, 8 and 9 pass. Step 3's charge passes, but PayPal sends no vault echo; the labels-plus-payer fallback is in place. Step 5's merchant side is done; buyer-side cancel is *pending*. Step 7: a real dispute reads end to end, and the sandbox adjudicated one alone overnight. On a live dispute, Readback sent its evidence, then refunded, and PayPal ruled for the buyer about two minutes later. An unauthorized claim files as `UNAUTHORISED`, and PayPal then deletes the agreement (Oct 26). ([record](docs/decisions/0001-sandbox-spike.md)) |
 
 ## Repository
 

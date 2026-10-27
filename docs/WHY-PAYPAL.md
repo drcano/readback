@@ -216,7 +216,7 @@ It puts agent purchases into the existing dispute process. That process evaluate
 Readback does use AP2's model: user-approved constraints that pin the agent key, plus agent-signed closed mandates. What it doesn't need is the rest of the ecosystem, which isn't broadly live yet: user-held credentials, issuers, and dispute processes that read SD-JWTs.
 - Readback carries the same structure in places PayPal already stores and returns.
 - Its agent key uses the key type AP2's schema requires (EC P-256). Its mandates are a compact JWS rather than SD-JWT.
-- It imports a real AP2 v0.2 open Payment Mandate and runs the same constraint checks against it, mapping AP2's own constraint types (`amount_range`, `allowed_payees`, `execution_date`, `agent_recurrence`), if that part ships (it is first in the drop order).
+- It imports a real AP2 v0.2 open Payment Mandate and runs the same constraint checks against it, mapping AP2's own constraint types (`amount_range`, `allowed_payees`, `execution_date`, `agent_recurrence`) (it shipped: `/ap2`).
 - When AP2 adoption arrives, the checks are the same constraint evaluation AP2 describes.
 
 **"Which agent bought it?"**
@@ -257,7 +257,7 @@ A PayPal outcome doesn't bind the card issuer. The shopper can still go to their
 Not today. One agreement covers one merchant, which fits replenishment, subscriptions, and standing orders.
 - Each merchant would get its own agreement under the same consent pattern.
 - A cross-merchant mandate is what AP2's open mandates are for.
-- The build imports AP2 open mandates (if shipped). Cross-merchant enforcement is roadmap.
+- The build imports and checks AP2 open mandates (`/ap2`). Cross-merchant enforcement is roadmap.
 
 **"Is a merchant-initiated charge on a vaulted wallet even Seller Protection eligible?"**
 We found no PayPal document that says either way. Readback doesn't assert it. It shows PayPal's own `seller_protection` status from each capture. [A3]
@@ -273,9 +273,9 @@ We found no PayPal document that says either way. Readback doesn't assert it. It
 
 **From the hackathon build:**
 - A working reference implementation on the public APIs, with a public record of every sandbox call it depends on.
-- `@readback/core` on npm: the typed, browser-safe checks library.
-- `npx @readback/verify`: re-derives a case from PayPal using the merchant account's API credentials (or PayPal's own). It removes dependence on the merchant's hosted code, not on API access to that account.
-- A pull request to PayPal's Agent Toolkit adding `verify_agent_purchase` and `provide_dispute_evidence`, and fixing two `accept_dispute_claim` bugs. The toolkit's dispute tools today are list, get, and accept; there is no evidence submission. [A4]
+- `@readback/core`, packaged for npm (published at submission): the typed, browser-safe checks library.
+- `@readback/verify` (`npx @readback/verify` once published at submission): re-derives a case from PayPal using the merchant account's API credentials (or PayPal's own). It removes dependence on the merchant's hosted code, not on API access to that account.
+- A change to PayPal's Agent Toolkit, prepared as patches in `docs/toolkit-pr` (a pull request once our GitHub account is restored), adding `verify_agent_purchase` and `provide_dispute_evidence`, and fixing two `accept_dispute_claim` bugs. The toolkit's dispute tools today are list, get, and accept; there is no evidence submission. [A4]
 - A 10-line quick-start for existing PayPal merchants.
 
 **For production**, the same checks run better inside PayPal. Internally PayPal has three things the merchant-side build can't see:
@@ -294,10 +294,10 @@ That closes the remaining gaps (setup-time key swap, terms after revocation, uns
 
 ## 8. Limitations, stated plainly
 
-- **Sandbox-only demo.** The hosted demo runs on PayPal's sandbox. It uses sandbox-only endpoints (`require-evidence`, `adjudicate`) to show a ruling on camera.
+- **Sandbox-only demo.** The hosted demo runs on PayPal's sandbox. Every ruling shown is PayPal's own: the sandbox's `require-evidence` and `adjudicate` endpoints refused every state we tried (spike step 7), so rulings come from PayPal resolving a case itself or after the store refunds.
 - **Investigator view is a concept.** It is a proposed workflow running on merchant credentials, not an integration with PayPal's internal tools. The web view's results are re-derivable, not independent of the merchant's deployment. The `@readback/verify` CLI removes the dependence on merchant-hosted code, but still needs API access to the merchant's account. Only PayPal hosting the view would make it fully independent.
 - **Judge mode holds a demo key in the browser.** To show that the signer isn't the builder, judge mode lets a judge's own browser hold a non-extractable agent key for one session. It's a demonstration, not a production key-custody design (threat model T31).
-- **Demo cadence.** The live demo uses one-day periods, labeled on screen, so that history exists before the deadline. Disputes are a hand-opened pool, and judge mode shows recorded adjudications rather than creating new ones.
+- **Demo cadence.** The live demo uses one-day periods, labeled on screen, so that history exists before the deadline. Disputes are hand-opened in the sandbox. Judge mode makes live sandbox charges under the judge's own agreement and checks them in preview mode; it doesn't open disputes.
 - **Terms after revocation.** If a shopper deletes the agreement, the merchant-side API can no longer read the token. Readback then falls back to the copy of the terms carried on every charge, labels it secondary, and withholds any seller-favor suggestion based on it. PayPal internally would not have this gap.
 - **Spike-dependent behavior.** These are tested in the spike (`docs/decisions/0001-sandbox-spike.md`), and the design has a fallback for each if it doesn't hold:
   - whether PayPal's order shows which saved wallet paid (it doesn't; the fallback is in place);

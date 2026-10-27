@@ -490,7 +490,6 @@ Every route is stateless.
 | DELETE | `/api/agreements/[tokenId]` | Proof of the agreement's agent key: a JWS over `{tokenId, purpose:"revoke", iat}`; or Admin | `DELETE /v3/vault/payment-tokens/{id}` | 204 |
 | POST | `/api/checkout` | Public; the signed mandate is the credential | token GET; `POST /v2/checkout/orders`; capture | Capture ID and order ID, or a plain-language denial |
 | POST | `/api/demo/direct-charge` | Demo; JWS from the tab key (§5.7) | token GET; `POST /v2/checkout/orders` (no mandate) | Capture ID |
-| POST | `/api/orders/[orderId]/track` | Admin | `POST /v2/checkout/orders/{id}/track` | Tracker |
 | GET | `/api/queue` | Public; rate-limited (T25) | `GET /v1/customer/disputes` plus per-row case fetches | Queue rows: live disputes plus labeled fixtures |
 | GET | `/api/cases/[id]` | Public; rate-limited (T25) | dispute or capture → order → token → trackers → Transaction Search | **Case bundle:** only the fields the checks read, plus the server-side classification. The browser re-verifies from it. With `?stream=1`, the same build as NDJSON: one line per PayPal record as it is read (label, API, ID, status, time), then the bundle and the classification. The case view uses it to show the case being rebuilt |
 | POST | `/api/cases/[id]/brief` | Public | none (Claude only) | Cited brief, validated |

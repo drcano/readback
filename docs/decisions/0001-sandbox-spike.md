@@ -1,6 +1,6 @@
 # 0001 — Sandbox spike (go/no-go)
 
-Status: in progress (started 2026-10-14). Steps 1–4, 6 and 8 done, 5 merchant side done, 7 partial (one dispute adjudicated by PayPal itself; Readback's evidence written into a second, live one); remaining: step 7's `UNAUTHORISED` dispute and one we drive to `adjudicate`, and step 5's buyer-side cancel and webhook. Public record, linked from the README.
+Status: in progress (started 2026-10-14). Steps 1–4, 6 and 8 done, 5 merchant side done, 7 done for the demo (a dispute PayPal resolved itself; Readback's evidence and refund on a second; an `UNAUTHORISED` claim on a third, which made PayPal delete the agreement); remaining: a dispute driven to `adjudicate`, and step 5's buyer-side cancel and webhook. Public record, linked from the README.
 
 Each row is filled from a real sandbox run against a **standard merchant REST app** (not a platform app). Failures are recorded, not hidden. Scrubbed responses are saved under `evals/fixtures/spike/`. Steps are defined in `docs/SPEC.md` §8.
 
@@ -12,7 +12,7 @@ Each row is filled from a real sandbox run against a **standard merchant REST ap
 | 4 | Duplicate-period guard (`DUPLICATE_INVOICE_ID`), request-ID replay | **yes** | `04-duplicate-guard.ts` | **PASS** (10-15) | `04-*.json` |
 | 5 | Revocation: merchant DELETE, buyer-side cancel, webhooks | no | `05-revocation.ts` | merchant DELETE done (10-15); buyer cancel and webhook pending | `05-*.json` |
 | 6 | History: Transaction Search, `:` in `custom_field`, lag | no | `06-history.ts` | PASS (10-17) | `06-*.json` |
-| 7 | Disputes: UI-opened, lifecycle to `adjudicate` | **yes** | `07-disputes.ts` | API reachable; needs a UI-opened dispute | `07-*.json` |
+| 7 | Disputes: UI-opened, lifecycle to `adjudicate` | **yes** | `07-disputes.ts` | Three UI-opened disputes read end to end (Oct 15, Oct 26 ×2); `adjudicate` refused in every state seen | `07-*.json` |
 | 8 | Tracking: `/track` round-trips | no | `08-tracking.ts` | **PASS** (10-15) | `08-*.json` |
 | 9 | Crypto (ES256 + thumbprint, Node and browser) / connector | **crypto: yes** | `09-crypto.ts`, `packages/readback-core` browser test | **crypto: PASS** (2026-10-15) | — |
 
@@ -76,7 +76,7 @@ Fixtures from step 3 on are signed with throwaway keys that don't match step 2's
 
 ## Results, 2026-10-15 (first sandbox run)
 
-**Step 1 (PASS).** All ten Readback fields round-trip byte-for-byte on GET, before and after capture, including the 619-character signed mandate in `items[0].description`. The capture carries `custom_id` and `invoice_id` and links to its order. `seller_protection` came back `ELIGIBLE` for `ITEM_NOT_RECEIVED` and `UNAUTHORIZED_TRANSACTION`. That is PayPal's field, recorded here, not a Seller Protection claim. Not yet recorded: what Maya's receipt shows.
+**Step 1 (PASS).** All ten Readback fields round-trip byte-for-byte on GET, before and after capture, including the 619-character signed mandate in `items[0].description`. The capture carries `custom_id` and `invoice_id` and links to its order. `seller_protection` came back `ELIGIBLE` for `ITEM_NOT_RECEIVED` and `UNAUTHORIZED_TRANSACTION`. That is PayPal's field, recorded here, not a Seller Protection claim. The buyer's receipt shows the mandate as the item description (step 7, Oct 26).
 
 **Step 2 (PASS, with a change).** Five request shapes were tried. With `usage_pattern: UNSCHEDULED_PREPAID`, PayPal rejects every `billing_plan` (`422 INCOMPATIBLE_PARAMETER_VALUE` on `pricing_model`), whether the plan is `VARIABLE` with or without a price, or `FIXED`. `UNSCHEDULED_POSTPAID` fails the same way. Only **`RECURRING_PREPAID` + `VARIABLE`** is accepted. The terms `description` then round-trips byte-equal on create and GET. `billing_plan` is not returned, as SPEC assumed. `usage_pattern` and `permit_multiple_payment_tokens` are not echoed on GET (the script counts these as FAIL; they are informational). A second agreement for the same buyer gets a distinct token ID and a distinct `customer.id`, with the same `payer_id`.
 - **The approval page shows only `billing_plan.name`**, prefixed with the brand name ("to Good Boy Provisions: <name>"). The `description` terms string, with the agent fingerprint, is **not shown to the buyer**.
@@ -124,8 +124,9 @@ Fixtures from step 3 on are signed with throwaway keys that don't match step 2's
     - Fixtures: `07-unauthorized-dispute.json`, `-capture.json`, `-order.json`.
   - **Readback rebuilt it and classified it as row 12** ("consent unverified", no suggestion), with only check 11 failing: the agreement had no earlier charges. Signature, terms and delivery all passed. With the hero's history, the same claim is row 13, `SELLER_FAVOR`. This answers the go/no-go question for the demo story.
   - **Right after filing, PayPal requires the buyer to secure the account.** It asks her to answer questions and reset the password, and warns: "If you skip this step, your account will be blocked. You won't be able to send, receive or withdraw money." So the hero claim must be filed after the last seed charge it needs, and Maya's password reset is part of filing it.
-  - **The buyer's receipt shows the signed mandate (the JWS) as the item description**, as an unreadable string. That should be fixed before the video.
-- Not yet done: a dispute that reaches `adjudicate`, and whether the spare buyer stays blocked if the security step is skipped.
+  - **The buyer's receipt shows the signed mandate (the JWS) as the item description**, as an unreadable string. No order field can hold it instead (step 1's limits), so it stays and the video captions it as her agent's signature; the proposal asks PayPal to render it in words (commit 15c244e).
+- **PayPal then deleted the agreement.** Within 30 minutes of filing (filed 01:10Z, checked 01:39Z), `GET /v3/vault/payment-tokens/5ek39697f30423035` returns 404; the hero agreement still returns 200. So the terms can now only be read from the order's copy, which the merchant wrote. `@readback/verify` marks every consent and terms check `[secondary terms]`. By design (THREAT-MODEL T10), Readback never suggests seller favor on secondary terms. **Consequence for the demo:** if Maya files the hero claim the same way and PayPal deletes her agreement too, the hero reads "Needs review", not "Uphold". What isn't known yet is whether the deletion comes from the claim itself or from the skipped "Secure your account" step. This is also the strongest evidence for the proposal's `deleted_at`: PayPal erases the consent record at the moment a dispute needs it.
+- Not yet done: a dispute that reaches `adjudicate`; whether completing "Secure your account" keeps the agreement.
 
 **Step 6 (PASS, 2026-10-17).** Run by the daily seed job at 16:00Z; `06-transactions-page1.json` holds the page. All 12 transactions from the last 30 days came back on one page.
 - **`:` survives.** Every `rb1:` `custom_field` keeps the full SPEC §4.4 shape, and each one has its `RB-…` `invoice_id`.
@@ -138,4 +139,4 @@ Fixtures from step 3 on are signed with throwaway keys that don't match step 2's
 
 ## Decision
 
-Go, with the changes above. Steps 1, 2 and 4 pass; step 3's charge passes and its echo fails, with the fallback in place; step 7 (disputes) is the remaining go/no-go.
+Go, with the changes above. Steps 1, 2 and 4 pass; step 3's charge passes and its echo fails, with the fallback in place; step 7 (disputes) passed its go/no-go on Oct 26 (see step 7).
