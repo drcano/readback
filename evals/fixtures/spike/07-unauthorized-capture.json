@@ -1,0 +1,49 @@
+{
+  "id": "78579517PC5150051",
+  "amount": {
+    "currency_code": "USD",
+    "value": "64.99"
+  },
+  "final_capture": true,
+  "seller_protection": {
+    "status": "ELIGIBLE",
+    "dispute_categories": [
+      "ITEM_NOT_RECEIVED",
+      "UNAUTHORIZED_TRANSACTION"
+    ]
+  },
+  "invoice_id": "RB-5ek39697f30423035-P001",
+  "custom_id": "rb1:5ek39697f30423035:4ddfde96d949e2d1:p001:a2b996412fb4a74d",
+  "status": "PENDING",
+  "status_details": {
+    "reason": "BUYER_COMPLAINT"
+  },
+  "supplementary_data": {
+    "related_ids": {
+      "order_id": "8J993198BK453370D"
+    }
+  },
+  "payee": {
+    "email_address": "maya@example.com",
+    "merchant_id": "CECTB4SU6GCRL"
+  },
+  "create_time": "2026-10-27T01:01:46Z",
+  "update_time": "2026-10-27T01:14:03Z",
+  "links": [
+    {
+      "href": "https://api.sandbox.paypal.com/v2/payments/captures/78579517PC5150051",
+      "rel": "self",
+      "method": "GET"
+    },
+    {
+      "href": "https://api.sandbox.paypal.com/v2/payments/captures/78579517PC5150051/refund",
+      "rel": "refund",
+      "method": "POST"
+    },
+    {
+      "href": "https://api.sandbox.paypal.com/v2/checkout/orders/8J993198BK453370D",
+      "rel": "up",
+      "method": "GET"
+    }
+  ]
+}

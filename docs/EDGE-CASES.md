@@ -127,7 +127,8 @@ All measured against Readback's own stack over the PayPal fake, never against th
 
 | Edge | Rule | Why |
 |---|---|---|
-| An unauthorized-claim dispute may restrict the buyer's sandbox account | File the hero dispute only after the last seed charge it needs, and file other unauthorized disputes on separate agreements. | A restricted buyer can stop the daily seed charges the hero case depends on ([spike record](decisions/0001-sandbox-spike.md), step 7). |
+| Filing an unauthorized claim makes the buyer secure her account, or the account is blocked | File the hero dispute only after the last seed charge it needs, and have Maya complete the password reset when PayPal asks. File other unauthorized disputes on separate agreements. | Observed on `PP-R-QMJ-10194712` ([spike record](decisions/0001-sandbox-spike.md), step 7): "If you skip this step, your account will be blocked." A blocked buyer would stop the seed charges. |
+| The buyer's unauthorized option is "I suspect the subscription or recurring payment was set up by someone else" | Use that option for the hero claim. It files as `UNAUTHORISED` and skips the inquiry stage. The first Submit may fail with "something went wrong"; retry once. | Step 7, Oct 26. |
 | The demo direct charge is one per agreement (`RB-<token>-DIRECT`) | Make the hero's twist charge and open its dispute close to the Nov 8 recording. Expect judges (Dec 1–15) to see it resolved: the case view leads with PayPal's ruling and says whether Readback agrees (§6). | PayPal's duplicate-invoice guard allows that invoice ID once, and unanswered sandbox disputes resolve in about 14 hours. |
 | Unanswered sandbox disputes resolve on their own after about 14 hours | Open the demo's disputes close to recording. The case view is built to show resolved cases (§6). | Observed on `PP-R-BVW-10191531` (step 7). |
 | A new dispute takes a few minutes to appear in PayPal's list, and about two minutes to get its action links | The queue may not show it yet; the case view by ID reads it at once. Wait for the links before sending. | Step 7 observations. |
@@ -140,5 +141,5 @@ All measured against Readback's own stack over the PayPal fake, never against th
 Known and unproven. None of these is claimed anywhere else.
 - **Popup and exchange states:** the popup-blocked fallback link and the failed-exchange message reach the judge's tab, but no automated test exercises them.
 - **Buyer-side cancel:** cancelling in PayPal's settings, and whether that fires `VAULT.PAYMENT-TOKEN.DELETED`, is pending (spike step 5).
-- **Unauthorized dispute in the sandbox:** whether one opens in the inquiry stage is pending (spike step 7), as is a dispute that reaches adjudication after Readback's evidence.
+- **Adjudication:** no dispute has yet reached PayPal's adjudication after Readback's evidence. (The unauthorized claim itself is now tested: it files as `UNAUTHORISED`, in the chargeback stage, spike step 7.)
 - **Long statements:** an evidence statement over PayPal's 2,000-character limit is cut with an ellipsis. No test builds one that long.
