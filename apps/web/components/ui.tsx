@@ -9,7 +9,7 @@ const NAV = [
   { id: "shopper", href: "/shopper", label: "Shopper" },
   { id: "queue", href: "/investigator", label: "Investigator" },
   { id: "judge", href: "/judge", label: "Judge it yourself" },
-  { id: "ap2", href: "/ap2", label: "AP2" },
+  { id: "ap2", href: "/ap2", label: "Standards" },
 ] as const;
 type NavId = (typeof NAV)[number]["id"];
 

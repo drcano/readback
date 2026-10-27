@@ -171,7 +171,7 @@ We don't claim a dollar figure for losses avoided. PayPal doesn't break out agen
 |---|---|---|
 | PayPal Agent Ready [P6] | Extends existing protection programs to agent transactions | Same rails; no record of delegated scope |
 | AP2 v0.2, contributed to FIDO [N4, N6] | Open and closed mandates signed as verifiable credentials; human-not-present flows with agent-signed closed mandates. The spec leaves retention and dispute resolution out of scope | Readback implements this model on PayPal's existing rails, without new credential issuers, and adds the dispute side |
-| Mastercard Verifiable Intent, Draft v0.1 [N4, N19] | User-signed constraints that bind the agent's key, then agent-signed final values. Its repository says dispute resolution is "explicitly out of scope" | Same structure at network level. It defines the evidence but no dispute procedure, and we found no primary confirmation that it's live in Agent Pay |
+| Mastercard Verifiable Intent, Draft v0.1 [N4, N19] | User-signed constraints that bind the agent's key, then agent-signed final values. Its repository says dispute resolution is "explicitly out of scope" | Same structure at network level. It defines the evidence but no dispute procedure, and we found no primary confirmation that it's live in Agent Pay. Readback checks its example chain the way a dispute would (`/vi`) |
 | Stripe Shared Payment Tokens, ACP and the Machine Payments Protocol (2026) [N13, N14] | A PSP-issued token scoped to one seller, with a cap and an expiry. ACP leaves "settlement, refunds, chargebacks" with the merchant and its PSP | Scopes a payment, but records neither her instruction nor an agent key; no dispute use |
 | Visa Trusted Agent Protocol [N15] | Agents sign their requests (RFC 9421), checked against a key registry | Proves which agent is calling, not what she authorized; no dispute use |
 | x402, under the x402 Foundation since Apr 2026 [N16] | Per-payment stablecoin transfer signatures, settled on-chain | Permanent record, but no intent, no refund and no dispute path. PayPal isn't among its named members |
@@ -228,6 +228,7 @@ Readback does use AP2's model: user-approved constraints that pin the agent key,
 - Readback carries the same structure in places PayPal already stores and returns.
 - Its agent key uses the key type AP2's schema requires (EC P-256). Its mandates are a compact JWS rather than SD-JWT.
 - It imports a real AP2 v0.2 open Payment Mandate and runs the same constraint checks against it, mapping AP2's own constraint types (`amount_range`, `allowed_payees`, `execution_date`, `agent_recurrence`) (it shipped: `/ap2`).
+- It verifies a Mastercard Verifiable Intent chain the way a dispute would: all three signatures, both `sd_hash` bindings, amount, payee and card. The chain comes from VI's own example code (it shipped: `/vi`).
 - When AP2 adoption arrives, the checks are the same constraint evaluation AP2 describes.
 
 **"Why not stablecoins with smart-account spend limits?"**
@@ -275,7 +276,7 @@ A PayPal outcome doesn't bind the card issuer. The shopper can still go to their
 Not today. One agreement covers one merchant, which fits replenishment, subscriptions, and standing orders.
 - Each merchant would get its own agreement under the same consent pattern.
 - A cross-merchant mandate is what AP2's open mandates are for.
-- The build imports and checks AP2 open mandates (`/ap2`). Cross-merchant enforcement is roadmap.
+- The build imports and checks AP2 open mandates (`/ap2`) and Verifiable Intent chains (`/vi`). Cross-merchant enforcement is roadmap.
 
 **"Is a merchant-initiated charge on a vaulted wallet even Seller Protection eligible?"**
 We found no PayPal document that says either way. Readback doesn't assert it. It shows PayPal's own `seller_protection` status from each capture. [A3]

@@ -221,6 +221,20 @@ The plan name is merchant-supplied and not stored, so it can't prove which finge
 - **Display:** shown side by side with the PayPal-native case in the investigator view's "AP2" tab.
 - **The pitch:** an AP2 mandate, enforced and adjudicated on PayPal rails that exist today.
 
+**Verifiable Intent import (core).** `readback-core` (`evaluateViChain`) reads a Mastercard Verifiable Intent (Draft v0.1) autonomous chain as the payment network sees it: L1 (the issuer's credential for the user's key), L2 (the user's mandate, payment disclosures only) and L3a (the agent's payment). It follows VI's verifier rules (its spec README §10.4).
+- **Checked:**
+  - ES256 signatures at all three layers, issuer to user to agent through `cnf`;
+  - the `typ` pinned for each layer;
+  - both `sd_hash` bindings;
+  - the validity windows at signing time (a dispute asks whether the chain was valid when the agent paid, not today);
+  - amount range, allowed payees (only payees disclosed to this party count) and the payment instrument.
+- **Unresolved, and labeled:**
+  - `mandate.payment.reference`, which needs the merchant's L3b;
+  - recurrence, agent recurrence and budget, which need memory of earlier charges.
+- **Unknown constraint types fail**, as in VI's strict mode.
+- **Fixture:** VI publishes no static chain. The fixture is the output of its `examples/autonomous_flow.py` at commit `356c2963`, run unmodified, with the public half of VI's published demo issuer key. The page labels that key as a demo key.
+- **Display:** `/vi`, using the same result card as `/ap2`.
+
 ### 4.7 Action proofs (revoke and direct-charge)
 A compact JWS that proves the caller holds the agreement's agent key, for two routes: `DELETE /api/agreements/[tokenId]` and `POST /api/demo/direct-charge`.
 
@@ -759,6 +773,7 @@ Primary sources are listed in `docs/WHY-PAYPAL.md`. Technical references:
 - Transaction Search: developer.paypal.com/docs/transaction-search/
 - Recurring payments module: developer.paypal.com/studio/checkout/standard/customize/recurring-payments-module
 - AP2 repo @ v0.2.0 (github.com/google-agentic-commerce/AP2): `docs/ap2/specification.md`, `docs/ap2/payment_mandate.md`, `code/sdk/schemas/ap2/`, `code/sdk/python/ap2/tests/agent_recurrence_tests.py`
+- Verifiable Intent repo @ 356c2963 (github.com/agent-intent/verifiable-intent): `spec/README.md` §10.4, `spec/constraints.md`, `spec/security-model.md` §2.5, `examples/autonomous_flow.py`
 - RFC 7515 (JWS), RFC 7518 (ES256), RFC 7638 (JWK thumbprint), RFC 7800 (`cnf`)
 - `jose` 6.x: github.com/panva/jose
 - MCP TypeScript SDK v2: ts.sdk.modelcontextprotocol.io; MCP Inspector: github.com/modelcontextprotocol/inspector

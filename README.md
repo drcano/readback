@@ -81,7 +81,7 @@ Claude never holds a key and never makes an allow/deny or ruling decision. (By c
 
 **Standards and crypto.** ES256 compact JWS (RFC 7515/7518) with pinned algorithms and exact-header hygiene; RFC 7638 JWK thumbprints as the agent fingerprint; `jose` over WebCrypto, so the same checks run in Node and in the browser. The agent runtime is an MCP server (TypeScript SDK v2, streamable HTTP, stateless).
 
-**Interoperability.** Readback runs AP2 v0.2's autonomous-purchase model on PayPal's existing rails, and `/ap2` verifies AP2's own published mandate chain in the browser.
+**Interoperability.** Readback runs AP2 v0.2's autonomous-purchase model on PayPal's existing rails. In the browser, `/ap2` verifies AP2's own published mandate chain. `/vi` verifies the three-layer chain that Mastercard's Verifiable Intent example produces, checking the issuer's, the user's and the agent's signatures, both bindings, amount, payee and card, the way a dispute would.
 
 **Try to break it.** `/judge` runs eight attacks through the product's real layers in your browser and shows where each one dies: a poisoned product page stops at the agent runtime; a forged key, an edited request and a fake sale price stop at the checkout gate; a second bag and a charge after cancelling stop at PayPal (in the lab, an in-memory stand-in that refuses what the sandbox was recorded refusing, spike steps 4–5); and the store charging her wallet itself gets past all three and is caught by the investigator. (The lab's dishonest store leaves its invoice label; one that strips every label leaves the charge unlinked from merchant-side data, so Readback makes no suggestion either way; THREAT-MODEL T3.)
 
@@ -172,7 +172,7 @@ pnpm install
 pnpm --filter @readback/web dev       # http://localhost:3000, no credentials needed
 ```
 
-Without PayPal credentials you can still see both verdicts on `/` (re-verified in your browser), the labeled fixture cases in `/investigator`, every eval scenario at `/judge`, and AP2's official mandate checked at `/ap2`.
+Without PayPal credentials you can still see both verdicts on `/` (re-verified in your browser), the labeled fixture cases in `/investigator`, every eval scenario at `/judge`, AP2's official mandate checked at `/ap2`, and Verifiable Intent's example chain checked at `/vi`.
 
 **With the PayPal sandbox** (a standard merchant REST app with Vault, Disputes and Transaction Search enabled):
 

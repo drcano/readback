@@ -14,6 +14,7 @@ export default function Ap2Page() {
           readback-core reads a real AP2 v0.2 payment mandate chain (AP2's own published example, Apache-2.0) and checks it: disclosures,
           the agent's signature, the binding between the two mandates, amount, payee and dates.
         </p>
+        <p className="muted small">Also checked: <a href="/vi">Mastercard&apos;s Verifiable Intent chain</a>.</p>
         <Ap2View />
       </main>
       <AppFooter />

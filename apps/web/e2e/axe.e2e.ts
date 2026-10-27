@@ -12,6 +12,7 @@ const PAGES: [string, string | null][] = [
   ["/investigator/fixture-twist", "text=Re-checked in your browser"],
   ["/judge", null],
   ["/ap2", "text=Agent's signature on the closed mandate"],
+  ["/vi", "text=Agent's signature on the payment (L3a)"],
   ["/proposal", "text=Where each line comes from"],
 ];
 
