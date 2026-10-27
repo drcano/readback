@@ -34,7 +34,7 @@ export async function verifyActionProof(
   const a = parsed.data;
   if (a.purpose !== expected.purpose) return fail("ACTION_WRONG_PURPOSE", "The proof was made for a different action.");
   if (a.tokenId !== expected.tokenId) return fail("WRONG_AGREEMENT", "The proof was made for a different agreement.");
-  if (Math.abs(a.iat - expected.nowSec) > ACTION_WINDOW_SEC) return fail("ACTION_STALE", "The proof is too old or dated in the future.");
+  if (Math.abs(a.iat - expected.nowSec) > ACTION_WINDOW_SEC) return fail("ACTION_STALE", "The proof is too old or dated in the future. Check that this device's clock is set correctly.");
   const fingerprint = await agentFingerprint(verified.value.jwk);
   if (fingerprint !== expected.termsFingerprint) return fail("KEY_NOT_APPROVED", "The proof wasn't signed by this agreement's agent key.");
   return ok({ fingerprint });

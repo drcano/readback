@@ -23,14 +23,14 @@ function fakeMerchant(fingerprint: string) {
     [JUDGE]: { ok: true, tokenId: JUDGE, active: true, terms: formatTerms(terms(fingerprint)), fingerprint, charges: [] },
   };
   const merchant: Merchant = {
-    agreement: async (id) => views[id] ?? null,
+    agreement: async (id) => views[id] ?? { unavailable: "the shop couldn't be reached right now." },
     checkout: async (jws) => {
       sent.checkout.push(jws);
       return { ok: true, orderId: "ORDER1", captureId: "CAP9", invoiceId: `RB-${HERO}-P019` };
     },
     revoke: async (tokenId, proof) => {
       sent.revoke.push({ tokenId, proof });
-      return true;
+      return { ok: true } as const;
     },
   };
   return { merchant, sent, views };
@@ -132,5 +132,31 @@ describe("agent runtime over MCP", () => {
 
   it("refuses short path secrets at startup", () => {
     expect(() => createApp({ ...CFG, heroSecret: "short" }, { key, merchant: fakeMerchant(key.fingerprint).merchant, now: () => NOW })).toThrow();
+  });
+});
+
+// Edge-case review, Oct 27: a shop outage or rate limit used to read as "that agreement isn't active
+// on PayPal", an empty purchase history, or "PayPal didn't confirm the cancellation".
+describe("the shop failing is said as the shop failing", async () => {
+  const { httpMerchant } = await import("./merchant.ts");
+  const answer = (status: number, body: unknown) => async () => Response.json(body, { status });
+
+  it("unreachable or rate-limited: an agreement read says so, with the shop's own words", async () => {
+    const down = httpMerchant("http://shop", async () => { throw new TypeError("fetch failed"); });
+    expect(await down.agreement("T1")).toEqual({ unavailable: expect.stringMatching(/couldn't be reached/) });
+    const limited = httpMerchant("http://shop", answer(429, { ok: false, message: "Too many case lookups today; try again tomorrow." }));
+    expect(await limited.agreement("T1")).toEqual({ unavailable: "Too many case lookups today; try again tomorrow." });
+  });
+
+  it("a checkout reply without a decision is a refusal in words, never a crash", async () => {
+    const limited = httpMerchant("http://shop", answer(429, { ok: false, message: "Too many requests; try again in a few minutes." }));
+    expect(await limited.checkout("jws")).toEqual({ ok: false, failures: [{ code: "MERCHANT_REFUSED", message: "Too many requests; try again in a few minutes." }] });
+    const odd = httpMerchant("http://shop", answer(200, { ok: false }));
+    expect((await odd.checkout("jws")).ok).toBe(false);
+  });
+
+  it("a refused revoke passes on the shop's reason (e.g. a clock that's off)", async () => {
+    const stale = httpMerchant("http://shop", answer(403, { ok: false, status: 403, failure: { code: "ACTION_STALE", message: "The proof is too old or dated in the future. Check that this device's clock is set correctly." } }));
+    expect(await stale.revoke("T1", "proof")).toEqual({ ok: false, message: expect.stringMatching(/clock/) });
   });
 });

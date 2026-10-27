@@ -23,7 +23,8 @@ const refuse = (t: string): ToolResult => ({ content: [{ type: "text", text: `Re
 async function myTerms(agreement: string, profile: Profile, deps: Deps): Promise<{ terms: Terms; text: string } | ToolResult> {
   if (agreement !== profile.agreementId) return refuse("this connection only serves its own agreement.");
   const view = await deps.merchant.agreement(agreement, { charges: false });
-  if (!view?.active || !view.terms) return refuse("that agreement isn't active on PayPal.");
+  if ("unavailable" in view) return refuse(view.unavailable);
+  if (!view.active || !view.terms) return refuse("that agreement isn't active on PayPal.");
   const parsed = parseTerms(view.terms);
   if (!parsed.ok) return refuse("the agreement's terms can't be read.");
   if (parsed.value.fingerprint !== deps.key.fingerprint) {
@@ -48,7 +49,8 @@ export function buildServer(profile: Profile, deps: Deps): McpServer {
       const t = await myTerms(agreement, profile, deps);
       if ("content" in t) return t;
       const view = await deps.merchant.agreement(agreement);
-      const bought = view?.charges.map((c) => `- ${c.time.slice(0, 10)}: ${c.amount ? `$${c.amount}, ` : ""}period ${c.period ?? "?"} (PayPal transaction ${c.captureId})`).join("\n") || "- nothing yet";
+      // An unreadable history is said as such, never as "nothing yet".
+      const bought = "unavailable" in view ? `- couldn't be read right now (${view.unavailable})` : view.charges.map((c) => `- ${c.time.slice(0, 10)}: ${c.amount ? `$${c.amount}, ` : ""}period ${c.period ?? "?"} (PayPal transaction ${c.captureId})`).join("\n") || "- nothing yet";
       return text(
         [
           `What this agent may buy: up to ${t.terms.qty} × ${t.terms.sku} from ${t.terms.merchant}, once every ${t.terms.periodDays} day(s), max USD ${(t.terms.capCents / 100).toFixed(2)} per order, ${t.terms.start} to ${t.terms.end}.`,
@@ -105,7 +107,8 @@ export function buildServer(profile: Profile, deps: Deps): McpServer {
         const t = await myTerms(agreement, profile, deps);
         if ("content" in t) return t;
         const proof = await signActionProof(agreement, "revoke", Math.floor(deps.now().getTime() / 1000), deps.key.privateKey, deps.key.publicJwk);
-        return (await deps.merchant.revoke(agreement, proof)) ? text("Cancelled on PayPal. This agent can no longer buy anything under it.") : refuse("PayPal didn't confirm the cancellation.");
+        const r = await deps.merchant.revoke(agreement, proof);
+        return r.ok ? text("Cancelled on PayPal. This agent can no longer buy anything under it.") : refuse(r.message);
       },
     );
   }

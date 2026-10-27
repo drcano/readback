@@ -14,28 +14,34 @@ const NEXT: Record<Rec["key"], string> = {
 export function CaseActions({ id, rec, closed }: { id: string; rec: Rec; closed: boolean }) {
   const [brief, setBrief] = useState<{ sentences: { text: string; cites: string[] }[]; by: string } | null>(null);
   const [draft, setDraft] = useState<{ kind: string; text: string } | null>(null);
+  // Which request is in flight (its button shows it and stays disabled), and the last failure, in words.
+  const [busy, setBusy] = useState<"brief" | "draft" | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  async function explain() {
-    setBrief(null);
-    const res = await fetch(`/api/cases/${encodeURIComponent(id)}/brief`, { method: "POST" }).catch(() => null);
-    const body = (await res?.json().catch(() => null)) as { ok: boolean; brief?: NonNullable<typeof brief> } | null;
-    if (body?.ok && body.brief) setBrief(body.brief);
+  async function ask<T>(which: "brief" | "draft", pick: (body: Record<string, unknown>) => T | undefined, set: (v: T) => void) {
+    if (busy) return;
+    setBusy(which);
+    setError(null);
+    const res = await fetch(`/api/cases/${encodeURIComponent(id)}/${which}`, { method: "POST" }).catch(() => null);
+    const body = ((await res?.json().catch(() => null)) ?? {}) as Record<string, unknown>;
+    const value = body["ok"] ? pick(body) : undefined;
+    if (value) set(value);
+    else setError(typeof body["message"] === "string" ? body["message"] : "The shop couldn't be reached. Try again in a moment.");
+    setBusy(null);
   }
-  async function loadDraft() {
-    const res = await fetch(`/api/cases/${encodeURIComponent(id)}/draft`, { method: "POST" }).catch(() => null);
-    const body = (await res?.json().catch(() => null)) as { ok: boolean; draft?: { kind: string; text: string } } | null;
-    if (body?.ok && body.draft) setDraft(body.draft);
-  }
+  const explain = () => ask("brief", (b) => b["brief"] as NonNullable<typeof brief> | undefined, setBrief);
+  const loadDraft = () => ask("draft", (b) => b["draft"] as NonNullable<typeof draft> | undefined, setDraft);
 
   return (
     <section className="card side-card" aria-labelledby="next-h">
       <h2 id="next-h">Next step</h2>
       <p>{closed ? "PayPal has closed this case, so there is nothing left to send." : NEXT[rec.key]}</p>
       <div className="side-actions">
-        <button type="button" className="btn btn-primary" onClick={explain}>Explain this case in plain English</button>
-        {!closed && <button type="button" className="btn" onClick={loadDraft}>Draft a reply to the shopper</button>}
+        <button type="button" className="btn btn-primary" onClick={explain} disabled={busy !== null}>{busy === "brief" ? "Writing the brief…" : "Explain this case in plain English"}</button>
+        {!closed && <button type="button" className="btn" onClick={loadDraft} disabled={busy !== null}>{busy === "draft" ? "Drafting…" : "Draft a reply to the shopper"}</button>}
 
       </div>
+      {error && <p role="alert" className="state" data-state="fail">{error}</p>}
       <p className="side-note">Every sentence in the brief cites a check or a PayPal record. A person approves before anything is sent; sending is off on the public demo.</p>
       {brief && (
         <div className="output" role="status">

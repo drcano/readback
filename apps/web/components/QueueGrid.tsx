@@ -46,7 +46,8 @@ function ClaimCell({ data }: ICellRendererParams<QueueRow>) {
   if (!data) return null;
   return (
     <span className="claim-cell">
-      <strong>{claimQuote(data.reason)}</strong>
+      {/* A real link, so the case opens from the keyboard and screen readers name it. */}
+      <a href={data.href} className="claim-link"><strong>{claimQuote(data.reason)}</strong></a>
       <small>
         <span className="mono">{data.id}</span>
         {data.source === "Live" ? <span className="live">LIVE</span> : <> · fixture</>}
@@ -128,6 +129,7 @@ function Pair({ rows }: { rows: QueueRow[] }) {
 
 export function QueueGrid() {
   const [rows, setRows] = useState<QueueRow[] | null>(null);
+  const [failed, setFailed] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [question, setQuestion] = useState("");
@@ -149,7 +151,10 @@ export function QueueGrid() {
         setRows(q.rows);
         setNotice([q.liveError, ...(q.notices ?? [])].filter(Boolean).join(" ") || null);
       })
-      .catch(() => setNotice("Couldn't load the queue."));
+      .catch(() => {
+        setFailed(true);
+        setNotice("Couldn't load the queue: the shop didn't answer. Reload the page to try again.");
+      });
   }, []);
 
   const count = (id: FilterId) => (rows ? rows.filter(FILTERS[id].match).length : 0);
@@ -184,7 +189,9 @@ export function QueueGrid() {
         </div>
         {reply && <p role="status" className="reply">{reply}</p>}
         <div className="card grid-card">
-          {rows === null ? (
+          {rows === null && failed ? (
+            <p className="muted">No disputes to show until the queue loads.</p>
+          ) : rows === null ? (
             <div className="skeleton" aria-busy="true" aria-label="Fetching disputes from PayPal and running the checks">
               {Array.from({ length: 5 }, (_, i) => <div key={i} className="skeleton-row" />)}
             </div>
@@ -198,6 +205,7 @@ export function QueueGrid() {
                 quickFilterText={search}
                 domLayout="autoHeight"
                 onRowClicked={(e) => { if (e.data) window.location.href = e.data.href; }}
+                onCellKeyDown={(e) => { if ((e.event as KeyboardEvent | null)?.key === "Enter" && e.data) window.location.href = e.data.href; }}
                 rowClass="clickable-row"
                 overlayNoRowsTemplate="No disputes match."
               />

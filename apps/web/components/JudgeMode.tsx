@@ -4,7 +4,7 @@
 // popup (so the tab, and its key, never navigate away), then signs a purchase itself.
 // Labeled demo affordance (THREAT-MODEL T31): the one place a private key lives outside the runtime.
 import { type AgentKey, generateAgentKey, groupFingerprint, signActionProof } from "@readback/core";
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { signAndBuy } from "@/lib/tab-agent";
 import { AgentChat } from "./AgentChat";
 import { YourVerdicts } from "./VerdictPair";
@@ -44,12 +44,40 @@ export function JudgeMode() {
   const [dishonest, setDishonest] = useState<string | null>(null);
   const [status, setStatus] = useState<string>("");
   const [blockedUrl, setBlockedUrl] = useState<string | null>(null);
+  // One action at a time: a double-click mustn't sign two requests or start two approvals.
+  const [busy, setBusy] = useState(false);
+  const keyRef = useRef<AgentKey | null>(null);
+  const statusRef = useRef<HTMLParagraphElement>(null);
+  keyRef.current = key;
+
+  // A button that disables itself after success would drop keyboard focus; move it to the result.
+  const done = (message: string) => {
+    setStatus(message);
+    requestAnimationFrame(() => statusRef.current?.focus());
+  };
+  const once = (action: () => Promise<void>) => async () => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      await action();
+    } catch {
+      setStatus("Something went wrong in this tab. Reload the page to start again.");
+    } finally {
+      setBusy(false);
+    }
+  };
 
   // The PayPal popup posts the new agreement ID back here (same origin only).
   useEffect(() => {
     const onMessage = (e: MessageEvent) => {
       if (e.origin !== window.location.origin) return;
       const data = e.data as { type?: string; tokenId?: string };
+      // The key lives only in this page's memory: after a reload it's gone, and an approval that
+      // names it can't be used from here.
+      if (data.type === "rb-agreement" && data.tokenId && !keyRef.current) {
+        setStatus("This page was reloaded while PayPal was open, so the key you approved is gone. Press the button in step 1 to make a new key and approve again.");
+        return;
+      }
       if (data.type === "rb-agreement" && data.tokenId) {
         setTokenId(data.tokenId);
         setBlockedUrl(null);
@@ -81,7 +109,7 @@ export function JudgeMode() {
     const r = await signAndBuy(key, tokenId, DRAFT.sku, 1);
     if (r.outcome !== "charged") return setStatus(r.message);
     setBought(r.captureId);
-    setStatus("Charged. Your tab signed it; the gate verified it; PayPal recorded it.");
+    done("Charged. Your tab signed it; the gate verified it; PayPal recorded it.");
   }
 
   async function beDishonest() {
@@ -90,7 +118,7 @@ export function JudgeMode() {
     const r = await post("/api/demo/direct-charge", { tokenId, proof });
     if (!r.ok) return setStatus(reason(r));
     setDishonest(String(r["captureId"]));
-    setStatus("The merchant charged your wallet directly. No agent asked.");
+    done("The merchant charged your wallet directly. No agent asked.");
   }
 
   return (
@@ -103,13 +131,13 @@ export function JudgeMode() {
         <Step n={1} title="Approve" s={state(Boolean(tokenId), true)}>
           <p>Your tab becomes the agent. You approve its terms on PayPal&apos;s own sandbox page, signed in as the judge sandbox buyer from the Devpost testing instructions.</p>
           {key && <p>Your agent&apos;s fingerprint: <span className="fp">{groupFingerprint(key.fingerprint)}</span>. PayPal&apos;s page should show the same 16 characters.</p>}
-          <button type="button" className="btn btn-primary" onClick={approve} disabled={Boolean(tokenId)}>Create my key and approve on PayPal</button>
+          <button type="button" className="btn btn-primary" onClick={once(approve)} disabled={busy || Boolean(tokenId)}>Create my key and approve on PayPal</button>
           {blockedUrl && <p><a href={blockedUrl} target="paypal-approval" rel="opener">Open PayPal&apos;s approval page</a> (sign in with the judge sandbox buyer account).</p>}
         </Step>
         <Step n={2} title="Buy" s={state(Boolean(bought), Boolean(tokenId))}>
           <p>Ask Claude to shop: it asks your agent (this tab) to sign, and only what fits your terms gets signed. Or buy in one click.</p>
           <AgentChat agentKey={key} tokenId={tokenId} onCharged={(id) => setBought((b) => b ?? id)} />
-          <button type="button" className="btn" onClick={buy} disabled={!tokenId || Boolean(bought)}>Sign and buy one bag</button>
+          <button type="button" className="btn" onClick={once(buy)} disabled={busy || !tokenId || Boolean(bought)}>Sign and buy one bag</button>
           {bought && <p><a href={`/investigator/${bought}`}>Check this charge</a>: Consent, Agent and Terms pass; Delivery doesn&apos;t yet (nothing shipped, no history), so there&apos;s no suggestion.</p>}
         </Step>
         <Step n={3} title="Dispute" s="ready">
@@ -122,11 +150,11 @@ export function JudgeMode() {
         </Step>
         <Step n={5} title="Be a dishonest merchant" s={state(Boolean(dishonest), Boolean(tokenId))}>
           <p>Charge your own agreement directly, every term respected, but with no request from your agent.</p>
-          <button type="button" className="btn btn-refund" onClick={beDishonest} disabled={!tokenId || Boolean(dishonest)}>Charge my wallet without my agent</button>
+          <button type="button" className="btn btn-refund" onClick={once(beDishonest)} disabled={busy || !tokenId || Boolean(dishonest)}>Charge my wallet without my agent</button>
           {dishonest && <p><a href={`/investigator/${dishonest}`}>Check this charge</a>: every term was respected, but the Agent light is red and the evidence supports the buyer. Readback follows the evidence, whoever runs it.</p>}
         </Step>
       </ol>
-      <p role="status" aria-live="polite">{status}</p>
+      <p role="status" aria-live="polite" tabIndex={-1} ref={statusRef}>{status}</p>
       {(bought || dishonest) && <YourVerdicts signed={bought} direct={dishonest} />}
     </section>
   );

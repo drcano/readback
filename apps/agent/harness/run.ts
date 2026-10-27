@@ -32,7 +32,7 @@ async function run(s: Scenario, client: Anthropic) {
   const view = (id: string) => ({ ok: true as const, tokenId: id, active: true, terms: formatTerms(terms), fingerprint: key.fingerprint, charges: [] });
   // The merchant side: the same gate decision the real checkout route makes, plus PayPal's duplicate-invoice guard.
   const merchant: Merchant = {
-    agreement: async (id) => (id === HERO || id === JUDGE ? view(id) : null),
+    agreement: async (id) => (id === HERO || id === JUDGE ? view(id) : { unavailable: "no such agreement in the harness." }),
     checkout: async (jws) => {
       const v = await verifyMandate(jws);
       const token = { id: v.ok ? v.value.payload.agr : "", payment_source: { paypal: { description: formatTerms(terms), payer_id: "FAKEPAYER0001" } } };
@@ -45,7 +45,7 @@ async function run(s: Scenario, client: Anthropic) {
     },
     revoke: async () => {
       revoked++;
-      return true;
+      return { ok: true } as const;
     },
   };
   const app = createApp(CFG, { key, merchant, now: () => new Date() });

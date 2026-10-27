@@ -58,3 +58,14 @@ describe("tab agent", () => {
     expect(r.message).toMatch(/Already ordered this period/);
   });
 });
+
+// Edge-case review, Oct 27: a network failure here used to reject, leaving the chat stuck on
+// "checking and signing…"; the shop's rate limit read as "couldn't read your terms from PayPal".
+describe("the shop failing before anything is signed", () => {
+  it("unreachable or rate-limited: refused in words, nothing signed", async () => {
+    const down = (async () => { throw new TypeError("Failed to fetch"); }) as typeof fetch;
+    expect(await signAndBuy(key, TOKEN, "GBP-SR24", 1, down)).toEqual({ outcome: "refused", message: expect.stringMatching(/shop couldn't be reached/) });
+    const limited = (async () => Response.json({ ok: false, message: "Too many case lookups today; try again tomorrow." }, { status: 429 })) as typeof fetch;
+    expect(await signAndBuy(key, TOKEN, "GBP-SR24", 1, limited)).toEqual({ outcome: "refused", message: expect.stringMatching(/^Too many case lookups today.*didn't sign anything/) });
+  });
+});
