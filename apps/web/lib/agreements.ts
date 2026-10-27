@@ -38,7 +38,7 @@ export type CreateResult = { ok: true; approveUrl: string; setupTokenId: string;
 // return URL built from it sends the approver to localhost. Render sets RENDER_EXTERNAL_URL on web
 // services; locally there's no proxy and `req.url` is right.
 export function publicOrigin(req: Request, env: Record<string, string | undefined> = process.env): string {
-  return env["RENDER_EXTERNAL_URL"] || new URL(req.url).origin;
+  return env["RENDER_EXTERNAL_URL"]?.replace(/\/+$/, "") || new URL(req.url).origin;
 }
 
 // The server computes the fingerprint from the key itself; a fingerprint is never accepted as input.

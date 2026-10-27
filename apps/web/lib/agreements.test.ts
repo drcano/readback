@@ -36,6 +36,7 @@ describe("agreements", () => {
     // What next start sees behind Render's proxy, measured Oct 26: the server's own port.
     const behindProxy = new Request("https://localhost:10000/api/agreements");
     expect(publicOrigin(behindProxy, { RENDER_EXTERNAL_URL: "https://readback-web.onrender.com" })).toBe("https://readback-web.onrender.com");
+    expect(publicOrigin(behindProxy, { RENDER_EXTERNAL_URL: "https://readback-web.onrender.com/" })).toBe("https://readback-web.onrender.com");
     expect(publicOrigin(new Request("http://localhost:3000/api/agreements"), {})).toBe("http://localhost:3000");
   });
 

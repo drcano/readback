@@ -39,8 +39,10 @@ const secrets = Object.entries({ ...readEnvFile(".env"), ...agent })
 try {
   secrets.push((JSON.parse(agent["AGENT_PRIVATE_KEY"] ?? "") as { d: string }).d); // the key's private part on its own
 } catch {}
-const history = spawnSync("git", ["log", "-p", "--all"], { encoding: "utf8", maxBuffer: 1 << 28 }).stdout ?? "";
-check(history.length > 0 && secrets.every((s) => !history.includes(s)), `No secret from .env or apps/agent/.env is in git history (${secrets.length} checked)`);
+const log = spawnSync("git", ["log", "-p", "--all"], { encoding: "utf8", maxBuffer: 1 << 28 });
+// A truncated read (ENOBUFS) or a failed git must not pass as "clean".
+const complete = !log.error && log.status === 0;
+check(complete && secrets.every((s) => !log.stdout.includes(s)), complete ? `No secret from .env or apps/agent/.env is in git history (${secrets.length} checked)` : "Git history scan incomplete; can't confirm no secret was committed");
 
 // Live checks: OAuth works, and the app can see Vault (a bogus token must 404, not 403).
 if (web["PAYPAL_CLIENT_ID"] && web["PAYPAL_CLIENT_SECRET"]) {

@@ -25,9 +25,9 @@ export async function loadCase(id: string): Promise<Loaded> {
 
 // The case view's load: the same case, streamed, reporting each PayPal record as it's read. A refusal
 // before the stream starts (a bad ID, the rate limit) arrives as plain JSON.
-export async function loadCaseLive(id: string, onRecord: (r: CaseRecord) => void): Promise<Loaded> {
+export async function loadCaseLive(id: string, onRecord: (r: CaseRecord) => void, signal?: AbortSignal): Promise<Loaded> {
   if (id.startsWith("fixture-")) return loadCase(id);
-  const res = await fetch(`/api/cases/${encodeURIComponent(id)}?stream=1`);
+  const res = await fetch(`/api/cases/${encodeURIComponent(id)}?stream=1`, signal ? { signal } : {});
   if (!res.body || !res.headers.get("content-type")?.includes("ndjson")) return fromJson(res);
   const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
   let buffer = "";

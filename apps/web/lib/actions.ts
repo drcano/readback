@@ -59,7 +59,8 @@ export async function runDisputeAction(paypal: PayPalClient, disputeId: string, 
     const r = await evaluateCase(lookup.bundle);
     const why = r.checks.find((k) => !k.pass)?.failures[0]?.message;
     const text = [
-      `The store accepts this claim and refunds USD ${lookup.bundle.capture.amount.value} in full.`,
+      // accept-claim refunds the disputed amount, which can differ from the capture (several charges, part disputed).
+      "The store accepts this claim and refunds the disputed amount in full.",
       `Readback's assessment of PayPal's records: ${r.classification.label}${r.classification.suggestion === "BUYER_FAVOR" ? ", which supports the buyer" : ""}.${why ? ` ${why}` : ""}`,
       `Re-derive it with the store's API credentials: npx @readback/verify ${disputeId}`,
     ].join(" ");

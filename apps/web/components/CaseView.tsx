@@ -44,13 +44,18 @@ export function CaseView({ id }: { id: string }) {
   useEffect(() => {
     setRecords([]);
     const t0 = performance.now();
-    loadCaseLive(id, (r) => setRecords((rs) => [...rs, r]))
+    // Leaving the page (or React re-running the effect) cancels the stream, and with it the PayPal calls.
+    const abort = new AbortController();
+    loadCaseLive(id, (r) => setRecords((rs) => [...rs, r]), abort.signal)
       .then((data) => {
         setRebuildMs(Math.round(performance.now() - t0));
         setLoaded(data);
         return reverify(data);
       })
-      .catch((e: unknown) => setError(e instanceof Error ? e.message : "Couldn't load this case."));
+      .catch((e: unknown) => {
+        if (!abort.signal.aborted) setError(e instanceof Error ? e.message : "Couldn't load this case.");
+      });
+    return () => abort.abort();
   }, [id, reverify]);
 
   if (error) return <p role="alert" className="banner">{error}</p>;
