@@ -4,6 +4,8 @@
 
 Agent purchase mandates and dispute evidence, built entirely on PayPal's own records. Runs against the PayPal **sandbox**. Built for the PayPal AI Hackathon (2026).
 
+**The dispute layer the agent-payment standards leave out.** Google's AP2 and Mastercard's Verifiable Intent define the evidence: the shopper's approved limits, pinning her agent's key, and a request her agent signs for each purchase. Both put dispute resolution out of scope. Readback is that missing procedure, running on PayPal today: it records both on PayPal's rails, and when she says "my AI bought that," it rebuilds the case from PayPal's records and checks it. ([Why this, why PayPal](docs/WHY-PAYPAL.md#5-what-already-exists))
+
 ![Same claim, two verdicts: a signed, in-terms purchase is upheld; a charge the merchant made directly is refunded](docs/assets/landing.png)
 
 | | |
@@ -75,7 +77,7 @@ Deterministic `PayPal-Request-Id` on every POST (retries are no-ops; timeouts re
 | Ask the queue | Picks one of nine named filters from a question | Code does the filtering |
 | Claude-driven harness | Plays the shopper's assistant over the real tools, attack pages included | Graded only on what got signed and charged ([results](evals/results/harness-latest.json)) |
 
-Claude never holds a key and never makes an allow/deny or ruling decision. Product pages and buyer messages reach Claude only inside delimited untrusted-data blocks. The project was also built with Claude Code.
+Claude never holds a key and never makes an allow/deny or ruling decision. (By contrast, one 2026 agent-payment "court", MetaMask with GenLayer, has an AI jury rule on payments; in Readback, a model never decides.) Product pages and buyer messages reach Claude only inside delimited untrusted-data blocks. The project was also built with Claude Code.
 
 **Standards and crypto.** ES256 compact JWS (RFC 7515/7518) with pinned algorithms and exact-header hygiene; RFC 7638 JWK thumbprints as the agent fingerprint; `jose` over WebCrypto, so the same checks run in Node and in the browser. The agent runtime is an MCP server (TypeScript SDK v2, streamable HTTP, stateless).
 
@@ -117,11 +119,14 @@ Developer surfaces: `@readback/core` (the checks) and `@readback/verify` (re-der
 
 Readback isn't the first to record what a user authorized; AP2, Mastercard Verifiable Intent, Amex and others do or plan some of this ([WHY-PAYPAL.md §5](docs/WHY-PAYPAL.md) lists them honestly). What's new:
 
-1. **AP2's autonomous model on PayPal rails that exist today**: PayPal's approval page is the trusted surface, the stored terms are the open mandate, and agent-signed requests inside each order are the closed mandates. No new network, issuer or protocol.
-2. **Once an honest setup has bound her agent's key, a merchant can't fabricate her agent's requests.** A charge with no valid signature is suggested for the buyer even when it fits every term. Terms alone can't catch that; signatures alone can't decide it without PayPal's records.
-3. **PayPal enforces limits itself**: one charge per period through invoice uniqueness (while the merchant's duplicate-invoice blocking is on, the default), and no charges on a cancelled agreement.
-4. **Built for the adjudicator, not the merchant's advocate**: deterministic checks, re-derivable in the browser, with no suggestion where the evidence can't support one.
-5. **Zero data outside PayPal.**
+1. **The dispute procedure for agent mandates.** AP2 v0.2 and Mastercard's Verifiable Intent (Draft v0.1) both define signed mandates, and both leave dispute resolution out of scope. Stripe's shared payment tokens, Visa's Trusted Agent Protocol and x402 carry no record of what the shopper asked for at all. Readback supplies the missing step: deterministic checks over the processor's own records, a suggested outcome, and evidence written back into PayPal's dispute.
+2. **AP2's autonomous model on PayPal rails that exist today**: PayPal's approval page is the trusted surface, the stored terms are the open mandate, and agent-signed requests inside each order are the closed mandates. No new network, issuer or protocol.
+3. **Once an honest setup has bound her agent's key, a merchant can't fabricate her agent's requests.** A charge with no valid signature is suggested for the buyer even when it fits every term. Terms alone can't catch that; signatures alone can't decide it without PayPal's records.
+4. **PayPal enforces limits itself**: one charge per period through invoice uniqueness (while the merchant's duplicate-invoice blocking is on, the default), and no charges on a cancelled agreement.
+5. **Built for the adjudicator, not the merchant's advocate**: deterministic checks, re-derivable in the browser, with no suggestion where the evidence can't support one.
+6. **Zero data outside PayPal.**
+
+**Why not stablecoins with smart-account spend limits?** Those enforce a budget on-chain (Coinbase Spend Permissions, ERC-7715). But a budget can't tell whether her agent asked for *this* purchase. Payments there are final, refunds after capture are the merchant's choice, and US law gives stablecoin buyers no unauthorized-transfer right. Crypto is ahead on one thing: its consent record survives revocation, while PayPal deletes an agreement once an unauthorized claim is filed. That's exactly what our proposal asks PayPal to fix ([WHY-PAYPAL.md §6](docs/WHY-PAYPAL.md#6-hard-questions-answered)).
 
 **What we'd ask PayPal to change.** The sharpest reason came from the sandbox itself. When a buyer files the "my AI bought that" claim, PayPal deletes her agreement within minutes, even after she secures her account (spike step 7). That erases the consent record exactly when the dispute needs it, and Readback, by design, won't rule for the merchant on the merchant's own copy (T10). So our two verdicts are read in preview, and no claim is ever filed on Maya's agreement. Today PayPal's approval page also shows only a line the merchant writes, never the terms it stores, which is why a key swap at setup (THREAT-MODEL T21) can't be stopped in code. [docs/PROPOSAL-agent-terms.md](docs/PROPOSAL-agent-terms.md) is the API change that closes both: keep the terms on the deleted token (`deleted_at`), and show them on the approval page. `/proposal` shows the result as a labeled concept, built from the terms PayPal stores for Maya's agreement: the line PayPal shows today, the stored text it never shows, and the approval page we propose, each line tied to the proposal's fields.
 

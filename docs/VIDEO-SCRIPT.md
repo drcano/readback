@@ -2,7 +2,7 @@
 
 Status: **draft, Oct 25.** Built from SPEC §11. The story is Dante's; this only turns it into lines and shots. Lock by **Nov 4**, record **Nov 8–9**, under 3:00.
 
-Voiceover is about 255 words, roughly 1:45 at a calm 150 words a minute. That leaves about a minute of shots with no voice (the lights turning green, PayPal's refusal, the red light), which is where the demo should speak for itself. Every shot below names the real screen or command it comes from. Nothing is mocked.
+Voiceover is about 285 words, roughly 1:55 at a calm 150 words a minute. That leaves about a minute of shots with no voice (the lights turning green, PayPal's refusal, the red light), which is where the demo should speak for itself. Every shot below names the real screen or command it comes from. Nothing is mocked.
 
 On screen throughout: a role chip (Shopper / Agent / PayPal / Investigator), captions burned in, every PayPal object ID captioned, and "demo cadence: 1 day = 1 month" wherever a date shows.
 
@@ -12,7 +12,7 @@ On screen throughout: a role chip (Shopper / Agent / PayPal / Investigator), cap
 
 **Shot:** a dispute notification card, typed out: *"$64.99. 'I didn't buy this. My AI did.'"*
 
-**VO:** Every AI shopping agent is going to hear this. Today, PayPal reviews the transaction. Nobody can check what the agent was actually allowed to do.
+**VO:** Every AI shopping agent is going to hear this. Today, PayPal reviews the transaction. Nobody can check what the agent was actually allowed to do. The new agent-payment standards define the proof, then leave the dispute out. Readback is that missing piece, on PayPal today.
 
 ## 0:10–0:32 · Delegate · chip: Shopper
 
