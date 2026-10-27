@@ -48,6 +48,18 @@ describe("case brief", async () => {
     expect(await writeBrief(twist, twistResult, null)).toEqual(rulesBrief(twist, twistResult));
   });
 
+  // Oct 27: on the hero charge read in preview, Claude wrote "This dispute was filed as unauthorised".
+  it("a charge read in preview has no dispute, so no sentence may say one was filed", async () => {
+    const preview = await evaluateCase({ ...hero.bundle, dispute: null });
+    const filed = { sentences: [{ text: "This dispute was filed as unauthorised, but her agent signed it.", cites: ["check 3"] }, ...good.sentences.slice(1)] };
+    expect(validate(filed, citable(hero.bundle, preview), preview)).toMatch(/none was filed/);
+    const asIf = { sentences: [{ text: "If she disputed this charge, the evidence shows her agent signed it.", cites: ["check 3"] }, ...good.sentences.slice(1)] };
+    expect(validate(asIf, citable(hero.bundle, preview), preview)).toBeNull();
+    const hypothetical = { sentences: [{ text: "If a claim were filed as unauthorized, her agent's signature would answer it.", cites: ["check 3"] }, ...good.sentences.slice(1)] };
+    expect(validate(hypothetical, citable(hero.bundle, preview), preview)).toBeNull();
+    expect(validate(filed, citable(hero.bundle, heroResult), heroResult)).toBeNull(); // a real dispute may say so
+  });
+
   it("the rules brief always validates", () => {
     for (const [b, r] of [[hero.bundle, heroResult], [twist, twistResult]] as const) {
       expect(validate(rulesBrief(b, r), citable(b, r), r)).toBeNull();
