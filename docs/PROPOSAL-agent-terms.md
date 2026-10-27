@@ -90,6 +90,12 @@ agent_terms:
         deleted_at:           { type: string, format: date-time }   # retained after the shopper cancels
 ```
 
+**Precedent.** Coinbase's on-chain Spend Permissions already treat revocation as a recorded event, not a deletion:
+- Revoking sets a flag that is never cleared, so a revoked permission can't be approved again.
+- Approval, revocation and every spend are each logged as an event ([`SpendPermissionManager.sol`](https://github.com/coinbase/spend-permissions)).
+
+`deleted_at` asks for the same property on PayPal's rails: the record of what she approved outlives her cancelling it, and outlives a claim against it.
+
 ### 3. Orders: carry the mandate, record PayPal's verdict
 
 ```yaml

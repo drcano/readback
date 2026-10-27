@@ -63,6 +63,11 @@ None of this is legal advice. It is what the primary sources say, and it explain
 
 PayPal's own US User Agreement tracks the Reg E rule. If you give someone access and they go beyond what you allowed, you stay responsible until you tell PayPal you no longer authorize their transfers. [L5]
 
+**Stablecoin and crypto payments.** Nothing on these rails changes what decides the case:
+- **PayPal's Cryptocurrency Terms (May 19, 2026) apply the same rule to crypto.** A transfer isn't unauthorized if someone you gave authority to exceeds it, and you stay responsible until you notify PayPal. External transfers are irreversible, and reimbursement for unauthorized transfers has a $50,000 lifetime cap. [L16]
+- **Federal law adds no unauthorized-transfer right for stablecoin payments.** The GENIUS Act contains no error-resolution rules [L17], and the CFPB withdrew its proposal to bring such transfers under Reg E on May 15, 2025. [L18]
+- **So on every rail, the deciding facts are the scope she granted and when she revoked it.**
+
 **Status of the debate.** No US agency has said how these rules apply to AI agents.
 - Industry and legal commentary in 2026 calls the application "unclear." [L12, L13]
 - Fed Governor Waller asked in September 2026 who is on the hook when an agent makes the wrong purchase. He said existing frameworks and consumer-protection standards could potentially be adapted. He also said standards could give everyone a better understanding of what the buyer intended. [L10]
@@ -165,8 +170,13 @@ We don't claim a dollar figure for losses avoided. PayPal doesn't break out agen
 | Who | What they do for agent disputes | Overlap with Readback |
 |---|---|---|
 | PayPal Agent Ready [P6] | Extends existing protection programs to agent transactions | Same rails; no record of delegated scope |
-| AP2 v0.2, contributed to FIDO [N4, N6] | Open and closed mandates signed as verifiable credentials; human-not-present flows with agent-signed closed mandates | Readback implements this model on PayPal's existing rails, without new credential issuers |
-| Mastercard Verifiable Intent [N4] | Open standard for a record of user authorization | Same idea; network-level; Agent Pay integration still expected |
+| AP2 v0.2, contributed to FIDO [N4, N6] | Open and closed mandates signed as verifiable credentials; human-not-present flows with agent-signed closed mandates. The spec leaves retention and dispute resolution out of scope | Readback implements this model on PayPal's existing rails, without new credential issuers, and adds the dispute side |
+| Mastercard Verifiable Intent, Draft v0.1 [N4, N19] | User-signed constraints that bind the agent's key, then agent-signed final values. Its repository says dispute resolution is "explicitly out of scope" | Same structure at network level. It defines the evidence but no dispute procedure, and we found no primary confirmation that it's live in Agent Pay |
+| Stripe Shared Payment Tokens, ACP and the Machine Payments Protocol (2026) [N13, N14] | A PSP-issued token scoped to one seller, with a cap and an expiry. ACP leaves "settlement, refunds, chargebacks" with the merchant and its PSP | Scopes a payment, but records neither her instruction nor an agent key; no dispute use |
+| Visa Trusted Agent Protocol [N15] | Agents sign their requests (RFC 9421), checked against a key registry | Proves which agent is calling, not what she authorized; no dispute use |
+| x402, under the x402 Foundation since Apr 2026 [N16] | Per-payment stablecoin transfer signatures, settled on-chain | Permanent record, but no intent, no refund and no dispute path. PayPal isn't among its named members |
+| Coinbase Spend Permissions; ERC-7715/7710 delegations [N17] | A user-signed on-chain budget bound to an agent address. Approval, revocation and every spend are logged on-chain, and revocation is permanent | A consent record that survives revocation, which PayPal's agreements don't (spike step 7). But it's a budget, not per-purchase intent, and has no dispute path |
+| MetaMask delegations with GenLayer's AI jury (Sep 2026) [N18] | An AI jury judges payments against the user's delegation | The only other judgment against a mandate we found. It can't reverse a settled payment, has published no cases, and lets an LLM decide |
 | Amex ACE and Agent Purchase Protection (Apr 2026) [N7] | Agent registration; purchase intent that Amex says it may use for authorization and potentially adjudication | Similar idea, Amex network only |
 | Shopify Shop app agents [N8] | Shopper sets "pay without approval" budgets; warns that disputing in-budget purchases may fail | Closest consumer analogue; no adjudication tooling |
 | Chargebacks911, Chargeflow, Justt [N9] | Merchant-side representment; Chargebacks911 claims to record agent consent trails | Merchant advocacy, not adjudication |
@@ -176,6 +186,7 @@ We don't claim a dollar figure for losses avoided. PayPal doesn't break out agen
 
 **What we do not claim.**
 - Readback is not the first to record what a user authorized, or to have agents sign purchase mandates. AP2, Verifiable Intent, Amex, Prove, Forter, Shopify, and Chargebacks911 all do or plan some of this.
+- It is not the first to bind an agent's key into a user's approval: Verifiable Intent, AP2 and on-chain spend permissions all do.
 - It is not the first to use prior-purchase history, which is CE 3.0.
 - It is not the first to draft dispute responses with AI.
 
@@ -218,6 +229,13 @@ Readback does use AP2's model: user-approved constraints that pin the agent key,
 - Its agent key uses the key type AP2's schema requires (EC P-256). Its mandates are a compact JWS rather than SD-JWT.
 - It imports a real AP2 v0.2 open Payment Mandate and runs the same constraint checks against it, mapping AP2's own constraint types (`amount_range`, `allowed_payees`, `execution_date`, `agent_recurrence`) (it shipped: `/ap2`).
 - When AP2 adoption arrives, the checks are the same constraint evaluation AP2 describes.
+
+**"Why not stablecoins with smart-account spend limits?"**
+- **What they do:** they enforce a budget on-chain and keep a permanent record of it. [N17]
+- **What a budget can't answer:** an agent can stay inside it and still buy the wrong thing.
+- **Recourse is the merchant's choice.** A settled payment can't be reversed, and refunds after capture are up to the merchant. [N16] Federal law adds no unauthorized-transfer right. [L17, L18]
+- **Readback's question needs more than a budget:** did her agent ask for this exact purchase, within what she approved? That takes a per-purchase signed request plus the processor's records.
+- **Where crypto is ahead:** its consent record survives revocation. PayPal's doesn't: an unauthorized claim deletes the agreement within minutes (spike step 7). The proposal's `deleted_at` asks PayPal to match it.
 
 **"Which agent bought it?"**
 The one whose public-key fingerprint the shopper approved on PayPal's page. Every purchase carries a mandate signed by that key, and the investigator re-verifies it in the browser.
@@ -298,16 +316,17 @@ That closes the remaining gaps (setup-time key swap, terms after revocation, uns
 - **Investigator view is a concept.** It is a proposed workflow running on merchant credentials, not an integration with PayPal's internal tools. The web view's results are re-derivable, not independent of the merchant's deployment. The `@readback/verify` CLI removes the dependence on merchant-hosted code, but still needs API access to the merchant's account. Only PayPal hosting the view would make it fully independent.
 - **Judge mode holds a demo key in the browser.** To show that the signer isn't the builder, judge mode lets a judge's own browser hold a non-extractable agent key for one session. It's a demonstration, not a production key-custody design (threat model T31).
 - **Demo cadence.** The live demo uses one-day periods, labeled on screen, so that history exists before the deadline. Disputes are hand-opened in the sandbox. Judge mode makes live sandbox charges under the judge's own agreement and checks them in preview mode; it doesn't open disputes.
-- **Terms after revocation.** If a shopper deletes the agreement, the merchant-side API can no longer read the token. Readback then falls back to the copy of the terms carried on every charge, labels it secondary, and withholds any seller-favor suggestion based on it. PayPal internally would not have this gap.
+- **Terms after revocation.** If a shopper deletes the agreement, the merchant-side API can no longer read the token. Readback then falls back to the copy of the terms carried on every charge, labels it secondary, and withholds any seller-favor suggestion based on it. PayPal internally would not have this gap. An unauthorized claim does the same: PayPal deletes the agreement within minutes, whether or not the buyer secures her account (spike step 7). So the demo reads its hero pair in preview, before any claim.
 - **Spike-dependent behavior.** These are tested in the spike (`docs/decisions/0001-sandbox-spike.md`), and the design has a fallback for each if it doesn't hold:
   - whether PayPal's order shows which saved wallet paid (it doesn't; the fallback is in place);
   - what PayPal's approval page displays (only the plan name, which now carries the fingerprint);
   - merchant-initiated charges on the saved wallet;
   - duplicate-invoice blocking;
-  - whether unauthorized disputes open as inquiries;
+  - whether unauthorized disputes open as inquiries (they don't; they go straight to the chargeback stage);
   - what happens when the buyer cancels from their side.
 - **Reporting delay.** Charge history comes from Transaction Search, which can lag up to three hours. [A5] This affects history checks only. Duplicate-period protection is enforced by PayPal at charge time, while the merchant's duplicate-invoice blocking is on.
 - **Agent identity proves "which agent," not "whose agent."** Signatures prove that a purchase came from the agent key the shopper approved. They don't attest who built or operates that agent. A key swap at setup is stopped only by the shopper comparing fingerprints (threat model T21).
+- **Agent key custody.** The production agent key sits in the runtime's environment variable. It isn't in a hardware enclave or split into MPC shards, as agent-wallet providers do. A host compromise exposes it (threat model T22), and revoking stops further charges but not in-terms purchases made before then.
 - **Demo-grade agent access.** The shopper's agent runtime is protected by a secret connector URL in the demo; production would use OAuth.
 - **Signed mandates are a compact JWS (ES256), not AP2's SD-JWT verifiable credentials.** The open mandate is authenticated by PayPal's approval rather than a user signature.
 - **Our evals are our own scenarios.** Property-based tamper fuzzing and published fixtures let anyone challenge them.
@@ -358,6 +377,9 @@ That closes the remaining gaps (setup-time key swap, terms after revocation, uns
 - [L13] Fenwick, "Is 2026 the Year of Agentic Payments?" Apr 22, 2026. https://www.fenwick.com/insights/publications/is-2026-the-year-of-agentic-payments
 - [L14] HM Treasury, "Modernising Payment Services Regulation" consultation, Jul 14, 2026. https://www.gov.uk/government/consultations/modernising-payment-services-regulation/modernising-payment-services-regulation-consultation
 - [L15] PSD3/PSR readiness tracker. https://www.openbankingtracker.com/guides/psd3-psr-readiness
+- [L16] PayPal Cryptocurrency Terms and Conditions (US), updated May 19, 2026. https://www.paypal.com/us/legalhub/paypal/cryptocurrencies-tnc
+- [L17] GENIUS Act, Pub. L. 119-27, Jul 18, 2025. https://www.govinfo.gov/content/pkg/PLAW-119publ27/html/PLAW-119publ27.htm
+- [L18] CFPB proposed interpretive rule applying EFTA to stablecoin transfers (Jan 10, 2025), withdrawn May 15, 2025. Secondary reports; the Federal Register notice wasn't retrieved: https://www.ccua.org/cfpb-withdraws-three-proposed-rules-search-permanent-director-continues · https://cogentlaw.com/stablecoin-payments-and-the-efta
 
 **Networks and market**
 - [N1] Worldpay, "Agentic commerce liability is still being written," Jul 30, 2026. https://www.worldpay.com/en/insights/articles/agentic-commerce-liability-is-still-being-written
@@ -372,6 +394,13 @@ That closes the remaining gaps (setup-time key swap, terms after revocation, uns
 - [N10] Prove Verified Agent (https://www.prove.com/blog/prove-verified-agent-secure-agentic-commerce); Forter agentic commerce (https://www.forter.com/agentic-commerce/)
 - [N11] Digital Commerce 360 on Visa dispute tools, Apr 1, 2026 (https://www.digitalcommerce360.com/2026/04/01/visa-adds-ai-tools-for-dispute-resolution/); Stripe Sessions 2026 (https://stripe.com/blog/everything-we-announced-at-sessions-2026)
 - [N12] Dispute Autopilot. https://github.com/Ejicode/dispute-autopilot
+- [N13] Stripe docs, Shared Payment Tokens (API version 2026-09-30.preview), https://docs.stripe.com/agentic-commerce/concepts/shared-payment-tokens ; Stripe, "Everything we announced at Sessions 2026," Apr 29, 2026, https://stripe.com/blog/everything-we-announced-at-sessions-2026
+- [N14] Agentic Commerce Protocol, delegated payment spec. https://developers.openai.com/commerce/specs/payment
+- [N15] Visa, Trusted Agent Protocol specifications. https://developer.visa.com/capabilities/trusted-agent-protocol/trusted-agent-protocol-specifications
+- [N16] x402 specification v2 and auth-capture scheme (repo fetched Oct 2026), https://github.com/coinbase/x402/blob/main/specs/x402-specification-v2.md · https://github.com/coinbase/x402/blob/main/specs/schemes/auth-capture/scheme_auth_capture.md ; x402 Foundation, Apr 2, 2026, https://docs.cdp.coinbase.com/x402/support/x402-foundation
+- [N17] Coinbase Spend Permissions (`SpendPermissionManager` contract and docs), https://github.com/coinbase/spend-permissions · https://docs.base.org/identity/smart-wallet/guides/spend-permissions ; ERC-7715 (Draft), https://eips.ethereum.org/EIPS/eip-7715
+- [N18] MetaMask, GenLayer "Internet Court" AI agent jury, Sep 25, 2026. https://metamask.io/news/genlayer-internet-court-ai-agent-jury
+- [N19] Verifiable Intent reference repository, Draft v0.1. https://github.com/agent-intent/verifiable-intent
 
 **PayPal APIs**
 - [A1] PayPal REST API specifications, Payment Method Tokens v3. https://github.com/paypal/paypal-rest-api-specifications (`openapi/vault_payment_tokens_v3.json`)
