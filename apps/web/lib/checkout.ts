@@ -61,8 +61,14 @@ export async function checkout(jws: string, paypal: PayPalClient, nowSec: number
     order = captured.data;
   }
   const capture = order.purchase_units?.[0]?.payments?.captures?.[0];
+  // PENDING: PayPal holds the charge for review, and this period's invoice is used, so say so rather
+  // than "not completed". Asking again can't charge twice (DUPLICATE_INVOICE_ID).
+  if (capture?.status === "PENDING") {
+    return deny(422, { code: "CAPTURE_PENDING", message: "PayPal is holding this charge for review. It may still go through; asking again won't charge twice." });
+  }
   if (!capture || capture.status !== "COMPLETED") {
-    return deny(422, { code: "CAPTURE_NOT_COMPLETED", message: "PayPal didn't complete the charge." });
+    const declined = capture?.status === "DECLINED" || capture?.status === "FAILED";
+    return deny(422, { code: "CAPTURE_NOT_COMPLETED", message: declined ? "PayPal declined the charge; nothing was charged." : "PayPal didn't complete the charge." });
   }
   return { ok: true, orderId: order.id, captureId: capture.id, invoiceId: decision.invoiceId };
 }

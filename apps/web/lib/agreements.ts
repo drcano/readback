@@ -110,7 +110,9 @@ export async function revokeAgreement(
   nowSec: number,
 ): Promise<{ ok: true } | { ok: false; status: number; failure: Failure }> {
   const res = await paypal.get(`/v3/vault/payment-tokens/${encodeURIComponent(tokenId)}`, PaymentTokenSchema);
-  if (!res.ok) return { ok: false, status: 404, failure: { code: "AGREEMENT_NOT_ACTIVE", message: "That agreement isn't active." } };
+  if (!res.ok) return res.status === 404
+    ? { ok: false, status: 404, failure: { code: "AGREEMENT_NOT_ACTIVE", message: "That agreement isn't active." } }
+    : { ok: false, status: 502, failure: { code: "PAYPAL_UNAVAILABLE", message: "PayPal couldn't be reached; nothing was changed. Try again." } };
   if (!auth.adminOk) {
     const terms = parseTerms(res.data.payment_source.paypal.description ?? "");
     if (!terms.ok || !auth.proof) return { ok: false, status: 401, failure: { code: "PROOF_REQUIRED", message: "A proof from the agreement's agent key is required." } };
@@ -122,7 +124,7 @@ export async function revokeAgreement(
 }
 
 export async function fetchAgentKey(runtimeUrl: string, fetchImpl: typeof fetch = fetch): Promise<PublicJwk | null> {
-  const res = await fetchImpl(`${runtimeUrl}/.well-known/agent-key`).catch(() => null);
+  const res = await fetchImpl(`${runtimeUrl}/.well-known/agent-key`, { signal: AbortSignal.timeout(10_000) }).catch(() => null);
   if (!res?.ok) return null;
   const body = z.object({ jwk: PublicJwkSchema }).safeParse(await res.json().catch(() => null));
   return body.success ? body.data.jwk : null;

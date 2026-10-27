@@ -23,6 +23,8 @@ export async function GET(req: Request, ctx: Ctx): Promise<Response> {
 export async function DELETE(req: Request, ctx: Ctx): Promise<Response> {
   const id = TokenIdSchema.safeParse((await ctx.params).tokenId);
   if (!id.success) return Response.json({ ok: false }, { status: 400 });
+  const budget = allowLookup(clientIp(req));
+  if (!budget.ok) return Response.json({ ok: false, message: budget.message }, { status: 429 });
   const body = z.object({ proof: z.string().max(2048).optional() }).safeParse(await req.json().catch(() => ({})));
   const result = await revokeAgreement(paypalClient(), id.data, { proof: body.success ? body.data.proof : undefined, adminOk: isAdmin(req) }, Math.floor(Date.now() / 1000));
   return result.ok ? new Response(null, { status: 204 }) : Response.json(result, { status: result.status });

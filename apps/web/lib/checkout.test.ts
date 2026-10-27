@@ -70,6 +70,30 @@ describe("checkout gate", () => {
     expect(codes(await checkout(await mandate(), paypalClient(ENV, down), NOW))).toEqual(["PAYPAL_UNAVAILABLE"]);
   });
 
+  // Edge-case review, Oct 27: a 5xx used to read "PayPal refused the charge (HTTP_502)", and a held
+  // charge "PayPal didn't complete the charge", though PayPal may have created it.
+  it("PayPal answering 5xx after the retry reads as unavailable (asking again is safe), not refused", async () => {
+    const busy: typeof fetch = async (input, init) =>
+      String(input).endsWith("/v2/checkout/orders") ? new Response("<html>busy</html>", { status: 502 }) : pp.fetch(input, init);
+    expect(codes(await checkout(await mandate(), paypalClient(ENV, busy), NOW))).toEqual(["PAYPAL_UNAVAILABLE"]);
+  });
+
+  it("a charge PayPal holds for review says so, and a declined one says nothing was charged", async () => {
+    for (const [status, code, text] of [["PENDING", "CAPTURE_PENDING", /holding this charge/], ["DECLINED", "CAPTURE_NOT_COMPLETED", /nothing was charged/]] as const) {
+      pp = fakePayPal();
+      pp.tokens.set(TOKEN, { id: TOKEN, payment_source: { paypal: { description: formatTerms(terms), payer_id: "FAKEPAYER0001" } } });
+      const held: typeof fetch = async (input, init) => {
+        const res = await pp.fetch(input, init);
+        if (!String(input).endsWith("/v2/checkout/orders") || init?.method !== "POST") return res;
+        const order = (await res.json()) as { purchase_units: { payments: { captures: { status: string }[] } }[] };
+        order.purchase_units[0]!.payments.captures[0]!.status = status;
+        return Response.json(order, { status: res.status });
+      };
+      const r = await checkout(await mandate(), paypalClient(ENV, held), NOW);
+      expect(r.ok ? "OK" : [r.failures[0]!.code, text.test(r.failures[0]!.message)]).toEqual([code, true]);
+    }
+  });
+
   it("a second request in the same period is refused by PayPal's duplicate-invoice block", async () => {
     await run(await mandate({ jti: "jti-first-001" }));
     expect(codes(await run(await mandate({ jti: "jti-second-01" })))).toEqual(["ALREADY_ORDERED_THIS_PERIOD"]);

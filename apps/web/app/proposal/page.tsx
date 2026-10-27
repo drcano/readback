@@ -21,7 +21,7 @@ export default async function ProposalPage() {
   const c = await approvalConcept(configured && budget.ok ? paypalClient() : null, process.env["HERO_AGREEMENT_ID"], new Date());
   const t = c.terms;
   const runtime = process.env["AGENT_RUNTIME_URL"];
-  const agentHost = runtime ? new URL(runtime).host : "maya-agent.example";
+  const agentHost = (runtime && URL.canParse(runtime) && new URL(runtime).host) || "maya-agent.example";
 
   return (
     <>

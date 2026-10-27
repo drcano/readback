@@ -24,7 +24,9 @@ export async function directCharge(
   now: Date,
 ): Promise<{ ok: true; captureId: string } | { ok: false; status: number; failure: Failure }> {
   const tok = await paypal.get(`/v3/vault/payment-tokens/${encodeURIComponent(input.tokenId)}`, PaymentTokenSchema);
-  if (!tok.ok) return { ok: false, status: 404, failure: { code: "AGREEMENT_NOT_ACTIVE", message: "That agreement isn't active." } };
+  if (!tok.ok) return tok.status === 404
+    ? { ok: false, status: 404, failure: { code: "AGREEMENT_NOT_ACTIVE", message: "That agreement isn't active." } }
+    : { ok: false, status: 502, failure: { code: "PAYPAL_UNAVAILABLE", message: "PayPal couldn't be reached; nothing was charged. Try again." } };
   const terms = parseTerms(tok.data.payment_source.paypal.description ?? "");
   if (!terms.ok) return { ok: false, status: 422, failure: terms.error };
 

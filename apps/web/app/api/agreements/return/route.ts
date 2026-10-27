@@ -3,7 +3,7 @@
 // Judge mode runs in a popup: it posts the agreement ID to the opener tab (same origin only) and
 // closes, so the tab's in-memory key never navigates away (SPEC §5.7).
 import { exchangeSetupToken, publicOrigin } from "@/lib/agreements";
-import { allowAgreement, clientIp } from "@/lib/budget";
+import { allowExchange, clientIp } from "@/lib/budget";
 import { paypalClient } from "@/lib/paypal/client";
 
 // Inside <script>, "<" must be escaped so no value can close the tag early.
@@ -25,8 +25,9 @@ export async function GET(req: Request): Promise<Response> {
   // [spike step 2] PayPal's query parameter name for the approved setup token.
   const setupTokenId = url.searchParams.get("approval_token_id") ?? url.searchParams.get("token");
   if (!setupTokenId || !/^[A-Za-z0-9_-]{1,64}$/.test(setupTokenId)) return new Response("Missing approval token.", { status: 400 });
-  // Each hit is a PayPal POST (the exchange): rate-limited like starting an approval (T25).
-  const gate = allowAgreement(clientIp(req));
+  // Each hit is a PayPal POST (the exchange): rate-limited (T25), in its own bucket so approvals
+  // started from the same IP can't strand one PayPal already completed.
+  const gate = allowExchange(clientIp(req));
   const ex = gate.ok ? await exchangeSetupToken(paypalClient(), setupTokenId) : { ok: false as const };
   if (!ex.ok) return judge ? popup(origin, { type: "rb-agreement-failed" }, "PayPal's approval didn't complete.") : Response.redirect(`${origin}/shopper?error=exchange`, 303);
   if (judge) return popup(origin, { type: "rb-agreement", tokenId: ex.tokenId }, "Approved.");

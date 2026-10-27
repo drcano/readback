@@ -2,11 +2,12 @@
 // re-fetched and re-checked server-side; the draft is generated from those facts.
 import { evaluateCase } from "@readback/core";
 import { fixtureCases } from "@readback/core/fixtures";
+import { allowLookup, clientIp } from "@/lib/budget";
 import { buildCaseBundle } from "@/lib/cases";
 import { draftMessage } from "@/lib/inquiry";
 import { paypalClient } from "@/lib/paypal/client";
 
-export async function POST(_req: Request, ctx: { params: Promise<{ id: string }> }): Promise<Response> {
+export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }): Promise<Response> {
   const { id } = await ctx.params;
   if (!/^[A-Za-z0-9-]{1,80}$/.test(id)) return Response.json({ ok: false }, { status: 400 });
   let bundle;
@@ -14,6 +15,9 @@ export async function POST(_req: Request, ctx: { params: Promise<{ id: string }>
     const wanted = { "fixture-hero": "PP-D-HERO1", "fixture-twist": "PP-D-TWIST" }[id] ?? id.slice("fixture-".length);
     bundle = (await fixtureCases()).find((f) => f.id === wanted)?.bundle;
   } else {
+    // Each rebuild is 5–20 PayPal calls: budgeted like every public route that reads a case (T25).
+    const budget = allowLookup(clientIp(req));
+    if (!budget.ok) return Response.json({ ok: false, message: budget.message }, { status: 429 });
     const lookup = await buildCaseBundle(id, paypalClient(), new Date());
     if (lookup.ok) bundle = lookup.bundle;
   }

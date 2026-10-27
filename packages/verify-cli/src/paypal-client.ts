@@ -11,6 +11,8 @@ export type PayPalResult<T> = PayPalOk<T> | PayPalErr;
 
 type Env = Record<string, string | undefined>;
 
+class AuthFailed extends Error {}
+
 // Without a timeout a hung connection waits undici's 300 s default; two seed charges did
 // (Oct 23 and 25), and PayPal had created both orders while the script waited.
 const TIMEOUT_MS = 25_000;
@@ -23,29 +25,35 @@ export function paypalClient(env: Env = process.env, fetchImpl: typeof fetch = f
   // instance if PayPal rate limits or latency ever matter (the token holds no customer data).
   let token: string | undefined;
 
-  // One retry after a network error or timeout. Safe for every POST: it resends the same
-  // PayPal-Request-Id, and PayPal replays the first result instead of acting twice (spike step 4).
+  // One retry after a network error, a timeout, or PayPal answering 5xx/429. Safe for every POST: it
+  // resends the same PayPal-Request-Id, and PayPal replays the first result instead of acting twice
+  // (spike step 4).
   async function send(url: string, init: RequestInit): Promise<Response> {
+    const once = () => fetchImpl(url, { ...init, signal: AbortSignal.timeout(TIMEOUT_MS) });
+    let res: Response;
     try {
-      return await fetchImpl(url, { ...init, signal: AbortSignal.timeout(TIMEOUT_MS) });
+      res = await once();
     } catch (e) {
       if (!isNetworkError(e)) throw e;
-      return fetchImpl(url, { ...init, signal: AbortSignal.timeout(TIMEOUT_MS) });
+      return once();
     }
+    return res.status >= 500 || res.status === 429 ? once() : res;
   }
 
   async function accessToken(): Promise<string> {
     if (token) return token;
     const id = env["PAYPAL_CLIENT_ID"];
     const secret = env["PAYPAL_CLIENT_SECRET"];
-    if (!id || !secret) throw new Error("PAYPAL_CLIENT_ID / PAYPAL_CLIENT_SECRET are not set");
+    if (!id || !secret) throw new AuthFailed("PAYPAL_CLIENT_ID / PAYPAL_CLIENT_SECRET are not set");
     const res = await send(`${base}/v1/oauth2/token`, {
       method: "POST",
       headers: { Authorization: `Basic ${btoa(`${id}:${secret}`)}`, "Content-Type": "application/x-www-form-urlencoded" },
       body: "grant_type=client_credentials",
     });
-    if (!res.ok) throw new Error(`PayPal OAuth failed: ${res.status} (debug_id ${res.headers.get("paypal-debug-id")})`);
-    token = ((await res.json()) as { access_token: string }).access_token;
+    if (!res.ok) throw new AuthFailed(`PayPal OAuth failed: ${res.status} (debug_id ${res.headers.get("paypal-debug-id")})`);
+    const body = (await res.json().catch(() => null)) as { access_token?: unknown } | null;
+    if (typeof body?.access_token !== "string") throw new AuthFailed("PayPal OAuth answered without a token");
+    token = body.access_token;
     return token;
   }
 
@@ -71,6 +79,12 @@ export function paypalClient(env: Env = process.env, fetchImpl: typeof fetch = f
         body: opts.form ?? (opts.body === undefined ? undefined : JSON.stringify(opts.body)),
       });
     } catch (e) {
+      // Can't sign in to PayPal (credentials missing or refused, or PayPal's sign-in is down): a
+      // failure like any other, so every caller shows its designed "PayPal couldn't be reached" state.
+      if (e instanceof AuthFailed) {
+        console.warn(`paypal ${method} ${path.split("?")[0]} ${e.message}`);
+        return { ok: false, status: 503, issues: ["PAYPAL_UNREACHABLE"], debugId: null };
+      }
       // Still unreachable after the retry: a failure like any other, so callers deny.
       if (!isNetworkError(e)) throw e;
       console.warn(`paypal ${method} ${path.split("?")[0]} unreachable`);
@@ -85,6 +99,9 @@ export function paypalClient(env: Env = process.env, fetchImpl: typeof fetch = f
     } catch {
       json = {};
     }
+    // PayPal still failing after the retry: for the caller, the same as no answer. A POST may or may
+    // not have taken effect, and asking again is safe for the same reason the retry was.
+    if (res.status >= 500 || res.status === 429) return { ok: false, status: res.status === 429 ? 429 : 503, issues: ["PAYPAL_UNREACHABLE"], debugId };
     if (!res.ok) {
       const details = (json as { details?: { issue?: string }[]; name?: string }).details;
       const issues = details?.map((d) => d.issue ?? "UNKNOWN") ?? [(json as { name?: string }).name ?? `HTTP_${res.status}`];

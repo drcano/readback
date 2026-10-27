@@ -3,7 +3,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { evaluateCase } from "@readback/core";
 import { fixtureCases } from "@readback/core/fixtures";
-import { allow, clientIp } from "@/lib/budget";
+import { allow, allowLookup, clientIp } from "@/lib/budget";
 import { writeBrief } from "@/lib/brief";
 import { buildCaseBundle } from "@/lib/cases";
 import { paypalClient } from "@/lib/paypal/client";
@@ -16,6 +16,9 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     const wanted = { "fixture-hero": "PP-D-HERO1", "fixture-twist": "PP-D-TWIST" }[id] ?? id.slice("fixture-".length);
     bundle = (await fixtureCases()).find((f) => f.id === wanted)?.bundle;
   } else {
+    // Each rebuild is 5–20 PayPal calls: budgeted like every public route that reads a case (T25).
+    const budget = allowLookup(clientIp(req));
+    if (!budget.ok) return Response.json({ ok: false, message: budget.message }, { status: 429 });
     const lookup = await buildCaseBundle(id, paypalClient(), new Date());
     if (lookup.ok) bundle = lookup.bundle;
   }

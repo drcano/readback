@@ -28,9 +28,18 @@ export function limiter(perKeyPerHour: number, perDay: number, dailyMessage: str
 
 // Per-IP hourly limits assume several judges may share one office IP (NAT); the daily caps are the
 // cost control. Claude-backed routes: ~1 cent per call, so 500/day ≈ USD 5/day per instance.
-export const allow = limiter(60, Number(process.env["ANTHROPIC_DAILY_CALLS"] ?? 500), "The demo's daily AI budget is used up. The rest of the demo still works.");
+// A blank or mistyped setting falls back to the default: Number("") is 0 (every call refused) and
+// Number("abc") is NaN (the breaker never trips).
+export function dailyCalls(raw: string | undefined, fallback = 500): number {
+  const n = Number(raw);
+  return raw?.trim() && Number.isInteger(n) && n >= 0 ? n : fallback;
+}
+export const allow = limiter(60, dailyCalls(process.env["ANTHROPIC_DAILY_CALLS"]), "The demo's daily AI budget is used up. The rest of the demo still works.");
 // Starting PayPal approvals (setup tokens) and demo direct charges: sandbox cost only, but bounded.
 export const allowAgreement = limiter(30, 1000, "The demo has started enough agreements for today; try again tomorrow.");
+// Finishing an approval PayPal already completed: one exchange per approval, so it has its own,
+// roomier bucket than starting one.
+export const allowExchange = limiter(120, 2000, "The demo has finished enough approvals for today; try again tomorrow.");
 export const allowDirectCharge = limiter(20, 500, "The demo has made enough direct charges for today.");
 // Public routes that fan out into many PayPal calls per request (the queue, a case, an agreement).
 // A dispute flood or a script mustn't turn page views into a flood of PayPal calls that gets the

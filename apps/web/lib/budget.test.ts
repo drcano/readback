@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clientIp, limiter } from "./budget";
+import { clientIp, dailyCalls, limiter } from "./budget";
 
 describe("rate limits", () => {
   it("limits per key per hour and per day, and resets the next day", () => {
@@ -11,6 +11,9 @@ describe("rate limits", () => {
     expect(allow("b", t).ok).toBe(true);
     expect(allow("c", t)).toEqual({ ok: false, message: "daily" });
     expect(allow("c", new Date("2026-11-09T10:00:00Z")).ok).toBe(true);
+  });
+  it("a blank or mistyped daily AI budget falls back to the default, never 0 or no limit", () => {
+    expect([dailyCalls(undefined), dailyCalls(""), dailyCalls(" "), dailyCalls("abc"), dailyCalls("-5"), dailyCalls("1.5"), dailyCalls("200"), dailyCalls("0")]).toEqual([500, 500, 500, 500, 500, 500, 200, 0]);
   });
   it("uses the proxy-appended (last) X-Forwarded-For entry, not a client-supplied first one", () => {
     expect(clientIp(new Request("https://x", { headers: { "x-forwarded-for": "6.6.6.6, 203.0.113.9" } }))).toBe("203.0.113.9");

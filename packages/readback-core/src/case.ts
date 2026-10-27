@@ -123,7 +123,8 @@ export type DisputeReason = (typeof DISPUTE_REASONS)[number];
 // Disputes v1 GET /v1/customer/disputes/{id}
 export const DisputeSchema = z.object({
   dispute_id: z.string(),
-  reason: z.enum(DISPUTE_REASONS),
+  // A reason PayPal adds later is read as OTHER: out of scope, no suggestion, the case still loads.
+  reason: z.enum(DISPUTE_REASONS).catch("OTHER"),
   status: z.string(),
   dispute_life_cycle_stage: z.string(),
   create_time: z.string().optional(),
