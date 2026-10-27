@@ -13,7 +13,7 @@ Agent purchase mandates and dispute evidence, built entirely on PayPal's own rec
 | **Rulings** | 59/59 labeled scenarios behave as labeled. **0** wrong suggestions toward the seller, **0** toward the buyer ([results](evals/results/latest.json)) |
 | **Tampering** | 2,000 random single-field mutations of an upheld case: **0** still upheld. 10,000 more in the core test suite |
 | **Storage** | **Zero.** No database, no files, no caches of customer data. PayPal is the only system of record |
-| **Accessibility** | axe-core: **0** WCAG 2.1 AA violations on 8 pages, light and dark |
+| **Accessibility** | axe-core: **0** WCAG 2.1 AA violations on 9 pages, light and dark |
 
 **Try it:** run it locally in a few minutes ([Run it](#run-it)). Both verdicts, the investigator, the evals and the AP2 check work without any credentials, on labeled fixture data; approving and buying use the PayPal sandbox. <!-- TODO(submission): hosted URL and the YouTube video link go here. -->
 

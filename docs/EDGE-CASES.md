@@ -14,7 +14,7 @@ Every row says how it is known:
 Some tests in `evals/audit/findings.test.ts` are named for the bug they pin. Each one asserts the fixed, honest outcome. Rows marked *(Oct 27)* came from an independent edge-case review of core, the server, the agent runtime and the UI; each is pinned by the test cited.
 
 **Test status, Oct 27:**
-- `pnpm test`: 414 tests pass (core 167, verify 10, agent 19, evals 152, web 66).
+- `pnpm test`: 415 tests pass (core 167, verify 10, agent 19, evals 152, web 67).
 - `node e2e/run.ts` in `apps/web`: 26 checks pass in Chromium (the judge flow, plus axe on 9 pages in light and dark).
 
 ## 1. Approval on PayPal
@@ -81,6 +81,7 @@ Nothing that decides money or a ruling depends on Claude, so each of these has a
 | `ANTHROPIC_DAILY_CALLS` blank or mistyped *(Oct 27)* | Falls back to 500. A blank value used to refuse every AI call; `abc` turned the breaker off. | Test: [budget](../apps/web/lib/budget.test.ts) › "a blank or mistyped daily AI budget falls back to the default" |
 | No Anthropic key, or Claude down, while drafting terms *(Oct 27)* | The same designed state as the chat, not a 500. | Test: [routes](../apps/web/lib/routes.test.ts) › "drafting terms with no Anthropic key answers with a designed message" |
 | The brief or draft fails, or is double-clicked *(Oct 27)* | The button shows "Writing the brief…" and stays disabled while it runs; a failure shows the server's message (for example the AI budget). | Code: [CaseSide](../apps/web/components/CaseSide.tsx) (`ask`) |
+| A brief on a charge read in preview (no dispute filed) *(Oct 27)* | Claude is told no dispute exists, and the validator rejects any sentence saying one was filed (a conditional, "if she disputed it", is fine). Before, the hero brief opened with "This dispute was filed as unauthorised". | Test: [brief](../apps/web/lib/brief.test.ts) › "a charge read in preview has no dispute, so no sentence may say one was filed" |
 | Claude keeps calling tools | Stopped after a bounded number of turns. | Test: [agent-chat](../apps/web/lib/agent-chat.test.ts) › "stops after a bounded number of tool turns" |
 | The brief makes a claim without a citation, invents one, or reaches an outcome the rules didn't | Rejected and retried once with the validator's feedback. If it still fails, the rules-only brief is shown. | Test: [brief](../apps/web/lib/brief.test.ts) › "rejects uncited sentences, invented citations, and outcomes the rules didn't reach" · "retries once with the validator's feedback, then falls back to the rules brief" |
 | The terms Claude drafts are slightly off | Refused, not quietly fixed; a refusal or unparseable output becomes a plain error. | Test: [terms-compiler](../apps/web/lib/terms-compiler.test.ts) › "refuses rather than fixes anything off in Claude's proposal" · "a refusal or unparseable output becomes a plain-language error" |
