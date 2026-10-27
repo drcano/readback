@@ -9,6 +9,8 @@ import { STORY_TERMS } from "./test-helpers.ts";
 import { generateAgentKey } from "./thumbprint.ts";
 import { sha256Hex } from "./hash.ts";
 import { formatTerms } from "./terms.ts";
+import { VI_DEMO_ISSUER_JWK, VI_EXAMPLE_CHAIN } from "./vi-example.ts";
+import { evaluateViChain } from "./vi.ts";
 
 describe("readback-core in a real browser", () => {
   it("really is a browser (no Node globals)", () => {
@@ -39,5 +41,11 @@ describe("readback-core in a real browser", () => {
     expect(seller.classification).toMatchObject({ row: 13, suggestion: "SELLER_FAVOR" });
     expect(buyer.classification).toMatchObject({ row: 3, suggestion: "BUYER_FAVOR" });
     expect(ms).toBeLessThan(1000);
+  });
+
+  it("checks Verifiable Intent's example chain in the browser: three signatures, two bindings", async () => {
+    const r = await evaluateViChain(VI_EXAMPLE_CHAIN, { jwk: VI_DEMO_ISSUER_JWK, label: "VI's demo issuer key" });
+    expect(r.findings.filter((f) => f.status === "fail")).toEqual([]);
+    expect(r.verdict).toBe("unresolved");
   });
 });

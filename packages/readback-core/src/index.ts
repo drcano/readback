@@ -15,3 +15,5 @@ export * from "./setup.ts";
 export * from "./lights.ts";
 export * from "./ap2.ts";
 export { AP2_EXAMPLE_CHAIN } from "./ap2-example.ts";
+export * from "./vi.ts";
+export { VI_DEMO_ISSUER_JWK, VI_EXAMPLE_CHAIN } from "./vi-example.ts";

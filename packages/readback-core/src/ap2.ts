@@ -8,8 +8,9 @@
 //    the closed mandate        - budget / agent_recurrence (need memory of earlier uses; Readback is
 //  - sd_hash binding             stateless; on PayPal rails, invoice uniqueness plays this role)
 //  - amount, payee, dates      - instrument / PISP limits
-import { base64url, compactVerify, importJWK } from "jose";
+import { compactVerify, importJWK } from "jose";
 import { type PublicJwk, PublicJwkSchema } from "./jws.ts";
+import { digest, Hidden, type Json, obj, parseSdJwt, reveal } from "./sd-jwt.ts";
 import { agentFingerprint } from "./thumbprint.ts";
 
 export type Ap2Status = "pass" | "fail" | "unresolved";
@@ -21,52 +22,6 @@ export type Ap2Result = {
   mapped: { merchant: string | null; capCents: number | null; fingerprint: string | null; notApplicable: string[] };
   purchase: { payeeId: string; amountCents: number; currency: string } | null;
 };
-
-type Json = unknown;
-const decodeJson = (part: string): Json => JSON.parse(new TextDecoder().decode(base64url.decode(part)));
-
-async function digest(text: string): Promise<string> {
-  const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
-  return base64url.encode(new Uint8Array(d));
-}
-
-class Hidden extends Error {}
-
-// SD-JWT: an array element {"...": digest} stands for the disclosure with that digest. Anything we
-// can't reveal is treated as hidden, and hidden content is a failure, never a pass.
-function reveal(value: Json, disclosures: Map<string, Json>): Json {
-  if (Array.isArray(value)) {
-    return value.map((el) => {
-      if (el && typeof el === "object" && !Array.isArray(el) && Object.keys(el).length === 1 && "..." in el) {
-        const d = disclosures.get(String((el as Record<string, Json>)["..."]));
-        if (d === undefined) throw new Hidden("an array element is still hidden");
-        return reveal(d, disclosures);
-      }
-      return reveal(el, disclosures);
-    });
-  }
-  if (value && typeof value === "object") {
-    if ("_sd" in value) throw new Hidden("object properties are still hidden");
-    return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, reveal(v, disclosures)]));
-  }
-  return value;
-}
-
-// "jwt~d1~d2~" → the JWT payload and a digest → value map of its disclosures.
-async function parseSdJwt(token: string): Promise<{ jws: string; header: Record<string, Json>; payload: Record<string, Json>; disclosures: Map<string, Json> }> {
-  const [jws, ...rest] = token.split("~");
-  if (!jws || !/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(jws)) throw new Error("not an SD-JWT");
-  const disclosures = new Map<string, Json>();
-  for (const d of rest.filter(Boolean)) {
-    const arr = decodeJson(d);
-    if (!Array.isArray(arr) || (arr.length !== 2 && arr.length !== 3)) throw new Error("malformed disclosure");
-    disclosures.set(await digest(d), arr[arr.length - 1]);
-  }
-  const [h, p] = jws.split(".") as [string, string];
-  return { jws, header: decodeJson(h) as Record<string, Json>, payload: decodeJson(p) as Record<string, Json>, disclosures };
-}
-
-const obj = (v: Json): Record<string, Json> => (v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, Json>) : {});
 
 export async function evaluateAp2Chain(chain: string): Promise<Ap2Result> {
   const findings: Ap2Finding[] = [];

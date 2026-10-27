@@ -29,6 +29,7 @@
   },
   "files": [
     "dist",
+    "third_party",
     "CHANGELOG.md",
     "README.md"
   ],
