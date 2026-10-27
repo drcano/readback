@@ -26,7 +26,7 @@ describe("Verifiable Intent import: VI's own autonomous example", () => {
     expect(status(r, "Constraint mandate.payment.recurrence")).toBe("unresolved");
     expect(r.verdict).toBe("unresolved"); // never "allow" while something couldn't be checked
     expect(r.purchase).toEqual({ payeeId: "merchant-uuid-1", amountCents: 27999, currency: "USD" });
-    expect(r.mapped.merchant).toBe("Tennis Warehouse");
+    expect(r.mapped.merchant).toBe("Tennis Warehouse (1 of 2 allowed payees disclosed here)");
     expect(r.mapped.capCents).toBe(40000);
     expect(r.mapped.fingerprint).toMatch(/^[A-Za-z0-9_-]{16}$/);
   });

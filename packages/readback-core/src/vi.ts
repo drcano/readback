@@ -122,7 +122,7 @@ export async function evaluateViChain(chain: ViChain, issuer?: { jwk: PublicJwk;
           // Only disclosed payees can count; one this party can't see never makes a pass.
           const shown = revealPresented(c["allowed"], l2.disclosures).map(obj);
           const total = Array.isArray(c["allowed"]) ? c["allowed"].length : 0;
-          mapped.merchant = shown.map((p) => String(p["name"] ?? p["id"])).join(", ") || null;
+          mapped.merchant = shown.length ? shown.map((p) => String(p["name"] ?? p["id"])).join(", ") + (shown.length < total ? ` (${shown.length} of ${total} allowed payees disclosed here)` : "") : null;
           if (shown.length === 0) add("Payee allowed", "unresolved", "None of the allowed payees is disclosed to this party.");
           else pass(shown.some((p) => p["id"] === payeeId), "Payee allowed", `Payee ${payeeId} is allowed (${shown.length} of ${total} allowed payees disclosed here).`, `Payee ${payeeId} isn't among the ${shown.length} of ${total} allowed payees disclosed here.`);
           break;

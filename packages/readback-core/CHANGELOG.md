@@ -8,4 +8,5 @@ First release.
 - `invoice_id` and `custom_id` labels, and the checkout gate decision (`authorizeCharge`).
 - The eleven case checks, the four lights and the classification table, with labeled fixture cases.
 - AP2 v0.2 payment-mandate import.
+- Mastercard Verifiable Intent (Draft v0.1) chain check: `evaluateViChain`, with VI's own example chain as a fixture.
 - Pure and browser-safe: no Node-only APIs.
