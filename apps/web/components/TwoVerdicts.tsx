@@ -1,8 +1,10 @@
 "use client";
 // "Same claim, two verdicts" (SPEC §0): the moment judges should remember. Same shopper, same claim;
-// one charge signed by her agent within her terms, one charged by the merchant directly. The real
-// sandbox disputes when the deployment names them (HERO_DISPUTE_ID, TWIST_DISPUTE_ID); labeled
-// fixtures otherwise, or if PayPal can't be read.
+// one charge signed by her agent within her terms, one charged by the merchant directly. Live, the
+// deployment names two real charges on Maya's sandbox agreement (HERO_CASE_ID, TWIST_CASE_ID), each
+// read as if she disputed it: no claim is ever filed on her agreement, because PayPal deletes an
+// agreement once an unauthorized claim is filed (spike step 7). Labeled fixtures otherwise, or if
+// PayPal can't be read.
 import { checkedIn, type Side, useChecked, VerdictCard } from "./VerdictPair";
 
 const SIDES: [Omit<Side, "id">, Omit<Side, "id">] = [
@@ -32,7 +34,7 @@ export function TwoVerdicts({ heroId, twistId }: { heroId?: string | undefined; 
       </div>
       <p className="muted small">
         Both cases were just {checkedIn(ms)}: signatures, terms and all eleven checks.{" "}
-        {fixture ? "Fixture data, labeled; the live versions run against the PayPal sandbox." : "Live sandbox disputes, read from PayPal just now."} The rules
+        {fixture ? "Fixture data, labeled; the live versions run against the PayPal sandbox." : "Two real charges on her sandbox agreement, read from PayPal just now as if she disputed each one."} The rules
         are the same for both sides: a signed request inside her approved terms protects the seller; a charge her agent never asked for protects the buyer.
       </p>
     </section>

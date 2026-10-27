@@ -37,9 +37,9 @@ services:
         sync: false
       - key: JUDGE_AGREEMENT_ID
         sync: false
-      - key: HERO_DISPUTE_ID # the home page's live pair, once the disputes exist
+      - key: HERO_CASE_ID # the home page's live pair: her signed charge and the twist charge (capture IDs)
         sync: false
-      - key: TWIST_DISPUTE_ID
+      - key: TWIST_CASE_ID
         sync: false
       - key: DEMO_MODE
         value: "true"

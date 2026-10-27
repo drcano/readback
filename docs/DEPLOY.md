@@ -25,7 +25,7 @@ One page, in order, about an hour. Every step here uses Dante's accounts and sec
 | readback-web | `HERO_AGREEMENT_ID` | `5td85928ph747680n` |
 | readback-web | `PAYPAL_WEBHOOK_ID` | Empty until step 3 |
 | readback-web | `JUDGE_AGREEMENT_ID` | Empty until step 4 |
-| readback-web | `HERO_DISPUTE_ID`, `TWIST_DISPUTE_ID` | **Empty until the hero disputes exist.** Until then the home page shows the labeled pair. |
+| readback-web | `HERO_CASE_ID`, `TWIST_CASE_ID` | The hero's latest signed charge and its twist charge (capture IDs from `pnpm seed:charge` and `pnpm twist:charge`). Never file a claim on the hero agreement. |
 | readback-agent | `AGENT_PRIVATE_KEY` | From `apps/agent/.env`: the key that signed P001 onward. Any other key, and every tool refuses (T21). |
 | readback-agent | `HERO_MCP_SECRET`, `JUDGE_MCP_SECRET` | From `apps/agent/.env` |
 | readback-agent | `MERCHANT_URL` | `https://readback-web.onrender.com` |
@@ -64,5 +64,5 @@ One page, in order, about an hour. Every step here uses Dante's accounts and sec
 - [ ] Once the judge agreement exists, run it again with `--charge`. That signs a reorder on the judge path: at most one sandbox charge a day, and the second attempt must come back as PayPal's duplicate refusal.
 - [ ] Re-run it read-only every day through Dec 15, and after every redeploy.
 
-## 6. When the hero disputes exist (around Nov 7)
-- [ ] Set `HERO_DISPUTE_ID` and `TWIST_DISPUTE_ID` on readback-web and redeploy. The smoke check then requires the hero to suggest `SELLER_FAVOR` and the twist `BUYER_FAVOR`, each re-checked from its bundle.
+## 6. The live pair (no disputes on Maya's agreement)
+- [ ] An unauthorized claim makes PayPal delete the agreement (spike step 7), so the hero pair is read in preview mode and no claim is ever filed on it. Run `pnpm twist:charge` once (one per agreement), then set `HERO_CASE_ID` to a recent signed charge with at least 2 earlier charges, the earliest 7+ days before, and `TWIST_CASE_ID` to the twist charge. The smoke check then requires the hero to suggest `SELLER_FAVOR` and the twist `BUYER_FAVOR`, each re-checked from its bundle.

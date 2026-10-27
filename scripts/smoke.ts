@@ -70,11 +70,11 @@ const back = await call(`${web}/api/agreements/return?flow=judge&cancelled=1`);
 const target = /postMessage\([^,]+,\s*"([^"]+)"\)/.exec(back.text)?.[1];
 check(target === new URL(web).origin, `PayPal sends approvers back to this deployment (return pages report to ${target ?? "nothing"})`);
 
-// 3. The verdict pair on the home page: live disputes once HERO_/TWIST_DISPUTE_ID are set. Each case is
+// 3. The verdict pair on the home page: live charges (or disputes) once HERO_/TWIST_CASE_ID are set. Each case is
 // re-checked here from its bundle, independently of the server's result.
 const prop = (name: string) => new RegExp(`${name}\\\\?":\\\\?"([A-Za-z0-9-]{1,64})`).exec(html[0]!.text)?.[1];
 const pair = [["hero", prop("heroId"), "SELLER_FAVOR"], ["twist", prop("twistId"), "BUYER_FAVOR"]] as const;
-if (!pair[0][1] || !pair[1][1]) info("Home page shows the labeled pair: HERO_DISPUTE_ID and TWIST_DISPUTE_ID aren't both set");
+if (!pair[0][1] || !pair[1][1]) info("Home page shows the labeled pair: HERO_CASE_ID and TWIST_CASE_ID aren't both set");
 else {
   for (const [side, id, want] of pair) {
     const r = await call(`${web}/api/cases/${id}`);
