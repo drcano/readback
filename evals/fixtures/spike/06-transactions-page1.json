@@ -690,18 +690,708 @@
         "instrument_type": "PayPal",
         "instrument_sub_type": "PayPal Wallet"
       }
+    },
+    {
+      "transaction_info": {
+        "paypal_account_id": "7BCKALXPS826E",
+        "transaction_id": "7YB28302G9593933V",
+        "paypal_reference_id": "B-8XN05546PH7302423",
+        "paypal_reference_id_type": "PAP",
+        "transaction_event_code": "T0003",
+        "transaction_initiation_date": "2026-10-26T16:02:24Z",
+        "transaction_updated_date": "2026-10-26T16:02:24Z",
+        "transaction_amount": {
+          "currency_code": "USD",
+          "value": "64.99"
+        },
+        "fee_amount": {
+          "currency_code": "USD",
+          "value": "-2.76"
+        },
+        "transaction_status": "S",
+        "transaction_subject": "RB1 Good Boy Provisions | GBP-SR24 x1/1d | max USD 65.00 | 2026-10-15..2027-03-31 | agent GAX41xq-rZuPw9cM",
+        "ending_balance": {
+          "currency_code": "USD",
+          "value": "6058.87"
+        },
+        "available_balance": {
+          "currency_code": "USD",
+          "value": "6058.87"
+        },
+        "invoice_id": "RB-5td85928ph747680n-P012",
+        "custom_field": "rb1:5td85928ph747680n:4603218ecaf60770:p012:20a938d566eaca71",
+        "protection_eligibility": "01",
+        "instrument_type": "PayPal",
+        "instrument_sub_type": "PayPal Wallet"
+      }
+    },
+    {
+      "transaction_info": {
+        "paypal_account_id": "7BCKALXPS826E",
+        "transaction_id": "2DS94467MF822490N",
+        "paypal_reference_id": "008512347R795370T",
+        "paypal_reference_id_type": "TXN",
+        "transaction_event_code": "T1110",
+        "transaction_initiation_date": "2026-10-26T20:15:42Z",
+        "transaction_updated_date": "2026-10-26T20:15:42Z",
+        "transaction_amount": {
+          "currency_code": "USD",
+          "value": "-62.23"
+        },
+        "transaction_status": "P",
+        "ending_balance": {
+          "currency_code": "USD",
+          "value": "5996.64"
+        },
+        "available_balance": {
+          "currency_code": "USD",
+          "value": "5996.64"
+        },
+        "invoice_id": "RB-63y80131kp838264b-P901",
+        "custom_field": "rb1:63y80131kp838264b:1a168811825349b0:p901:1c2474ad92c45638",
+        "protection_eligibility": "02",
+        "instrument_type": "PayPal",
+        "instrument_sub_type": "PayPal Wallet"
+      }
+    },
+    {
+      "transaction_info": {
+        "paypal_account_id": "7BCKALXPS826E",
+        "transaction_id": "7EM88034D46537130",
+        "paypal_reference_id": "008512347R795370T",
+        "paypal_reference_id_type": "TXN",
+        "transaction_event_code": "T1107",
+        "transaction_initiation_date": "2026-10-26T21:00:15Z",
+        "transaction_updated_date": "2026-10-26T21:00:15Z",
+        "transaction_amount": {
+          "currency_code": "USD",
+          "value": "-64.99"
+        },
+        "transaction_status": "S",
+        "transaction_subject": "64.99 USD; 2026-10-26 Credit has been processed and claim is now closed. Please refer Dispute ID PP-R-CFY-10194687. Thank you.",
+        "transaction_note": "64.99 USD; 2026-10-26 Credit has been processed and claim is now closed. Please refer Dispute ID PP-R-CFY-10194687. Thank you.",
+        "ending_balance": {
+          "currency_code": "USD",
+          "value": "5931.65"
+        },
+        "available_balance": {
+          "currency_code": "USD",
+          "value": "5931.65"
+        },
+        "invoice_id": "RB-63y80131kp838264b-P901",
+        "custom_field": "rb1:63y80131kp838264b:1a168811825349b0:p901:1c2474ad92c45638",
+        "protection_eligibility": "02",
+        "instrument_type": "PayPal",
+        "instrument_sub_type": "PayPal Wallet"
+      }
+    },
+    {
+      "transaction_info": {
+        "paypal_account_id": "7BCKALXPS826E",
+        "transaction_id": "2DS94467MF822490N",
+        "paypal_reference_id": "008512347R795370T",
+        "paypal_reference_id_type": "TXN",
+        "transaction_event_code": "T1111",
+        "transaction_initiation_date": "2026-10-26T20:15:42Z",
+        "transaction_updated_date": "2026-10-26T21:00:15Z",
+        "transaction_amount": {
+          "currency_code": "USD",
+          "value": "62.23"
+        },
+        "transaction_status": "D",
+        "ending_balance": {
+          "currency_code": "USD",
+          "value": "5993.88"
+        },
+        "available_balance": {
+          "currency_code": "USD",
+          "value": "5993.88"
+        },
+        "invoice_id": "RB-63y80131kp838264b-P901",
+        "custom_field": "rb1:63y80131kp838264b:1a168811825349b0:p901:1c2474ad92c45638",
+        "protection_eligibility": "02",
+        "instrument_type": "PayPal",
+        "instrument_sub_type": "PayPal Wallet"
+      }
+    },
+    {
+      "transaction_info": {
+        "paypal_account_id": "JGVZWF4AV4XYW",
+        "transaction_id": "78579517PC5150051",
+        "paypal_reference_id": "B-8DS03210SJ0025418",
+        "paypal_reference_id_type": "PAP",
+        "transaction_event_code": "T0003",
+        "transaction_initiation_date": "2026-10-27T01:01:46Z",
+        "transaction_updated_date": "2026-10-27T01:01:46Z",
+        "transaction_amount": {
+          "currency_code": "USD",
+          "value": "64.99"
+        },
+        "fee_amount": {
+          "currency_code": "USD",
+          "value": "-2.76"
+        },
+        "transaction_status": "S",
+        "transaction_subject": "RB1 Good Boy Provisions | GBP-SR24 x1/1d | max USD 65.00 | 2026-10-27..2027-03-31 | agent GAX41xq-rZuPw9cM",
+        "ending_balance": {
+          "currency_code": "USD",
+          "value": "6056.11"
+        },
+        "available_balance": {
+          "currency_code": "USD",
+          "value": "6056.11"
+        },
+        "invoice_id": "RB-5ek39697f30423035-P001",
+        "custom_field": "rb1:5ek39697f30423035:4ddfde96d949e2d1:p001:a2b996412fb4a74d",
+        "protection_eligibility": "01",
+        "instrument_type": "PayPal",
+        "instrument_sub_type": "PayPal Wallet"
+      }
+    },
+    {
+      "transaction_info": {
+        "paypal_account_id": "JGVZWF4AV4XYW",
+        "transaction_id": "75F53332985375225",
+        "paypal_reference_id": "78579517PC5150051",
+        "paypal_reference_id_type": "TXN",
+        "transaction_event_code": "T1110",
+        "transaction_initiation_date": "2026-10-27T01:14:03Z",
+        "transaction_updated_date": "2026-10-27T01:14:03Z",
+        "transaction_amount": {
+          "currency_code": "USD",
+          "value": "-62.23"
+        },
+        "transaction_status": "P",
+        "ending_balance": {
+          "currency_code": "USD",
+          "value": "5993.88"
+        },
+        "available_balance": {
+          "currency_code": "USD",
+          "value": "5993.88"
+        },
+        "invoice_id": "RB-5ek39697f30423035-P001",
+        "custom_field": "rb1:5ek39697f30423035:4ddfde96d949e2d1:p001:a2b996412fb4a74d",
+        "protection_eligibility": "02",
+        "instrument_type": "PayPal",
+        "instrument_sub_type": "PayPal Wallet"
+      }
+    },
+    {
+      "transaction_info": {
+        "paypal_account_id": "QKEEKB4XS4PR8",
+        "transaction_id": "8V675089S38437820",
+        "paypal_reference_id": "B-0C027863M90304238",
+        "paypal_reference_id_type": "PAP",
+        "transaction_event_code": "T0003",
+        "transaction_initiation_date": "2026-10-27T02:31:03Z",
+        "transaction_updated_date": "2026-10-27T02:31:03Z",
+        "transaction_amount": {
+          "currency_code": "USD",
+          "value": "64.99"
+        },
+        "fee_amount": {
+          "currency_code": "USD",
+          "value": "-2.76"
+        },
+        "transaction_status": "S",
+        "transaction_subject": "RB1 Good Boy Provisions | GBP-SR24 x1/2d | max USD 65.00 | 2026-10-27..2027-03-31 | agent GAX41xq-rZuPw9cM",
+        "ending_balance": {
+          "currency_code": "USD",
+          "value": "6056.11"
+        },
+        "available_balance": {
+          "currency_code": "USD",
+          "value": "6056.11"
+        },
+        "invoice_id": "RB-0k01910928645341n-P001",
+        "custom_field": "rb1:0k01910928645341n:5bea9dfb64b5cf4b:p001:2219321d2f88550b",
+        "protection_eligibility": "01",
+        "instrument_type": "PayPal",
+        "instrument_sub_type": "PayPal Wallet"
+      }
+    },
+    {
+      "transaction_info": {
+        "paypal_account_id": "QKEEKB4XS4PR8",
+        "transaction_id": "37J6045408037031X",
+        "paypal_reference_id": "8V675089S38437820",
+        "paypal_reference_id_type": "TXN",
+        "transaction_event_code": "T1110",
+        "transaction_initiation_date": "2026-10-27T02:39:03Z",
+        "transaction_updated_date": "2026-10-27T02:39:03Z",
+        "transaction_amount": {
+          "currency_code": "USD",
+          "value": "-62.23"
+        },
+        "transaction_status": "P",
+        "ending_balance": {
+          "currency_code": "USD",
+          "value": "5993.88"
+        },
+        "available_balance": {
+          "currency_code": "USD",
+          "value": "5993.88"
+        },
+        "invoice_id": "RB-0k01910928645341n-P001",
+        "custom_field": "rb1:0k01910928645341n:5bea9dfb64b5cf4b:p001:2219321d2f88550b",
+        "protection_eligibility": "02",
+        "instrument_type": "PayPal",
+        "instrument_sub_type": "PayPal Wallet"
+      }
+    },
+    {
+      "transaction_info": {
+        "paypal_account_id": "7BCKALXPS826E",
+        "transaction_id": "8T065472KN058961S",
+        "paypal_reference_id": "B-8XN05546PH7302423",
+        "paypal_reference_id_type": "PAP",
+        "transaction_event_code": "T0003",
+        "transaction_initiation_date": "2026-10-27T02:44:40Z",
+        "transaction_updated_date": "2026-10-27T02:44:40Z",
+        "transaction_amount": {
+          "currency_code": "USD",
+          "value": "59.00"
+        },
+        "fee_amount": {
+          "currency_code": "USD",
+          "value": "-2.55"
+        },
+        "transaction_status": "S",
+        "transaction_subject": "RB1 Good Boy Provisions | GBP-SR24 x1/1d | max USD 65.00 | 2026-10-15..2027-03-31 | agent GAX41xq-rZuPw9cM",
+        "ending_balance": {
+          "currency_code": "USD",
+          "value": "6050.33"
+        },
+        "available_balance": {
+          "currency_code": "USD",
+          "value": "6050.33"
+        },
+        "invoice_id": "RB-5td85928ph747680n-DIRECT",
+        "protection_eligibility": "01",
+        "instrument_type": "PayPal",
+        "instrument_sub_type": "PayPal Wallet"
+      }
+    },
+    {
+      "transaction_info": {
+        "paypal_account_id": "7BCKALXPS826E",
+        "transaction_id": "5CK4260615383872H",
+        "paypal_reference_id": "B-8XN05546PH7302423",
+        "paypal_reference_id_type": "PAP",
+        "transaction_event_code": "T0003",
+        "transaction_initiation_date": "2026-10-27T16:05:46Z",
+        "transaction_updated_date": "2026-10-27T16:05:46Z",
+        "transaction_amount": {
+          "currency_code": "USD",
+          "value": "64.99"
+        },
+        "fee_amount": {
+          "currency_code": "USD",
+          "value": "-2.76"
+        },
+        "transaction_status": "S",
+        "transaction_subject": "RB1 Good Boy Provisions | GBP-SR24 x1/1d | max USD 65.00 | 2026-10-15..2027-03-31 | agent GAX41xq-rZuPw9cM",
+        "ending_balance": {
+          "currency_code": "USD",
+          "value": "6112.56"
+        },
+        "available_balance": {
+          "currency_code": "USD",
+          "value": "6112.56"
+        },
+        "invoice_id": "RB-5td85928ph747680n-P013",
+        "custom_field": "rb1:5td85928ph747680n:4603218ecaf60770:p013:f25a66e45e315ede",
+        "protection_eligibility": "01",
+        "instrument_type": "PayPal",
+        "instrument_sub_type": "PayPal Wallet"
+      }
+    },
+    {
+      "transaction_info": {
+        "paypal_account_id": "7BCKALXPS826E",
+        "transaction_id": "1CT62591JN241961P",
+        "paypal_reference_id": "B-8XN05546PH7302423",
+        "paypal_reference_id_type": "PAP",
+        "transaction_event_code": "T0003",
+        "transaction_initiation_date": "2026-10-28T16:01:59Z",
+        "transaction_updated_date": "2026-10-28T16:01:59Z",
+        "transaction_amount": {
+          "currency_code": "USD",
+          "value": "64.99"
+        },
+        "fee_amount": {
+          "currency_code": "USD",
+          "value": "-2.76"
+        },
+        "transaction_status": "S",
+        "transaction_subject": "RB1 Good Boy Provisions | GBP-SR24 x1/1d | max USD 65.00 | 2026-10-15..2027-03-31 | agent GAX41xq-rZuPw9cM",
+        "ending_balance": {
+          "currency_code": "USD",
+          "value": "6174.79"
+        },
+        "available_balance": {
+          "currency_code": "USD",
+          "value": "6174.79"
+        },
+        "invoice_id": "RB-5td85928ph747680n-P014",
+        "custom_field": "rb1:5td85928ph747680n:4603218ecaf60770:p014:1282215f90f18d9a",
+        "protection_eligibility": "01",
+        "instrument_type": "PayPal",
+        "instrument_sub_type": "PayPal Wallet"
+      }
+    },
+    {
+      "transaction_info": {
+        "paypal_account_id": "7BCKALXPS826E",
+        "transaction_id": "75Y62210MR151980L",
+        "paypal_reference_id": "B-8XN05546PH7302423",
+        "paypal_reference_id_type": "PAP",
+        "transaction_event_code": "T0003",
+        "transaction_initiation_date": "2026-10-29T16:05:29Z",
+        "transaction_updated_date": "2026-10-29T16:05:29Z",
+        "transaction_amount": {
+          "currency_code": "USD",
+          "value": "64.99"
+        },
+        "fee_amount": {
+          "currency_code": "USD",
+          "value": "-2.76"
+        },
+        "transaction_status": "S",
+        "transaction_subject": "RB1 Good Boy Provisions | GBP-SR24 x1/1d | max USD 65.00 | 2026-10-15..2027-03-31 | agent GAX41xq-rZuPw9cM",
+        "ending_balance": {
+          "currency_code": "USD",
+          "value": "6237.02"
+        },
+        "available_balance": {
+          "currency_code": "USD",
+          "value": "6237.02"
+        },
+        "invoice_id": "RB-5td85928ph747680n-P015",
+        "custom_field": "rb1:5td85928ph747680n:4603218ecaf60770:p015:07589bba3297564e",
+        "protection_eligibility": "01",
+        "instrument_type": "PayPal",
+        "instrument_sub_type": "PayPal Wallet"
+      }
+    },
+    {
+      "transaction_info": {
+        "paypal_account_id": "7BCKALXPS826E",
+        "transaction_id": "5J865365F4222250U",
+        "paypal_reference_id": "B-8XN05546PH7302423",
+        "paypal_reference_id_type": "PAP",
+        "transaction_event_code": "T0003",
+        "transaction_initiation_date": "2026-10-30T16:11:51Z",
+        "transaction_updated_date": "2026-10-30T16:11:51Z",
+        "transaction_amount": {
+          "currency_code": "USD",
+          "value": "64.99"
+        },
+        "fee_amount": {
+          "currency_code": "USD",
+          "value": "-2.76"
+        },
+        "transaction_status": "S",
+        "transaction_subject": "RB1 Good Boy Provisions | GBP-SR24 x1/1d | max USD 65.00 | 2026-10-15..2027-03-31 | agent GAX41xq-rZuPw9cM",
+        "ending_balance": {
+          "currency_code": "USD",
+          "value": "6299.25"
+        },
+        "available_balance": {
+          "currency_code": "USD",
+          "value": "6299.25"
+        },
+        "invoice_id": "RB-5td85928ph747680n-P016",
+        "custom_field": "rb1:5td85928ph747680n:4603218ecaf60770:p016:935f17d4c9649e51",
+        "protection_eligibility": "01",
+        "instrument_type": "PayPal",
+        "instrument_sub_type": "PayPal Wallet"
+      }
+    },
+    {
+      "transaction_info": {
+        "paypal_account_id": "7BCKALXPS826E",
+        "transaction_id": "97D21132L1780644T",
+        "paypal_reference_id": "B-8XN05546PH7302423",
+        "paypal_reference_id_type": "PAP",
+        "transaction_event_code": "T0003",
+        "transaction_initiation_date": "2026-11-01T17:07:25Z",
+        "transaction_updated_date": "2026-11-01T17:07:25Z",
+        "transaction_amount": {
+          "currency_code": "USD",
+          "value": "64.99"
+        },
+        "fee_amount": {
+          "currency_code": "USD",
+          "value": "-2.76"
+        },
+        "transaction_status": "S",
+        "transaction_subject": "RB1 Good Boy Provisions | GBP-SR24 x1/1d | max USD 65.00 | 2026-10-15..2027-03-31 | agent GAX41xq-rZuPw9cM",
+        "ending_balance": {
+          "currency_code": "USD",
+          "value": "6361.48"
+        },
+        "available_balance": {
+          "currency_code": "USD",
+          "value": "6361.48"
+        },
+        "invoice_id": "RB-5td85928ph747680n-P018",
+        "custom_field": "rb1:5td85928ph747680n:4603218ecaf60770:p018:0032b58b514ccfe4",
+        "protection_eligibility": "01",
+        "instrument_type": "PayPal",
+        "instrument_sub_type": "PayPal Wallet"
+      }
+    },
+    {
+      "transaction_info": {
+        "paypal_account_id": "7BCKALXPS826E",
+        "transaction_id": "1JN677875R014302T",
+        "paypal_reference_id": "B-8XN05546PH7302423",
+        "paypal_reference_id_type": "PAP",
+        "transaction_event_code": "T0003",
+        "transaction_initiation_date": "2026-11-02T17:03:12Z",
+        "transaction_updated_date": "2026-11-02T17:03:12Z",
+        "transaction_amount": {
+          "currency_code": "USD",
+          "value": "64.99"
+        },
+        "fee_amount": {
+          "currency_code": "USD",
+          "value": "-2.76"
+        },
+        "transaction_status": "S",
+        "transaction_subject": "RB1 Good Boy Provisions | GBP-SR24 x1/1d | max USD 65.00 | 2026-10-15..2027-03-31 | agent GAX41xq-rZuPw9cM",
+        "ending_balance": {
+          "currency_code": "USD",
+          "value": "6423.71"
+        },
+        "available_balance": {
+          "currency_code": "USD",
+          "value": "6423.71"
+        },
+        "invoice_id": "RB-5td85928ph747680n-P019",
+        "custom_field": "rb1:5td85928ph747680n:4603218ecaf60770:p019:10230381907b0aa2",
+        "protection_eligibility": "01",
+        "instrument_type": "PayPal",
+        "instrument_sub_type": "PayPal Wallet"
+      }
+    },
+    {
+      "transaction_info": {
+        "paypal_account_id": "7BCKALXPS826E",
+        "transaction_id": "6BU74550B01208410",
+        "paypal_reference_id": "B-8XN05546PH7302423",
+        "paypal_reference_id_type": "PAP",
+        "transaction_event_code": "T0003",
+        "transaction_initiation_date": "2026-11-03T17:00:09Z",
+        "transaction_updated_date": "2026-11-03T17:00:09Z",
+        "transaction_amount": {
+          "currency_code": "USD",
+          "value": "64.99"
+        },
+        "fee_amount": {
+          "currency_code": "USD",
+          "value": "-2.76"
+        },
+        "transaction_status": "S",
+        "transaction_subject": "RB1 Good Boy Provisions | GBP-SR24 x1/1d | max USD 65.00 | 2026-10-15..2027-03-31 | agent GAX41xq-rZuPw9cM",
+        "ending_balance": {
+          "currency_code": "USD",
+          "value": "6485.94"
+        },
+        "available_balance": {
+          "currency_code": "USD",
+          "value": "6485.94"
+        },
+        "invoice_id": "RB-5td85928ph747680n-P020",
+        "custom_field": "rb1:5td85928ph747680n:4603218ecaf60770:p020:2490b22548f0a55f",
+        "protection_eligibility": "01",
+        "instrument_type": "PayPal",
+        "instrument_sub_type": "PayPal Wallet"
+      }
+    },
+    {
+      "transaction_info": {
+        "paypal_account_id": "7BCKALXPS826E",
+        "transaction_id": "3KS80604UJ745272F",
+        "paypal_reference_id": "B-8XN05546PH7302423",
+        "paypal_reference_id_type": "PAP",
+        "transaction_event_code": "T0003",
+        "transaction_initiation_date": "2026-11-04T17:05:22Z",
+        "transaction_updated_date": "2026-11-04T17:05:22Z",
+        "transaction_amount": {
+          "currency_code": "USD",
+          "value": "64.99"
+        },
+        "fee_amount": {
+          "currency_code": "USD",
+          "value": "-2.76"
+        },
+        "transaction_status": "S",
+        "transaction_subject": "RB1 Good Boy Provisions | GBP-SR24 x1/1d | max USD 65.00 | 2026-10-15..2027-03-31 | agent GAX41xq-rZuPw9cM",
+        "ending_balance": {
+          "currency_code": "USD",
+          "value": "6548.17"
+        },
+        "available_balance": {
+          "currency_code": "USD",
+          "value": "6548.17"
+        },
+        "invoice_id": "RB-5td85928ph747680n-P021",
+        "custom_field": "rb1:5td85928ph747680n:4603218ecaf60770:p021:50f42b66e1f8a52e",
+        "protection_eligibility": "01",
+        "instrument_type": "PayPal",
+        "instrument_sub_type": "PayPal Wallet"
+      }
+    },
+    {
+      "transaction_info": {
+        "paypal_account_id": "7BCKALXPS826E",
+        "transaction_id": "2C753361R1794521J",
+        "paypal_reference_id": "B-8XN05546PH7302423",
+        "paypal_reference_id_type": "PAP",
+        "transaction_event_code": "T0003",
+        "transaction_initiation_date": "2026-11-05T17:00:09Z",
+        "transaction_updated_date": "2026-11-05T17:00:09Z",
+        "transaction_amount": {
+          "currency_code": "USD",
+          "value": "64.99"
+        },
+        "fee_amount": {
+          "currency_code": "USD",
+          "value": "-2.76"
+        },
+        "transaction_status": "S",
+        "transaction_subject": "RB1 Good Boy Provisions | GBP-SR24 x1/1d | max USD 65.00 | 2026-10-15..2027-03-31 | agent GAX41xq-rZuPw9cM",
+        "ending_balance": {
+          "currency_code": "USD",
+          "value": "6610.40"
+        },
+        "available_balance": {
+          "currency_code": "USD",
+          "value": "6610.40"
+        },
+        "invoice_id": "RB-5td85928ph747680n-P022",
+        "custom_field": "rb1:5td85928ph747680n:4603218ecaf60770:p022:d84e33db26df24e9",
+        "protection_eligibility": "01",
+        "instrument_type": "PayPal",
+        "instrument_sub_type": "PayPal Wallet"
+      }
+    },
+    {
+      "transaction_info": {
+        "paypal_account_id": "7BCKALXPS826E",
+        "transaction_id": "7A886416ER728633S",
+        "paypal_reference_id": "B-8XN05546PH7302423",
+        "paypal_reference_id_type": "PAP",
+        "transaction_event_code": "T0003",
+        "transaction_initiation_date": "2026-11-06T17:02:18Z",
+        "transaction_updated_date": "2026-11-06T17:02:18Z",
+        "transaction_amount": {
+          "currency_code": "USD",
+          "value": "64.99"
+        },
+        "fee_amount": {
+          "currency_code": "USD",
+          "value": "-2.76"
+        },
+        "transaction_status": "S",
+        "transaction_subject": "RB1 Good Boy Provisions | GBP-SR24 x1/1d | max USD 65.00 | 2026-10-15..2027-03-31 | agent GAX41xq-rZuPw9cM",
+        "ending_balance": {
+          "currency_code": "USD",
+          "value": "6672.63"
+        },
+        "available_balance": {
+          "currency_code": "USD",
+          "value": "6672.63"
+        },
+        "invoice_id": "RB-5td85928ph747680n-P023",
+        "custom_field": "rb1:5td85928ph747680n:4603218ecaf60770:p023:ab334b74385fab90",
+        "protection_eligibility": "01",
+        "instrument_type": "PayPal",
+        "instrument_sub_type": "PayPal Wallet"
+      }
+    },
+    {
+      "transaction_info": {
+        "paypal_account_id": "7BCKALXPS826E",
+        "transaction_id": "7CY20658YU059040B",
+        "paypal_reference_id": "B-8XN05546PH7302423",
+        "paypal_reference_id_type": "PAP",
+        "transaction_event_code": "T0003",
+        "transaction_initiation_date": "2026-11-07T17:09:02Z",
+        "transaction_updated_date": "2026-11-07T17:09:02Z",
+        "transaction_amount": {
+          "currency_code": "USD",
+          "value": "64.99"
+        },
+        "fee_amount": {
+          "currency_code": "USD",
+          "value": "-2.76"
+        },
+        "transaction_status": "S",
+        "transaction_subject": "RB1 Good Boy Provisions | GBP-SR24 x1/1d | max USD 65.00 | 2026-10-15..2027-03-31 | agent GAX41xq-rZuPw9cM",
+        "ending_balance": {
+          "currency_code": "USD",
+          "value": "6734.86"
+        },
+        "available_balance": {
+          "currency_code": "USD",
+          "value": "6734.86"
+        },
+        "invoice_id": "RB-5td85928ph747680n-P024",
+        "custom_field": "rb1:5td85928ph747680n:4603218ecaf60770:p024:56d02abc7aa9a497",
+        "protection_eligibility": "01",
+        "instrument_type": "PayPal",
+        "instrument_sub_type": "PayPal Wallet"
+      }
+    },
+    {
+      "transaction_info": {
+        "paypal_account_id": "7BCKALXPS826E",
+        "transaction_id": "1CA51717BW042960H",
+        "paypal_reference_id": "B-8XN05546PH7302423",
+        "paypal_reference_id_type": "PAP",
+        "transaction_event_code": "T0003",
+        "transaction_initiation_date": "2026-11-09T17:00:09Z",
+        "transaction_updated_date": "2026-11-09T17:00:09Z",
+        "transaction_amount": {
+          "currency_code": "USD",
+          "value": "64.99"
+        },
+        "fee_amount": {
+          "currency_code": "USD",
+          "value": "-2.76"
+        },
+        "transaction_status": "S",
+        "transaction_subject": "RB1 Good Boy Provisions | GBP-SR24 x1/1d | max USD 65.00 | 2026-10-15..2027-03-31 | agent GAX41xq-rZuPw9cM",
+        "ending_balance": {
+          "currency_code": "USD",
+          "value": "6797.09"
+        },
+        "available_balance": {
+          "currency_code": "USD",
+          "value": "6797.09"
+        },
+        "invoice_id": "RB-5td85928ph747680n-P026",
+        "custom_field": "rb1:5td85928ph747680n:4603218ecaf60770:p026:118b157d0abc6c66",
+        "protection_eligibility": "01",
+        "instrument_type": "PayPal",
+        "instrument_sub_type": "PayPal Wallet"
+      }
     }
   ],
   "account_number": "CECTB4SU6GCRL",
-  "start_date": "2026-09-26T16:13:30Z",
-  "end_date": "2026-10-26T14:29:59Z",
-  "last_refreshed_datetime": "2026-10-26T14:29:59Z",
+  "start_date": "2026-10-12T17:00:12Z",
+  "end_date": "2026-11-11T14:59:59Z",
+  "last_refreshed_datetime": "2026-11-11T14:59:59Z",
   "page": 1,
-  "total_items": 21,
+  "total_items": 42,
   "total_pages": 1,
   "links": [
     {
-      "href": "https://api.sandbox.paypal.com/v1/reporting/transactions?end_date=2026-10-26T16%3A13%3A30.061Z&fields=transaction_info&start_date=2026-09-26T16%3A13%3A30.061Z&page_size=500&page=1",
+      "href": "https://api.sandbox.paypal.com/v1/reporting/transactions?start_date=2026-10-12T17%3A00%3A12.474Z&end_date=2026-11-11T17%3A00%3A12.474Z&fields=transaction_info&page_size=500&page=1",
       "rel": "self",
       "method": "GET",
       "encType": "application/json"
