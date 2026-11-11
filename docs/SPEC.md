@@ -438,9 +438,9 @@ Sam can:
 **A guided rail across the top, about 30 seconds per step, each step deep-linked to live state:**
 1. Approve.
 2. Buy.
-3. Dispute.
-4. Investigate. A judge's own signed charge has no tracker or history yet, so its expected result is **"no suggestion yet (no history)"**, labeled as such. The rail also links the seeded hero case, which shows `SELLER_FAVOR`.
-5. Be dishonest.
+3. Be dishonest.
+
+Each charge links to its own case ("Check this charge"). A judge's own signed charge has no tracker or history yet, so its expected result is **"no suggestion yet (no history)"**, labeled as such. The seeded hero pair, which shows `SELLER_FAVOR` and `BUYER_FAVOR`, sits above the rail in "Same claim, two verdicts". (Until Nov 11 the rail also had link-only Dispute and Investigate steps; they were cut so the rail is only what the judge does.)
 
 **"Be the agent": the judge holds the key.**
 - The judge's browser generates a P-256 key with WebCrypto. The private key is **non-extractable** and lives only in that tab's memory; it is never sent anywhere and is gone when the tab closes.

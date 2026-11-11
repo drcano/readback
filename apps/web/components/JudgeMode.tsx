@@ -28,7 +28,7 @@ function Step({ n, title, s, children }: { n: number; title: string; s: StepStat
       <span className="rail-n" aria-hidden="true">{s === "done" ? "✓" : n}</span>
       <div>
         <div className="rail-head">
-          <h3>{n}. {title}</h3>
+          <h3>{title}</h3>
           <span className="rail-state">{STATE_WORD[s]}</span>
         </div>
         {children}
@@ -140,15 +140,7 @@ export function JudgeMode() {
           <button type="button" className="btn" onClick={once(buy)} disabled={busy || !tokenId || Boolean(bought)}>Sign and buy one bag</button>
           {bought && <p><a href={`/investigator/${bought}`}>Check this charge</a>: Consent, Agent and Terms pass; Delivery doesn&apos;t yet (nothing shipped, no history), so there&apos;s no suggestion.</p>}
         </Step>
-        <Step n={3} title="Dispute" s="ready">
-          <p>Disputes are a fixed sandbox pool opened by hand (creating them by API is limited-release at PayPal). Open the seeded hero case instead.</p>
-          <a className="btn" href="/investigator">Open the investigator queue</a>
-        </Step>
-        <Step n={4} title="Investigate" s="ready">
-          <p>The hero case: signed by the approved agent, in terms, delivered, with history. Suggested: seller&apos;s favor.</p>
-          <a className="btn" href="/investigator/fixture-hero">Open the hero case</a>
-        </Step>
-        <Step n={5} title="Be a dishonest merchant" s={state(Boolean(dishonest), Boolean(tokenId))}>
+        <Step n={3} title="Be a dishonest merchant" s={state(Boolean(dishonest), Boolean(tokenId))}>
           <p>Charge your own agreement directly, every term respected, but with no request from your agent.</p>
           <button type="button" className="btn btn-refund" onClick={once(beDishonest)} disabled={busy || !tokenId || Boolean(dishonest)}>Charge my wallet without my agent</button>
           {dishonest && <p><a href={`/investigator/${dishonest}`}>Check this charge</a>: every term was respected, but the Agent light is red and the evidence supports the buyer. Readback follows the evidence, whoever runs it.</p>}
