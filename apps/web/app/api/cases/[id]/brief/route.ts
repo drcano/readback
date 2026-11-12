@@ -1,8 +1,8 @@
 // POST /api/cases/[id]/brief — Public (Claude only), budgeted. The case is re-fetched and re-checked
 // server-side; a bundle sent by the client is never trusted. Returns a cited, validated brief.
 import Anthropic from "@anthropic-ai/sdk";
-import { evaluateCase } from "@readback/core";
-import { fixtureCases } from "@readback/core/fixtures";
+import { evaluateCase } from "@readbackhq/core";
+import { fixtureCases } from "@readbackhq/core/fixtures";
 import { allow, allowLookup, clientIp } from "@/lib/budget";
 import { writeBrief } from "@/lib/brief";
 import { buildCaseBundle } from "@/lib/cases";

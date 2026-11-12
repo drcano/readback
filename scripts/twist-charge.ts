@@ -4,8 +4,8 @@
 // merchant" (apps/web/lib/demo.ts), with invoice RB-<tokenId>-DIRECT, so PayPal allows exactly one
 // per agreement. Never file a claim on the hero agreement: an unauthorized claim makes PayPal delete
 // it (spike step 7).
-import { formatCents, PaymentTokenSchema, parseTerms } from "@readback/core";
-import { CATALOG } from "@readback/core/catalog";
+import { formatCents, PaymentTokenSchema, parseTerms } from "@readbackhq/core";
+import { CATALOG } from "@readbackhq/core/catalog";
 import { paypal } from "./spike/paypal.ts";
 
 const SANDBOX = "https://api-m.sandbox.paypal.com";

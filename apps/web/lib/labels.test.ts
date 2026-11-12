@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { DisputeSchema } from "@readback/core";
+import { DisputeSchema } from "@readbackhq/core";
 import { describe, expect, it } from "vitest";
 import { paypalRuling } from "./labels";
 

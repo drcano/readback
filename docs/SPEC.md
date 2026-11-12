@@ -363,7 +363,7 @@ Sam can:
    Nothing is sent for a dispute PayPal has already resolved, or for a charge it shows refunded in full.
 
 ### 5.6 Investigator queue and case view
-**Framing.** A **proposed workflow** for a PayPal claims investigator, labeled as a concept. In this build the page and its data are served by the merchant's deployment, so results are **re-derivable** by anyone with API access to the merchant's account, but not independent of the deployment. The `@readback/verify` CLI (§5.8) removes the dependence on the merchant's hosted code. It does not remove the need for API access to that account, since PayPal's APIs return only an account's own disputes and captures. Say "re-derivable," never "independent."
+**Framing.** A **proposed workflow** for a PayPal claims investigator, labeled as a concept. In this build the page and its data are served by the merchant's deployment, so results are **re-derivable** by anyone with API access to the merchant's account, but not independent of the deployment. The `@readbackhq/verify` CLI (§5.8) removes the dependence on the merchant's hosted code. It does not remove the need for API access to that account, since PayPal's APIs return only an account's own disputes and captures. Say "re-derivable," never "independent."
 
 **Queue** (`apps/web/app/investigator`, **AG Studio**):
 - **Built as** a custom AG Studio widget wrapping AG Grid, themed from the shared design tokens.
@@ -472,8 +472,8 @@ Each charge links to its own case ("Check this charge"). A judge's own signed ch
 - So the AI moment and "it's my key" are the same moment, and the chat needs no judge agreement on the server and no MCP secret in the web app. Judges don't need an Anthropic key; all API keys stay server-side. The agent runtime and its judge path stay for MCP clients (the Claude connector, MCP Inspector).
 
 ### 5.8 Developer surfaces: the "we need this" layer
-- **`@readback/core` on npm.** Typed, browser-safe, zod schemas exported. Versioned, with a changelog.
-- **`npx @readback/verify <disputeId|captureId>`.** A CLI pinned to the published core, run with **the merchant account's API credentials (or by PayPal)**. It prints the eleven checks and the classification. It removes the dependence on the merchant's hosted code, but not on API access to that account.
+- **`@readbackhq/core` on npm.** Typed, browser-safe, zod schemas exported. Versioned, with a changelog.
+- **`npx @readbackhq/verify <disputeId|captureId>`.** A CLI pinned to the published core, run with **the merchant account's API credentials (or by PayPal)**. It prints the eleven checks and the classification. It removes the dependence on the merchant's hosted code, but not on API access to that account.
 - **PayPal Agent Toolkit PR.** New tools `verify_agent_purchase` and `provide_dispute_evidence`. Today's toolkit can't submit dispute evidence. The PR also fixes the two confirmed `accept_dispute_claim` bugs: the `note` regex, and parameters leaking into the query string. Opened by Nov 6 and linked from the README.
 - **README quick-start.** "Add agent-purchase evidence to an existing PayPal integration in 10 lines," with a runnable `examples/existing-paypal-merchant`.
 
@@ -608,7 +608,7 @@ Scripts live in `scripts/spike/`. Results go in `docs/decisions/0001-sandbox-spi
 | 14–18 | Oct 27–31 | Hand-open about 15 disputes, **on separate agreements**. Never file a claim on the hero agreement: an unauthorized claim makes PayPal delete it (spike step 7). Its pair is read in preview. Dispute pipeline. Case view with four lights, Tape widget, preview mode, re-verify. Deploy to Render. **Oct 27: PayPal Q3 earnings call.** |
 | — | **Sun Nov 1** | **Demo-critical path green on the hosted site:** approve → signed charge → PayPal refuses the duplicate → the case view shows both verdicts on the hero agreement in preview, re-verified in the browser → a real dispute, on a test agreement, arrives and is answered. **No exceptions.** |
 | 19–21 | Nov 1–3 | **AG Studio trial starts Nov 1.** Queue widget, theming from shared tokens, Studio Agent Framework, merchant role toggle. AP2 import. |
-| 22–24 | Nov 4–6 | Judge mode (guided rail, Be the agent, Be a dishonest merchant, chat panel). `@readback/core` and `@readback/verify` on npm. Agent Toolkit PR. MCP Inspector check. **Video script and storyboard locked Nov 4.** |
+| 22–24 | Nov 4–6 | Judge mode (guided rail, Be the agent, Be a dishonest merchant, chat panel). `@readbackhq/core` and `@readbackhq/verify` on npm. Agent Toolkit PR. MCP Inspector check. **Video script and storyboard locked Nov 4.** |
 | 25 | Nov 7 | "Judge it yourself" scoreboard. Doctor script, Deploy to Render, axe in CI. Buffer for slips. |
 | 26–27 | Nov 8–9 | Record and edit the video (§11). Three cold viewers. README and Devpost page. |
 | 28 | Nov 10 | **Fable pre-submission audit**, fixes. |
@@ -691,7 +691,7 @@ Judges aren't required to test the project, so **the video is the primary eviden
 | 0:55–1:15 | **Inquiry** (if the sandbox allows). The dispute opens. Maya receives her own approval in plain words and closes the dispute herself. VO: "Most cases should end here." |
 | 1:15–1:55 | **Investigator.** The claim that escalated, in the AG Studio queue. One click: Consent, Agent, Terms, and Delivery go green, each tied to a PayPal object. Re-verified in the browser in milliseconds. Suggestion: seller's favor. The recorded sandbox ruling shows PayPal's own reason. |
 | 1:55–2:25 | **The twist.** The next row: same shopper, $59, every term respected. Agent: **red**. "The merchant charged her wallet directly; her agent never asked." Suggestion: refund, against the merchant running Readback. VO: "That's why it's believable: it rules against the merchant running it." Cut: a judge in judge mode presses "Be a dishonest merchant" and gets the same red light with their own key. |
-| 2:25–2:50 | **Proof.** The eval scoreboard (the measured tamper catch rate), `npx @readback/verify`, the Agent Toolkit PR, zero bytes written. "Every fact is PayPal's." |
+| 2:25–2:50 | **Proof.** The eval scoreboard (the measured tamper catch rate), `npx @readbackhq/verify`, the Agent Toolkit PR, zero bytes written. "Every fact is PayPal's." |
 | 2:50–3:00 | **Close.** "Readback. The safe way to let your AI shop with PayPal." |
 
 Test the cut on three cold viewers. Each must restate the problem and the twist in one sentence after one viewing.

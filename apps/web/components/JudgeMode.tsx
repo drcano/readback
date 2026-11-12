@@ -3,7 +3,7 @@
 // only in memory (gone when the tab closes), approves terms carrying its fingerprint on PayPal in a
 // popup (so the tab, and its key, never navigate away), then signs a purchase itself.
 // Labeled demo affordance (THREAT-MODEL T31): the one place a private key lives outside the runtime.
-import { type AgentKey, generateAgentKey, groupFingerprint, signActionProof } from "@readback/core";
+import { type AgentKey, generateAgentKey, groupFingerprint, signActionProof } from "@readbackhq/core";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { signAndBuy } from "@/lib/tab-agent";
 import { AgentChat } from "./AgentChat";

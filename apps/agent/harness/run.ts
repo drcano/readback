@@ -3,7 +3,7 @@
 // nothing touches PayPal. Claude's words are not graded; what the runtime signed and the gate
 // charged is. Run: pnpm --filter @readback/agent harness   (needs ANTHROPIC_API_KEY; costs a few cents)
 import Anthropic from "@anthropic-ai/sdk";
-import { authorizeCharge, formatTerms, generateAgentKey, parseCents, type Terms, verifyMandate } from "@readback/core";
+import { authorizeCharge, formatTerms, generateAgentKey, parseCents, type Terms, verifyMandate } from "@readbackhq/core";
 import { writeFileSync } from "node:fs";
 import { createApp } from "../src/app.ts";
 import type { Merchant } from "../src/merchant.ts";

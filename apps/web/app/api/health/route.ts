@@ -1,5 +1,5 @@
 // GET /api/health — liveness for Render's health check. Stateless, no PayPal calls.
-import { groupFingerprint } from "@readback/core";
+import { groupFingerprint } from "@readbackhq/core";
 
 export function GET(): Response {
   // Touch core so a broken workspace import fails the health check, not the first real request.

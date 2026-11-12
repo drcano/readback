@@ -1,5 +1,5 @@
 // Drives the real MCP protocol (JSON-RPC over the streamable-HTTP fetch handler) in-process.
-import { type AgentKey, formatTerms, generateAgentKey, type Terms, verifyActionProof, verifyMandate } from "@readback/core";
+import { type AgentKey, formatTerms, generateAgentKey, type Terms, verifyActionProof, verifyMandate } from "@readbackhq/core";
 import { beforeAll, describe, expect, it } from "vitest";
 import { createApp } from "./app.ts";
 import type { AgreementView, Merchant } from "./merchant.ts";

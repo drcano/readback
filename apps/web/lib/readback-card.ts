@@ -1,7 +1,7 @@
 // The readback card: the plain-language restatement Maya confirms (SPEC §5.1). It is built
 // deterministically from validated draft terms, never written by Claude, so it can't say something
 // different from what PayPal will store.
-import { formatCents } from "@readback/core";
+import { formatCents } from "@readbackhq/core";
 import type { Draft } from "./agreements";
 import { CATALOG, MERCHANT_NAME } from "./catalog";
 

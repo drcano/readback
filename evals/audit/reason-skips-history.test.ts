@@ -1,7 +1,7 @@
 // Audit Oct 25: the history threshold (check 11, the brake on T21 "merchant swapped in its own key")
 // guards every seller-favor row, whatever reason the buyer files under.
-import { evaluateCase, type DisputeReason } from "@readback/core";
-import { heroCase } from "@readback/core/fixtures";
+import { evaluateCase, type DisputeReason } from "@readbackhq/core";
+import { heroCase } from "@readbackhq/core/fixtures";
 import { describe, expect, it } from "vitest";
 
 describe("history threshold applies to every dispute reason", () => {

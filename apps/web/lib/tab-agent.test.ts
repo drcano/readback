@@ -1,5 +1,5 @@
 // The judge's tab as the agent: the runtime's pre-checks, then the real checkout gate over the PayPal fake.
-import { type AgentKey, formatTerms, generateAgentKey, type Terms } from "@readback/core";
+import { type AgentKey, formatTerms, generateAgentKey, type Terms } from "@readbackhq/core";
 import { beforeAll, describe, expect, it } from "vitest";
 import { checkout } from "./checkout";
 import { paypalClient } from "./paypal/client";

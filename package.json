@@ -27,7 +27,7 @@
     "eval": "pnpm --filter @readback/evals eval"
   },
   "devDependencies": {
-    "@readback/core": "workspace:*",
+    "@readbackhq/core": "workspace:*",
     "@types/node": "^26.6.5",
     "jose": "^6.2.12",
     "typescript": "^7.0.2"

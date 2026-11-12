@@ -2,7 +2,7 @@
 // to disk. Copy the JSON into apps/agent/.env as AGENT_PRIVATE_KEY (and later into Render's secret
 // env for the agent service). The fingerprint is what Maya approves on PayPal's page.
 // Run: pnpm --filter @readback/agent keygen
-import { generateAgentKey, groupFingerprint } from "@readback/core";
+import { generateAgentKey, groupFingerprint } from "@readbackhq/core";
 import { exportJWK } from "jose";
 
 const key = await generateAgentKey(true);

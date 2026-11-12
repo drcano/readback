@@ -1,7 +1,7 @@
 // The runtime's signing step (SPEC §5.2 request_reorder). It fails closed twice:
 //  1. it refuses to act under terms that don't carry its own fingerprint (THREAT-MODEL T21), and
 //  2. it never signs a request that falls outside those terms (readback-core's pre-check).
-import { buildMandate, parseTerms, type AgentKey, type Result, sha256Hex, signMandate, TokenIdSchema } from "@readback/core";
+import { buildMandate, parseTerms, type AgentKey, type Result, sha256Hex, signMandate, TokenIdSchema } from "@readbackhq/core";
 import { z } from "zod";
 
 export const ReorderInputSchema = z.strictObject({

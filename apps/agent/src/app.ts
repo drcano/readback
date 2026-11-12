@@ -1,6 +1,6 @@
 // Routes for the agent runtime (SPEC §5.10, apps/agent table). A web-standard fetch handler, so
 // tests call it directly and server.ts wraps it for Node. Stateless: a fresh MCP server per request.
-import { groupFingerprint } from "@readback/core";
+import { groupFingerprint } from "@readbackhq/core";
 import { createMcpHandler } from "@modelcontextprotocol/server";
 import { buildServer, type Deps } from "./runtime.ts";
 

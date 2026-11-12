@@ -1,6 +1,6 @@
 import type Anthropic from "@anthropic-ai/sdk";
-import { evaluateCase } from "@readback/core";
-import { directCharge, heroCase } from "@readback/core/fixtures";
+import { evaluateCase } from "@readbackhq/core";
+import { directCharge, heroCase } from "@readbackhq/core/fixtures";
 import { describe, expect, it } from "vitest";
 import { citable, rulesBrief, validate, writeBrief } from "./brief";
 

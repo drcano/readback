@@ -1,7 +1,7 @@
 "use client";
 // The case view's side panel: what to do next (brief and drafted reply; nothing is sent from the
 // public demo) and the case facts as PayPal shows them.
-import type { CaseBundle, CaseResult } from "@readback/core";
+import type { CaseBundle, CaseResult } from "@readbackhq/core";
 import { useState } from "react";
 import type { Rec } from "@/lib/labels";
 

@@ -1,7 +1,7 @@
 // Rebuild a case from PayPal and run the eleven checks: the same code the investigator view runs,
 // without the merchant's hosted app. It still needs API access to the merchant's PayPal account,
 // because PayPal returns only an account's own disputes and captures (SPEC §5.8: "re-derivable").
-import { type CaseResult, evaluateCase, groupFingerprint, lights } from "@readback/core";
+import { type CaseResult, evaluateCase, groupFingerprint, lights } from "@readbackhq/core";
 import { buildCaseBundle } from "./cases.ts";
 import type { PayPalClient } from "./paypal-client.ts";
 

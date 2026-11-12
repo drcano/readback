@@ -3,7 +3,7 @@
 // Claude asks for an order, the tab pre-checks it against her terms, signs it with its own key and
 // submits it to the store's gate; what happened is shown by code, not by Claude. The conversation
 // lives only in this component's state and is sent whole on each request.
-import type { AgentKey } from "@readback/core";
+import type { AgentKey } from "@readbackhq/core";
 import { useState } from "react";
 import type { ChatMessage, ToolStep } from "@/lib/agent-chat";
 import { signAndBuy, type TabResult } from "@/lib/tab-agent";

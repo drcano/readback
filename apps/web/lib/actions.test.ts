@@ -52,7 +52,7 @@ describe("dispute actions", () => {
 describe("send Readback's evidence (end to end over the PayPal fake)", () => {
   it("rebuilds the case from PayPal, sends the statement as supporting info, and finds it on the dispute", async () => {
     const { fakePayPal } = await import("./paypal/fake");
-    const { formatTerms, generateAgentKey, buildMandate, sha256Hex, signMandate } = await import("@readback/core");
+    const { formatTerms, generateAgentKey, buildMandate, sha256Hex, signMandate } = await import("@readbackhq/core");
     const { checkout } = await import("./checkout");
     const pp = fakePayPal();
     const key = await generateAgentKey(true);
@@ -81,7 +81,7 @@ describe("send Readback's evidence (end to end over the PayPal fake)", () => {
 describe("refund the buyer when the evidence supports them (end to end over the PayPal fake)", () => {
   it("accepts the claim with a full refund, explains why in a note written by code, and only once", async () => {
     const { fakePayPal } = await import("./paypal/fake");
-    const { formatTerms, generateAgentKey, signActionProof, evaluateCase } = await import("@readback/core");
+    const { formatTerms, generateAgentKey, signActionProof, evaluateCase } = await import("@readbackhq/core");
     const { directCharge } = await import("./demo");
     const { buildCaseBundle } = await import("./cases");
     const pp = fakePayPal();
@@ -100,7 +100,7 @@ describe("refund the buyer when the evidence supports them (end to end over the 
     expect(r).toMatchObject({ ok: true, sent: true, via: "accept_claim" });
     const post = pp.posts.find((p) => p.path.endsWith("/accept-claim"))!;
     expect(post.body).toMatchObject({ accept_claim_type: "REFUND", note: expect.stringContaining("which supports the buyer") });
-    expect((post.body as { note: string }).note).toContain(`npx @readback/verify ${disputeId}`);
+    expect((post.body as { note: string }).note).toContain(`npx @readbackhq/verify ${disputeId}`);
 
     // As in the sandbox (spike step 7): refunded at once, the note on record, the dispute still under review.
     expect(pp.disputes.get(disputeId)).toMatchObject({ status: "UNDER_REVIEW", evidences: [{ evidence_type: "OTHER", source: "SUBMITTED_BY_SELLER" }] });

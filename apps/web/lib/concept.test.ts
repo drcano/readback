@@ -1,4 +1,4 @@
-import { formatTerms, generateAgentKey, planName, type Terms } from "@readback/core";
+import { formatTerms, generateAgentKey, planName, type Terms } from "@readbackhq/core";
 import { describe, expect, it } from "vitest";
 import { approvalConcept } from "./concept";
 import { paypalClient } from "./paypal/client";

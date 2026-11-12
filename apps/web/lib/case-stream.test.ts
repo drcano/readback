@@ -1,4 +1,4 @@
-import { buildMandate, formatTerms, generateAgentKey, sha256Hex, signMandate, type Terms } from "@readback/core";
+import { buildMandate, formatTerms, generateAgentKey, sha256Hex, signMandate, type Terms } from "@readbackhq/core";
 import { describe, expect, it } from "vitest";
 import { type CaseStreamEvent, streamCase } from "./case-stream";
 import { buildCaseBundle } from "./cases";

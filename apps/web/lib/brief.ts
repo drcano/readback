@@ -4,7 +4,7 @@
 // classification. One retry, then a code-written brief.
 import Anthropic from "@anthropic-ai/sdk";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
-import type { CaseBundle, CaseResult } from "@readback/core";
+import type { CaseBundle, CaseResult } from "@readbackhq/core";
 import { z } from "zod";
 
 export type Sentence = { text: string; cites: string[] };

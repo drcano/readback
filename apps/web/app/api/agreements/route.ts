@@ -1,7 +1,7 @@
 // POST /api/agreements — Public; rate-limited (SPEC §5.10). Starts a PayPal approval.
 // Body: { flow: "maya" | "judge", draft: {...}, jwk?: <judge tab's public key> }.
 // Maya's agent key is fetched from AGENT_RUNTIME_URL only (never a URL from the body).
-import { PublicJwkSchema } from "@readback/core";
+import { PublicJwkSchema } from "@readbackhq/core";
 import { z } from "zod";
 import { createAgreement, DraftSchema, fetchAgentKey, publicOrigin } from "@/lib/agreements";
 import { allowAgreement, clientIp } from "@/lib/budget";

@@ -1,7 +1,7 @@
 {
-  "name": "@readback/verify",
+  "name": "@readbackhq/verify",
   "version": "0.1.0",
-  "description": "Rebuild an agent-purchase case from PayPal and run Readback's eleven checks: npx @readback/verify <disputeId|captureId>",
+  "description": "Rebuild an agent-purchase case from PayPal and run Readback's eleven checks: npx @readbackhq/verify <disputeId|captureId>",
   "license": "Apache-2.0",
   "type": "module",
   "bin": {
@@ -18,7 +18,7 @@
     "prepack": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
-    "@readback/core": "workspace:*",
+    "@readbackhq/core": "workspace:*",
     "zod": "^4.6.7"
   },
   "devDependencies": {

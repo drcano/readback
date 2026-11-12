@@ -2,7 +2,7 @@
 // from the case's checks, so every sentence is true by construction and cites PayPal's own object
 // IDs. It reports failed checks as plainly as passed ones (ADR 0004 neutrality), states its limits,
 // and tells the investigator how to re-derive it. Sam approves before anything is sent.
-import { type CaseBundle, type CaseResult, formatCents, groupFingerprint, lights } from "@readback/core";
+import { type CaseBundle, type CaseResult, formatCents, groupFingerprint, lights } from "@readbackhq/core";
 
 const MAX = 2000; // PayPal's limit on evidence and supporting-info notes
 const utc = (sec: number) => new Date(sec * 1000).toISOString().replace("T", " ").slice(0, 16) + " UTC";
@@ -24,7 +24,7 @@ export function evidenceStatement(bundle: CaseBundle, result: CaseResult): strin
   const subject = bundle.dispute ? `dispute ${bundle.dispute.dispute_id}` : `capture ${bundle.capture.id}`;
 
   const parts = [
-    `Readback evidence for ${subject}, rebuilt from PayPal's own records. Re-derive it with the store's API credentials: npx @readback/verify ${bundle.dispute?.dispute_id ?? bundle.capture.id}`,
+    `Readback evidence for ${subject}, rebuilt from PayPal's own records. Re-derive it with the store's API credentials: npx @readbackhq/verify ${bundle.dispute?.dispute_id ?? bundle.capture.id}`,
     `Charge: capture ${bundle.capture.id}, USD ${bundle.capture.amount.value}, ${utc(facts.captureSec)}, order ${bundle.order.id}${facts.tokenId ? `, under PayPal agreement (vault payment token) ${facts.tokenId}` : ""}.`,
     line(1, "Consent", facts.termsText
       ? `The agreement's terms as PayPal stores them (set at approval; payment tokens can't be edited): "${facts.termsText}".${facts.secondaryTerms ? " The agreement is gone at PayPal, so this is the store's copy." : ""}`

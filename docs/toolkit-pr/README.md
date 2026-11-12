@@ -18,7 +18,7 @@ Base: `v1.11.0`. TypeScript package only; the `python/` package is unchanged (no
    - `get(path, schema?)` is a read-only GET over the toolkit's authenticated HTTP layer. It returns `{ ok, status, data | issues, debugId }` and never throws, so the verifier can fail closed.
    - Only relative paths are accepted (`/...`, not `//...` or `@host`), so a verifier can't send the bearer token to another host.
    - The tool is listed only when a verifier is configured, so existing `disputes: { get: true }` configurations don't get a tool that can only fail.
-   - The intended verifier is `verifyCase` from `@readback/verify@^0.1.0` (Readback, Apache-2.0), which isn't published yet. See TODO below.
+   - The intended verifier is `verifyCase` from `@readbackhq/verify@^0.1.0` (Readback, Apache-2.0), which isn't published yet. See TODO below.
 
 ## Why
 
@@ -62,7 +62,7 @@ Notes on tooling:
 
 ## Not in this PR / follow-ups
 
-- **TODO `@readback/verify@^0.1.0`:** once it's published, the default verifier becomes `(id, paypal, now) => verifyCase(id, paypal, now)`. That package is ESM-only and needs Node ≥ 22.18, while this package also ships CJS targeting node18, so it would be loaded with a dynamic `import()` (or kept as an opt-in injection, as it is now).
+- **TODO `@readbackhq/verify@^0.1.0`:** once it's published, the default verifier becomes `(id, paypal, now) => verifyCase(id, paypal, now)`. That package is ESM-only and needs Node ≥ 22.18, while this package also ships CJS targeting node18, so it would be loaded with a dynamic `import()` (or kept as an opt-in injection, as it is now).
 - **Document uploads are untested in sandbox.** Notes-only submissions match what was verified against the sandbox. Two things are unconfirmed: the file part names (taken from the OpenAPI request bodies) and whether `input.evidences[].documents[{ name }]` must also list the files.
 - **Idempotency:** `provide_dispute_evidence` uses `context.request_id` like every other tool. A deterministic per-submission `PayPal-Request-Id` would make retries safe; that would be a toolkit-wide change.
 - **The same `{ headers, params }` pattern is in `listDisputes`.** It's a GET, so the params are meant to be in the query, but they're added twice: once by `toQueryString` in the URL and once by axios. Not changed here.

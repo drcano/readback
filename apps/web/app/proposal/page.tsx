@@ -1,7 +1,7 @@
 // /proposal — the approval-page concept: what we propose PayPal's own approval page show
 // (docs/PROPOSAL-agent-terms.md). Built from the terms PayPal stores for Maya's agreement, read live.
 // It's a concept, labeled on the mock itself so a crop can't lose the label. Not a PayPal page.
-import { formatCents, groupFingerprint } from "@readback/core";
+import { formatCents, groupFingerprint } from "@readbackhq/core";
 import { headers } from "next/headers";
 import { AppFooter, AppHeader } from "@/components/ui";
 import { allowLookup, ipFrom } from "@/lib/budget";

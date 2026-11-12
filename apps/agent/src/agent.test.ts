@@ -1,4 +1,4 @@
-import { type AgentKey, formatTerms, generateAgentKey, type Terms, verifyMandate } from "@readback/core";
+import { type AgentKey, formatTerms, generateAgentKey, type Terms, verifyMandate } from "@readbackhq/core";
 import { exportJWK } from "jose";
 import { beforeAll, describe, expect, it } from "vitest";
 import { loadAgentKey } from "./key.ts";

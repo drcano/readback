@@ -1,7 +1,7 @@
 // POST /api/cases/[id]/draft — Public (draft only; sending is a separate Admin action). The case is
 // re-fetched and re-checked server-side; the draft is generated from those facts.
-import { evaluateCase } from "@readback/core";
-import { fixtureCases } from "@readback/core/fixtures";
+import { evaluateCase } from "@readbackhq/core";
+import { fixtureCases } from "@readbackhq/core/fixtures";
 import { allowLookup, clientIp } from "@/lib/budget";
 import { buildCaseBundle } from "@/lib/cases";
 import { draftMessage } from "@/lib/inquiry";

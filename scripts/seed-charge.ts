@@ -4,7 +4,7 @@
 // AGENT_PRIVATE_KEY (from apps/agent/.env); this process holds only the PayPal credentials (.env).
 // Run it on Oct 21, 23 and 28 at minimum, then daily from Nov 1 (CLAUDE.md §8).
 import { spawnSync } from "node:child_process";
-import { authorizeCharge, denialFromPayPalIssue, PaymentTokenSchema } from "@readback/core";
+import { authorizeCharge, denialFromPayPalIssue, PaymentTokenSchema } from "@readbackhq/core";
 import { saveFixture } from "./spike/fixtures.ts";
 import { issues, paypal, paypalRaw } from "./spike/paypal.ts";
 

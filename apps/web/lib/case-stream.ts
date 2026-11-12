@@ -1,7 +1,7 @@
 // The case, rebuilt live (GET /api/cases/[id]?stream=1). It's one streamed response, NDJSON: each
 // PayPal record as it's read, then the bundle and the server's result. The case view shows the
 // records arriving, then re-runs every check itself (SPEC §5.6). Nothing outlives the request.
-import { type CaseBundle, type CaseResult, evaluateCase } from "@readback/core";
+import { type CaseBundle, type CaseResult, evaluateCase } from "@readbackhq/core";
 import { buildCaseBundle } from "./cases";
 import { paypalClient } from "./paypal/client";
 

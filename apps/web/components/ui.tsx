@@ -1,6 +1,6 @@
 // Shared pieces of the investigator UI: header, footer, recommendation pill, evidence steps.
 // Every state is carried by a word or symbol as well as color (CLAUDE.md §5).
-import type { Light } from "@readback/core";
+import type { Light } from "@readbackhq/core";
 import { recommendation, stepShort } from "@/lib/labels";
 
 // The same header on every page. `section` names whose view this is (the video's role chip).

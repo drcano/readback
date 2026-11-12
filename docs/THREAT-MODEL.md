@@ -23,7 +23,7 @@ The design rule behind the table: **no suggested outcome rests on anything the m
 Where only merchant-attested data is available, the result is labeled. A `SELLER_FAVOR` suggestion is then withheld.
 
 **Independence, precisely.** In this build, the investigator page and its data are served by the merchant's deployment. Results are **re-derivable** by anyone with API access to the merchant's account, but they are not independent of that deployment.
-- The `@readback/verify` CLI, pinned to the published core, removes the dependence on merchant-hosted code. It does not remove the need for API access to that account, because PayPal's APIs return only an account's own disputes and captures.
+- The `@readbackhq/verify` CLI, pinned to the published core, removes the dependence on merchant-hosted code. It does not remove the need for API access to that account, because PayPal's APIs return only an account's own disputes and captures.
 - Full independence needs PayPal to host the view (`docs/PROPOSAL-agent-terms.md`).
 
 ## Threats

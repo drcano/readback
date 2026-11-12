@@ -2,7 +2,7 @@
 // PayPal fake, never against PayPal's sandbox. Real charges go through the real gate; disputes are
 // opened on them; then the queue, case building, evidence sending and webhooks are measured: PayPal
 // calls per request (amplification), whether every dispute is accounted for, and correctness.
-import { buildMandate, evaluateCase, formatTerms, generateAgentKey, sha256Hex, signMandate, type Terms } from "@readback/core";
+import { buildMandate, evaluateCase, formatTerms, generateAgentKey, sha256Hex, signMandate, type Terms } from "@readbackhq/core";
 import { describe, expect, it } from "vitest";
 import { runDisputeAction } from "../apps/web/lib/actions.ts";
 import { buildCaseBundle } from "../apps/web/lib/cases.ts";

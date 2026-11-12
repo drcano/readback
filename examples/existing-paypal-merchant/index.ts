@@ -1,9 +1,9 @@
 // Readback's quick-start: add agent-purchase evidence to a PayPal integration you already have.
 // Run: pnpm --filter existing-paypal-merchant start
 // It runs offline: an in-memory PayPal stands in for the sandbox (the same fake Readback's tests use).
-import { authorizeCharge, buildMandate, evaluateCase, formatTerms, generateAgentKey, sha256Hex, signMandate, type Terms } from "@readback/core";
-import { buildCaseBundle, paypalClient } from "@readback/verify";
-import { fakePayPal } from "@readback/verify/fake";
+import { authorizeCharge, buildMandate, evaluateCase, formatTerms, generateAgentKey, sha256Hex, signMandate, type Terms } from "@readbackhq/core";
+import { buildCaseBundle, paypalClient } from "@readbackhq/verify";
+import { fakePayPal } from "@readbackhq/verify/fake";
 
 // ── Setup: things you already have, or that happen on the shopper's side ────────────────────
 const paypal = fakePayPal();

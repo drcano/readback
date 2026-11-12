@@ -10,10 +10,10 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@readback/core": "workspace:*",
+    "@readbackhq/core": "workspace:*",
     "jose": "^6.2.12",
     "zod": "^4.6.7",
-    "@readback/verify": "workspace:*"
+    "@readbackhq/verify": "workspace:*"
   },
   "devDependencies": {
     "vitest": "^5.0.4"

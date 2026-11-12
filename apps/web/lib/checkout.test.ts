@@ -1,4 +1,4 @@
-import { type AgentKey, formatTerms, generateAgentKey, sha256Hex, buildMandate, signMandate, type Terms } from "@readback/core";
+import { type AgentKey, formatTerms, generateAgentKey, sha256Hex, buildMandate, signMandate, type Terms } from "@readbackhq/core";
 import { beforeEach, describe, expect, it } from "vitest";
 import { checkout } from "./checkout";
 import { paypalClient } from "./paypal/client";

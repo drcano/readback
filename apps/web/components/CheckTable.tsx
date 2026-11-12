@@ -1,5 +1,5 @@
 // The eleven checks (twelve rows: check 2 has parts a and b), grouped as in SPEC §5.6.
-import type { CheckResult } from "@readback/core";
+import type { CheckResult } from "@readbackhq/core";
 
 export function CheckTable({ checks }: { checks: CheckResult[] }) {
   return (

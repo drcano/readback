@@ -16,7 +16,7 @@ import {
   PaymentTokenSchema,
   sha256Hex,
   verifyMandate,
-} from "@readback/core";
+} from "@readbackhq/core";
 import { z } from "zod";
 import type { PayPalClient } from "./paypal-client.ts";
 

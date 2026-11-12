@@ -16,9 +16,9 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",
-    "@readback/core": "workspace:*",
+    "@readbackhq/core": "workspace:*",
     "@readback/evals": "workspace:*",
-    "@readback/verify": "workspace:*",
+    "@readbackhq/verify": "workspace:*",
     "ag-grid-community": "36.2.0",
     "ag-grid-react": "36.2.0",
     "next": "16.4.3",

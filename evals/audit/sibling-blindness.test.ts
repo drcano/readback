@@ -2,9 +2,9 @@
 // Probe: a merchant charges Maya's wallet twice for one signed request, leaving the second charge
 // unlabeled. History only sees rb1:<tokenId>: labels, so the labeled copy is "the single charge in
 // its period" and a DUPLICATE_TRANSACTION dispute on it is suggested SELLER_FAVOR.
-import { authorizeCharge, buildMandate, evaluateCase, formatTerms, generateAgentKey, PaymentTokenSchema, sha256Hex, signMandate, type Terms } from "@readback/core";
-import { buildCaseBundle, paypalClient } from "@readback/verify";
-import { fakePayPal } from "@readback/verify/fake";
+import { authorizeCharge, buildMandate, evaluateCase, formatTerms, generateAgentKey, PaymentTokenSchema, sha256Hex, signMandate, type Terms } from "@readbackhq/core";
+import { buildCaseBundle, paypalClient } from "@readbackhq/verify";
+import { fakePayPal } from "@readbackhq/verify/fake";
 import { z } from "zod";
 import { describe, expect, it } from "vitest";
 

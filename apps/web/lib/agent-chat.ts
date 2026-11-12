@@ -5,8 +5,8 @@
 // what to ask for; the tab's key, the gate and PayPal decide, and code shows what happened.
 // Stateless: the browser sends the visible conversation (text only) on every request.
 import type Anthropic from "@anthropic-ai/sdk";
-import { groupFingerprint, parseTerms } from "@readback/core";
-import { browseCatalogText } from "@readback/core/catalog";
+import { groupFingerprint, parseTerms } from "@readbackhq/core";
+import { browseCatalogText } from "@readbackhq/core/catalog";
 import { z } from "zod";
 import type { AgreementView } from "./agreements";
 

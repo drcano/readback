@@ -1,6 +1,6 @@
 // The tape (SPEC §5.6): the chain of PayPal records behind one charge, in order, each with its
 // PayPal object ID and whether the checks that read it passed. Read top to bottom like a receipt.
-import { type CaseBundle, type CaseResult, groupFingerprint } from "@readback/core";
+import { type CaseBundle, type CaseResult, groupFingerprint } from "@readbackhq/core";
 
 type Step = { title: string; id: string | null; detail: string; state: "pass" | "fail" | "caution" | "info"; checks: string[] };
 

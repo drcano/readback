@@ -1,7 +1,7 @@
 // The demo-critical path (CLAUDE.md §9), end to end against the fake sandbox:
 // approve (token exists) → signed charges → PayPal refuses the duplicate → a dispute arrives →
 // the case shows SELLER_FAVOR for the signed charge and BUYER_FAVOR for the merchant's direct charge.
-import { buildMandate, evaluateCase, formatTerms, generateAgentKey, sha256Hex, signMandate, type Terms } from "@readback/core";
+import { buildMandate, evaluateCase, formatTerms, generateAgentKey, sha256Hex, signMandate, type Terms } from "@readbackhq/core";
 import { describe, expect, it } from "vitest";
 import { buildCaseBundle } from "./cases";
 import { checkout } from "./checkout";

@@ -2,7 +2,7 @@
 // Verifiable Intent import: Mastercard's VI autonomous chain, as the payment network sees it,
 // checked in this browser with readback-core. The issuer key defaults to VI's published demo key
 // and says so; clear it and the issuer signature is reported unresolved, not passed.
-import { evaluateViChain, PublicJwkSchema, VI_DEMO_ISSUER_JWK, VI_EXAMPLE_CHAIN, type ViChain, type ViResult } from "@readback/core";
+import { evaluateViChain, PublicJwkSchema, VI_DEMO_ISSUER_JWK, VI_EXAMPLE_CHAIN, type ViChain, type ViResult } from "@readbackhq/core";
 import { useEffect, useState } from "react";
 import { MandateCheck } from "./Ap2View";
 

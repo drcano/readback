@@ -1,5 +1,5 @@
-import { evaluateCase, lights } from "@readback/core";
-import { fixtureCases } from "@readback/core/fixtures";
+import { evaluateCase, lights } from "@readbackhq/core";
+import { fixtureCases } from "@readbackhq/core/fixtures";
 import { describe, expect, it } from "vitest";
 import { answer, FILTERS, keywordFilter } from "./queue-filters";
 import type { QueueRow } from "./queue";

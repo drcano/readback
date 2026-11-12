@@ -3,7 +3,7 @@
 // PayPal record as it's read, then re-runs every check, including the agent's signature, here in
 // the browser with readback-core. Fixture IDs (fixture-hero, fixture-twist) build the case in the
 // browser and are labeled as such.
-import { type CaseResult, evaluateCase, lights } from "@readback/core";
+import { type CaseResult, evaluateCase, lights } from "@readbackhq/core";
 import { useCallback, useEffect, useState } from "react";
 import { type Loaded, loadCaseLive } from "@/lib/case-client";
 import type { CaseRecord } from "@/lib/case-stream";

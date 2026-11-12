@@ -1,2 +1,2 @@
-// The PayPal client lives in @readback/verify (shared with the CLI); re-exported for the app.
-export * from "@readback/verify";
+// The PayPal client lives in @readbackhq/verify (shared with the CLI); re-exported for the app.
+export * from "@readbackhq/verify";

@@ -95,7 +95,7 @@ Claude never holds a key and never makes an allow/deny or ruling decision. (By c
 
 ![Attack lab: where each attack was stopped](docs/assets/attack-lab.png)
 
-**Tested.** `@readback/core`: 167 tests at about 98% line coverage, property-based tamper fuzzing, and a headless-browser run. 59 labeled eval scenarios. End-to-end judge flow in Chromium. Two independent reviews (Oct 15 and Oct 25) attacked the engine; every finding is fixed and kept as a regression test, including the Oct 25 reviewers' 79 probes in `evals/audit/` ([ADR 0005](docs/decisions/0005-independent-audit-oct15.md), [ADR 0006](docs/decisions/0006-audit-oct25.md)). Threats T1–T34 and their mitigations: [docs/THREAT-MODEL.md](docs/THREAT-MODEL.md).
+**Tested.** `@readbackhq/core`: 167 tests at about 98% line coverage, property-based tamper fuzzing, and a headless-browser run. 59 labeled eval scenarios. End-to-end judge flow in Chromium. Two independent reviews (Oct 15 and Oct 25) attacked the engine; every finding is fixed and kept as a regression test, including the Oct 25 reviewers' 79 probes in `evals/audit/` ([ADR 0005](docs/decisions/0005-independent-audit-oct15.md), [ADR 0006](docs/decisions/0006-audit-oct25.md)). Threats T1–T34 and their mitigations: [docs/THREAT-MODEL.md](docs/THREAT-MODEL.md).
 
 [docs/EDGE-CASES.md](docs/EDGE-CASES.md) lists every edge we know of: clocks and period boundaries, retries and outages, PayPal's dispute states, floods and rate limits. Each edge cites the test or sandbox record behind it, and the ones not yet covered are named.
 
@@ -123,7 +123,7 @@ The investigator queue is built on AG Grid: custom cell renderers for the claim,
 - **Merchants** get evidence that wins the disputes they should win, with a 10-line integration (below) and nothing new to store.
 - **PayPal** gets the record its own review currently lacks, on rails it already runs. [docs/PROPOSAL-agent-terms.md](docs/PROPOSAL-agent-terms.md) sketches the one API change (an `agent_terms` object on Vault payment tokens) that would move these checks inside PayPal.
 
-Developer surfaces: `@readback/core` (the checks) and `@readback/verify` (re-derive any case from PayPal with the merchant's API credentials), both packaged for npm but not yet published (run the CLI from the repo: `node packages/verify-cli/src/cli.ts <disputeId>`). And a prepared change to PayPal's Agent Toolkit, adding `verify_agent_purchase` and `provide_dispute_evidence` and fixing two `accept_dispute_claim` bugs reproduced with failing tests first: the patches and description are in [docs/toolkit-pr](docs/toolkit-pr/README.md). It hasn't been opened as a pull request yet.
+Developer surfaces: `@readbackhq/core` (the checks) and `@readbackhq/verify` (re-derive any case from PayPal with the merchant's API credentials), both packaged for npm but not yet published (run the CLI from the repo: `node packages/verify-cli/src/cli.ts <disputeId>`). And a prepared change to PayPal's Agent Toolkit, adding `verify_agent_purchase` and `provide_dispute_evidence` and fixing two `accept_dispute_claim` bugs reproduced with failing tests first: the patches and description are in [docs/toolkit-pr](docs/toolkit-pr/README.md). It hasn't been opened as a pull request yet.
 
 ## Innovation
 
@@ -162,7 +162,7 @@ const res = await fetch(`${PAYPAL}/v2/checkout/orders`, {
 });
 ```
 
-`jws` is the agent's signed request, and `getToken` is your existing `GET /v3/vault/payment-tokens/{id}`. When a dispute arrives, `node packages/verify-cli/src/cli.ts <disputeId>` (`npx @readback/verify` once it's on npm; or `buildCaseBundle` + `evaluateCase`) rebuilds the case from PayPal alone:
+`jws` is the agent's signed request, and `getToken` is your existing `GET /v3/vault/payment-tokens/{id}`. When a dispute arrives, `node packages/verify-cli/src/cli.ts <disputeId>` (`npx @readbackhq/verify` once it's on npm; or `buildCaseBundle` + `evaluateCase`) rebuilds the case from PayPal alone:
 
 ```bash
 pnpm --filter existing-paypal-merchant start
@@ -211,7 +211,7 @@ Tests: `pnpm test` · browser: `pnpm test:browser` · evals: `pnpm eval` · end 
 | Path | What |
 |---|---|
 | `packages/readback-core` | Pure, browser-safe verification: everything that decides anything |
-| `packages/verify-cli` | `@readback/verify`: the CLI and the typed PayPal client |
+| `packages/verify-cli` | `@readbackhq/verify`: the CLI and the typed PayPal client |
 | `apps/agent` | The agent runtime (holds the agent key; MCP server) and the Claude harness |
 | `apps/web` | The merchant's Readback deployment (Next.js) |
 | `examples/existing-paypal-merchant` | The 10-line quick-start, runnable offline |

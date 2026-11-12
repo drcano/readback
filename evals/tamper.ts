@@ -2,8 +2,8 @@
 // mutated cases still earn SELLER_FAVOR (target: none). Browser-safe, no test framework, so the
 // "Judge it yourself" page can run it live. The 10,000-run property test with shrinking is in
 // packages/readback-core/src/fuzz.test.ts.
-import { type CaseBundle, evaluateCase, verifyMandate } from "@readback/core";
-import { heroCase } from "@readback/core/fixtures";
+import { type CaseBundle, evaluateCase, verifyMandate } from "@readbackhq/core";
+import { heroCase } from "@readbackhq/core/fixtures";
 
 // mulberry32: a tiny deterministic PRNG, so a seed reproduces the same mutation choices. The hero
 // case is re-signed each run (fresh key, randomized ECDSA), so a few flips land as no-ops on some

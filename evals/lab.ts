@@ -4,7 +4,7 @@
 // investigator's case building and checks. PayPal is the in-memory fake, which enforces what the
 // sandbox was recorded enforcing (duplicate invoices, cancelled agreements; spike steps 4 and 5).
 // The assistant layer isn't modeled: every attack assumes the assistant was fooled.
-import { type AgentKey, buildMandate, evaluateCase, formatCents, formatTerms, generateAgentKey, lights, sha256Hex, signActionProof, signMandate, type Terms } from "@readback/core";
+import { type AgentKey, buildMandate, evaluateCase, formatCents, formatTerms, generateAgentKey, lights, sha256Hex, signActionProof, signMandate, type Terms } from "@readbackhq/core";
 import { listedUnitCents } from "../apps/agent/src/catalog.ts";
 import { signReorder } from "../apps/agent/src/sign.ts";
 import { buildCaseBundle } from "../apps/web/lib/cases.ts";

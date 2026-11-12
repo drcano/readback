@@ -1,7 +1,7 @@
 // The agent's private key. It lives only in this runtime's environment (AGENT_PRIVATE_KEY):
 // never sent to Claude, never in a tool result, never logged, never in apps/web (CLAUDE.md §5).
 // Format: a P-256 private JWK as one line of JSON, e.g. {"kty":"EC","crv":"P-256","x":"…","y":"…","d":"…"}.
-import { agentFingerprint, type AgentKey, PublicJwkSchema } from "@readback/core";
+import { agentFingerprint, type AgentKey, PublicJwkSchema } from "@readbackhq/core";
 import { importJWK } from "jose";
 import { z } from "zod";
 

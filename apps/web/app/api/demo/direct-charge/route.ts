@@ -1,6 +1,6 @@
 // POST /api/demo/direct-charge — Demo only (DEMO_MODE=true against the sandbox), proof from the
 // judge tab's key. Body: { tokenId, proof }. Returns the capture ID for preview mode.
-import { TokenIdSchema } from "@readback/core";
+import { TokenIdSchema } from "@readbackhq/core";
 import { z } from "zod";
 import { allowDirectCharge, clientIp } from "@/lib/budget";
 import { demoEnabled, directCharge } from "@/lib/demo";

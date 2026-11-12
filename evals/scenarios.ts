@@ -19,9 +19,9 @@ import {
   signMandate,
   type Terms,
   verifyActionProof,
-} from "@readback/core";
-import { CATALOG } from "@readback/core/catalog";
-import { fixtureCases, heroCase } from "@readback/core/fixtures";
+} from "@readbackhq/core";
+import { CATALOG } from "@readbackhq/core/catalog";
+import { fixtureCases, heroCase } from "@readbackhq/core/fixtures";
 import { CompactSign } from "jose";
 import { listedUnitCents } from "../apps/agent/src/catalog.ts";
 import { signReorder } from "../apps/agent/src/sign.ts";

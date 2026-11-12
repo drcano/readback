@@ -9,7 +9,7 @@
 // Approving on PayPal and opening disputes need a person, so they aren't here. Never prints secrets.
 // Reads HERO_/JUDGE_AGREEMENT_ID from .env, and the MCP path secrets from apps/agent/.env.
 import { readFileSync } from "node:fs";
-import { agentFingerprint, type CaseBundle, type CaseResult, evaluateCase, groupFingerprint, parseTerms, PublicJwkSchema } from "@readback/core";
+import { agentFingerprint, type CaseBundle, type CaseResult, evaluateCase, groupFingerprint, parseTerms, PublicJwkSchema } from "@readbackhq/core";
 
 const args = process.argv.slice(2);
 const opt = (name: string) => (args.includes(name) ? args[args.indexOf(name) + 1] : undefined);

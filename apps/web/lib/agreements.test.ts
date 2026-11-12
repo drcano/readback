@@ -1,4 +1,4 @@
-import { generateAgentKey, parseTerms, signActionProof } from "@readback/core";
+import { generateAgentKey, parseTerms, signActionProof } from "@readbackhq/core";
 import { describe, expect, it } from "vitest";
 import { createAgreement, exchangeSetupToken, fetchAgentKey, publicOrigin, readAgreement, revokeAgreement } from "./agreements";
 import { paypalClient } from "./paypal/client";

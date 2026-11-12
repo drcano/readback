@@ -1,6 +1,6 @@
 // The four-light strip (Consent · Agent · Terms · Delivery). Every light has a text state and a
 // symbol, so color is never the only signal (CLAUDE.md §5 accessibility).
-import type { Light } from "@readback/core";
+import type { Light } from "@readbackhq/core";
 
 const WORD = { pass: "Pass", caution: "Caution", fail: "Fail" } as const;
 const SYMBOL = { pass: "✓", caution: "!", fail: "✕" } as const;

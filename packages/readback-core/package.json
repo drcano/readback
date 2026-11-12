@@ -1,5 +1,5 @@
 {
-  "name": "@readback/core",
+  "name": "@readbackhq/core",
   "version": "0.1.0",
   "description": "Pure, browser-safe verification for AI agent purchases on PayPal: terms, signed mandates, IDs, the eleven checks.",
   "license": "Apache-2.0",

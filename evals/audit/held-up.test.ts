@@ -1,8 +1,8 @@
 // Audit Oct 25 regression suite (independent review; see docs/decisions/0006-audit-oct25.md).
 // Attacks that the engine withstands. Each mutates the hero (SELLER_FAVOR) case the way a dishonest
 // merchant could and asserts the suggestion is no longer SELLER_FAVOR. All of these PASS.
-import { type CaseBundle, evaluateCase, generateAgentKey, sha256Hex, customId, invoiceId, formatTerms, parseTerms, verifyMandate } from "@readback/core";
-import { heroCase, HERO_TOKEN_ID, type HeroCase } from "@readback/core/fixtures";
+import { type CaseBundle, evaluateCase, generateAgentKey, sha256Hex, customId, invoiceId, formatTerms, parseTerms, verifyMandate } from "@readbackhq/core";
+import { heroCase, HERO_TOKEN_ID, type HeroCase } from "@readbackhq/core/fixtures";
 import { CompactSign, base64url } from "jose";
 import { beforeAll, describe, expect, it } from "vitest";
 

@@ -1,4 +1,4 @@
-import { buildMandate, formatTerms, generateAgentKey, sha256Hex, signMandate, authorizeCharge } from "@readback/core";
+import { buildMandate, formatTerms, generateAgentKey, sha256Hex, signMandate, authorizeCharge } from "@readbackhq/core";
 import { describe, expect, it } from "vitest";
 import { fakePayPal } from "./fake.ts";
 import { paypalClient } from "./paypal-client.ts";

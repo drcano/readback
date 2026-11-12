@@ -1,8 +1,8 @@
 // The judge's browser tab as the shopper's agent (SPEC §5.7, THREAT-MODEL T31). It does what the agent
 // runtime does before signing (refuses terms that don't name its key, refuses anything outside them),
 // signs with its non-extractable key, and submits to the merchant's checkout gate.
-import { type AgentKey, buildMandate, parseTerms, sha256Hex, signMandate } from "@readback/core";
-import { CATALOG } from "@readback/core/catalog";
+import { type AgentKey, buildMandate, parseTerms, sha256Hex, signMandate } from "@readbackhq/core";
+import { CATALOG } from "@readbackhq/core/catalog";
 
 export type TabResult =
   | { outcome: "charged"; captureId: string; message: string }

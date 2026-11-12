@@ -1,7 +1,7 @@
 // The investigator queue (SPEC §5.6): live sandbox disputes, each evaluated from PayPal's records,
 // plus labeled fixture rows. Every row says where it came from.
-import { type CaseBundle, evaluateCase, type Light, lights } from "@readback/core";
-import { fixtureCases } from "@readback/core/fixtures";
+import { type CaseBundle, evaluateCase, type Light, lights } from "@readbackhq/core";
+import { fixtureCases } from "@readbackhq/core/fixtures";
 import { z } from "zod";
 import { buildCaseBundle } from "./cases";
 import { paypalRuling, type Ruling } from "./labels";

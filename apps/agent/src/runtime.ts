@@ -1,7 +1,7 @@
 // The agent runtime's MCP tools (SPEC §5.2). Maya's assistant is the brain; this runtime holds the
 // agent key and is the only thing that can sign. Every tool is agreement-scoped: on each call it
 // re-fetches the terms and refuses unless they carry its own fingerprint (T21, T33).
-import { type AgentKey, groupFingerprint, parseTerms, signActionProof, type Terms } from "@readback/core";
+import { type AgentKey, groupFingerprint, parseTerms, signActionProof, type Terms } from "@readbackhq/core";
 import { McpServer } from "@modelcontextprotocol/server";
 import { z } from "zod";
 import { browseCatalogText, listedUnitCents } from "./catalog.ts";

@@ -52,7 +52,7 @@ On screen throughout: a role chip (Shopper / Agent / PayPal / Investigator), cap
 
 **VO:** Try to break it yourself. Every attack stops at her agent, the store's gate, or PayPal, and the one that gets past all three, the store's own charge, is caught by the investigator. Readback stores nothing. Every fact is PayPal's.
 
-*(Moved out of the video, into the Devpost description and the README: the `@readback/verify` CLI, the Agent Toolkit change, the eval numbers, and the AP2 and Verifiable Intent checks.)*
+*(Moved out of the video, into the Devpost description and the README: the `@readbackhq/verify` CLI, the Agent Toolkit change, the eval numbers, and the AP2 and Verifiable Intent checks.)*
 
 ## 2:50–3:00 · Close
 

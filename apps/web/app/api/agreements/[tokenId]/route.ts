@@ -1,6 +1,6 @@
 // GET /api/agreements/[tokenId] — Public: terms, status, recent charges, live from PayPal; no personal data.
 // DELETE — a proof from the agreement's agent key ({ proof } body, SPEC §4.7) or MERCHANT_ADMIN_TOKEN.
-import { TokenIdSchema } from "@readback/core";
+import { TokenIdSchema } from "@readbackhq/core";
 import { z } from "zod";
 import { isAdmin } from "@/lib/admin";
 import { allowLookup, clientIp } from "@/lib/budget";

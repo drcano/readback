@@ -52,7 +52,7 @@ The full product spec, demo script, and milestone detail live in `docs/SPEC.md`.
   - shopper pages and judge mode;
   - investigator queue and case view (with a Merchant role toggle; no separate merchant page);
   - stateless API routes: checkout gate, agreement lookup, disputes, webhooks, and the demo-only direct charge.
-- **Developer packages:** `@readback/core` (published to npm from `packages/readback-core`) and `@readback/verify` (a CLI in `packages/verify-cli`, run with the merchant account's API credentials or by PayPal; it removes dependence on merchant-hosted code, not on API access).
+- **Developer packages:** `@readbackhq/core` (published to npm from `packages/readback-core`) and `@readbackhq/verify` (a CLI in `packages/verify-cli`, run with the merchant account's API credentials or by PayPal; it removes dependence on merchant-hosted code, not on API access).
 - **Agent runtime:** `apps/agent`, a separate service. MCP server with the TypeScript MCP SDK v2 (`@modelcontextprotocol/server`, `createMcpHandler`, streamable HTTP, nothing held between requests), plus a scripted harness for evals. It holds the agent's **P-256** private key and **no PayPal credentials**.
 - **Investigator queue:** AG Grid **AG Studio** (React), live from PayPal APIs. Build it as a **custom widget wrapping AG Grid**, with custom cell renderers (the four-light strip), theming, and the **Studio Agent Framework (core)**. The trial license is 45 days; Dante starts it on **Nov 1** so it covers judging, which ends Dec 15. Until then use AG Grid Community.
 - **Validation/types:** zod schemas are the source of truth; types via `z.infer`.
@@ -83,7 +83,7 @@ readback/
 │   ├── ARCHITECTURE.md        # "PayPal is the system of record" diagram (week 3)
 │   └── decisions/             # short ADRs; 0001-sandbox-spike.md is a public record
 ├── packages/
-│   ├── verify-cli/            # npx @readback/verify <disputeId|captureId>
+│   ├── verify-cli/            # npx @readbackhq/verify <disputeId|captureId>
 │   └── readback-core/         # pure, browser-safe: terms grammar, termsHash,
 │                              # period math, JWK thumbprint, closed-mandate
 │                              # sign/verify/match, invoice_id/custom_id,

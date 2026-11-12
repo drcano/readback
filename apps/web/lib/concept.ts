@@ -2,8 +2,8 @@
 // stores for Maya's agreement live, and the line PayPal's page shows today is built from those same
 // terms. It falls back to the labeled hero fixture when the agreement isn't configured, PayPal can't
 // be read, or the page's budget is used up.
-import { parseTerms, planName, type Terms } from "@readback/core";
-import { heroCase } from "@readback/core/fixtures";
+import { parseTerms, planName, type Terms } from "@readbackhq/core";
+import { heroCase } from "@readbackhq/core/fixtures";
 import { readAgreement } from "./agreements";
 import type { PayPalClient } from "./paypal/client";
 

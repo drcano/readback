@@ -1,7 +1,7 @@
 "use client";
 // Two cases side by side, each re-checked in this browser with readback-core: the landing's
 // "same claim, two verdicts" and judge mode's "your two verdicts" render the same way.
-import { type CaseResult, evaluateCase, groupFingerprint, lights } from "@readback/core";
+import { type CaseResult, evaluateCase, groupFingerprint, lights } from "@readbackhq/core";
 import { type ReactNode, useEffect, useState } from "react";
 import { loadCase } from "@/lib/case-client";
 import { paypalRuling, recommendation, type Ruling } from "@/lib/labels";

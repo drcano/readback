@@ -1,6 +1,6 @@
 // "How we know, from PayPal's records": the four check groups as a numbered chain, each with its
 // plain-language result and the facts behind it, all read from the bundle and readback-core's result.
-import { type CaseBundle, type CaseResult, formatCents, groupFingerprint, type Light } from "@readback/core";
+import { type CaseBundle, type CaseResult, formatCents, groupFingerprint, type Light } from "@readbackhq/core";
 import type { CaseRecord } from "@/lib/case-stream";
 import { stepTitle } from "@/lib/labels";
 import { RebuiltSummary } from "./LiveRebuild";

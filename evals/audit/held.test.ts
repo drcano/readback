@@ -15,10 +15,10 @@ import {
   signMandate,
   verifyActionProof,
   verifyMandate,
-} from "@readback/core";
-import { heroCase, type HeroCase } from "@readback/core/fixtures";
-import { paypalClient } from "@readback/verify";
-import { fakePayPal } from "@readback/verify/fake";
+} from "@readbackhq/core";
+import { heroCase, type HeroCase } from "@readbackhq/core/fixtures";
+import { paypalClient } from "@readbackhq/verify";
+import { fakePayPal } from "@readbackhq/verify/fake";
 import { base64url } from "jose";
 import { beforeAll, describe, expect, it } from "vitest";
 import { checkout } from "../../apps/web/lib/checkout.ts";
@@ -87,7 +87,7 @@ describe("periods and dates (UTC)", () => {
   it("periodDays > 1: p is derived from iat and must match", async () => {
     const terms = { ...hero.terms, periodDays: 30 };
     const text = formatTerms(terms);
-    const th = (await import("@readback/core")).sha256Hex(text);
+    const th = (await import("@readbackhq/core")).sha256Hex(text);
     const iat = Date.parse("2026-11-20T12:00:00Z") / 1000; // day 30 after Oct 21 start: period 2 begins Nov 20 00:00Z
     const built = buildMandate({ sku: "GBP-SR24", qty: 1, unitCents: 6499 }, { tokenId: hero.bundle.token!.id, terms, termsHash: await th }, iat, "jti-p30-000001");
     expect(built.ok && built.value.p).toBe(2);
@@ -255,7 +255,7 @@ describe("investigator: lag and partial data never produce BUYER_FAVOR on their 
     expect((await evaluateCase(held)).failed).toEqual([]);
   });
   it("a capture with an unexpected PayPal shape fails the bundle parse, not the merchant", async () => {
-    const { CaseBundleSchema } = await import("@readback/core");
+    const { CaseBundleSchema } = await import("@readbackhq/core");
     const b = structuredClone(hero.bundle) as unknown as Record<string, unknown>;
     (b["capture"] as Record<string, unknown>)["amount"] = { currency_code: "USD" }; // value missing
     expect(CaseBundleSchema.safeParse(b).success).toBe(false);

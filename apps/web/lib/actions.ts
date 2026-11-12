@@ -3,7 +3,7 @@
 //   step 7 saw only provide_supporting_info under UNDER_PAYPAL_REVIEW), so nothing is assumed.
 // - Reads evidences[]/messages[] first and skips text already on the case, and derives the
 //   PayPal-Request-Id from the text, so a retry never double-submits.
-import { evaluateCase } from "@readback/core";
+import { evaluateCase } from "@readbackhq/core";
 import { z } from "zod";
 import { buildCaseBundle } from "./cases";
 import { evidenceStatement } from "./evidence";
@@ -62,7 +62,7 @@ export async function runDisputeAction(paypal: PayPalClient, disputeId: string, 
       // accept-claim refunds the disputed amount, which can differ from the capture (several charges, part disputed).
       "The store accepts this claim and refunds the disputed amount in full.",
       `Readback's assessment of PayPal's records: ${r.classification.label}${r.classification.suggestion === "BUYER_FAVOR" ? ", which supports the buyer" : ""}.${why ? ` ${why}` : ""}`,
-      `Re-derive it with the store's API credentials: npx @readback/verify ${disputeId}`,
+      `Re-derive it with the store's API credentials: npx @readbackhq/verify ${disputeId}`,
     ].join(" ");
     const sent = await runDisputeAction(paypal, disputeId, { action: "accept_claim", text }, now);
     return sent.ok && sent.sent ? { ...sent, via: "accept_claim", message: "Claim accepted; PayPal refunds the buyer." } : sent;

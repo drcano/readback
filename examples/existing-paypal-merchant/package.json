@@ -8,7 +8,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@readback/core": "workspace:*",
-    "@readback/verify": "workspace:*"
+    "@readbackhq/core": "workspace:*",
+    "@readbackhq/verify": "workspace:*"
   }
 }

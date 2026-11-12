@@ -1,5 +1,5 @@
-import { evaluateCase } from "@readback/core";
-import { directCharge, fixtureCases, heroCase } from "@readback/core/fixtures";
+import { evaluateCase } from "@readbackhq/core";
+import { directCharge, fixtureCases, heroCase } from "@readbackhq/core/fixtures";
 import { describe, expect, it } from "vitest";
 import { draftMessage } from "./inquiry";
 

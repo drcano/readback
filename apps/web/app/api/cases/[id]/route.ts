@@ -2,7 +2,7 @@
 // Returns the case bundle (only the fields the checks read) plus the server-side result; the
 // browser re-runs the same checks from the bundle with readback-core (SPEC §5.6 "Re-verify").
 // ?stream=1 streams the same build as NDJSON, one line per PayPal record as it's read (lib/case-stream).
-import { evaluateCase } from "@readback/core";
+import { evaluateCase } from "@readbackhq/core";
 import { allowLookup, clientIp } from "@/lib/budget";
 import { buildCaseBundle } from "@/lib/cases";
 import { streamCase } from "@/lib/case-stream";

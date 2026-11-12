@@ -1,7 +1,7 @@
 // PayPal webhooks: verified with PayPal's verify-webhook-signature endpoint before anything else.
 // Unverified events are logged (type only) and dropped. Readback stores nothing, so a verified
 // event only says "look again": every screen re-fetches from PayPal anyway (SPEC §5.5).
-import { sha256Hex } from "@readback/core";
+import { sha256Hex } from "@readbackhq/core";
 import { z } from "zod";
 import type { PayPalClient } from "./paypal/client";
 

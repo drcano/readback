@@ -1,4 +1,4 @@
-import { evaluateCase, formatTerms, generateAgentKey, signActionProof, type Terms } from "@readback/core";
+import { evaluateCase, formatTerms, generateAgentKey, signActionProof, type Terms } from "@readbackhq/core";
 import { describe, expect, it } from "vitest";
 import { buildCaseBundle } from "./cases";
 import { demoEnabled, directCharge } from "./demo";

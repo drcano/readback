@@ -292,8 +292,8 @@ We found no PayPal document that says either way. Readback doesn't assert it. It
 
 **From the hackathon build:**
 - A working reference implementation on the public APIs, with a public record of every sandbox call it depends on.
-- `@readback/core`, packaged for npm (published at submission): the typed, browser-safe checks library.
-- `@readback/verify` (`npx @readback/verify` once published at submission): re-derives a case from PayPal using the merchant account's API credentials (or PayPal's own). It removes dependence on the merchant's hosted code, not on API access to that account.
+- `@readbackhq/core`, packaged for npm (published at submission): the typed, browser-safe checks library.
+- `@readbackhq/verify` (`npx @readbackhq/verify` once published at submission): re-derives a case from PayPal using the merchant account's API credentials (or PayPal's own). It removes dependence on the merchant's hosted code, not on API access to that account.
 - A change to PayPal's Agent Toolkit, prepared as patches in `docs/toolkit-pr` (a pull request once our GitHub account is restored), adding `verify_agent_purchase` and `provide_dispute_evidence`, and fixing two `accept_dispute_claim` bugs. The toolkit's dispute tools today are list, get, and accept; there is no evidence submission. [A4]
 - A 10-line quick-start for existing PayPal merchants.
 
@@ -314,7 +314,7 @@ That closes the remaining gaps (setup-time key swap, terms after revocation, uns
 ## 8. Limitations, stated plainly
 
 - **Sandbox-only demo.** The hosted demo runs on PayPal's sandbox. Every ruling shown is PayPal's own: the sandbox's `require-evidence` and `adjudicate` endpoints refused every state we tried (spike step 7), so rulings come from PayPal resolving a case itself or after the store refunds.
-- **Investigator view is a concept.** It is a proposed workflow running on merchant credentials, not an integration with PayPal's internal tools. The web view's results are re-derivable, not independent of the merchant's deployment. The `@readback/verify` CLI removes the dependence on merchant-hosted code, but still needs API access to the merchant's account. Only PayPal hosting the view would make it fully independent.
+- **Investigator view is a concept.** It is a proposed workflow running on merchant credentials, not an integration with PayPal's internal tools. The web view's results are re-derivable, not independent of the merchant's deployment. The `@readbackhq/verify` CLI removes the dependence on merchant-hosted code, but still needs API access to the merchant's account. Only PayPal hosting the view would make it fully independent.
 - **Judge mode holds a demo key in the browser.** To show that the signer isn't the builder, judge mode lets a judge's own browser hold a non-extractable agent key for one session. It's a demonstration, not a production key-custody design (threat model T31).
 - **Demo cadence.** The live demo uses one-day periods, labeled on screen, so that history exists before the deadline. Disputes are hand-opened in the sandbox. Judge mode makes live sandbox charges under the judge's own agreement and checks them in preview mode; it doesn't open disputes.
 - **Terms after revocation.** If a shopper deletes the agreement, the merchant-side API can no longer read the token. Readback then falls back to the copy of the terms carried on every charge, labels it secondary, and withholds any seller-favor suggestion based on it. PayPal internally would not have this gap. An unauthorized claim does the same: PayPal deletes the agreement within minutes, whether or not the buyer secures her account (spike step 7). So the demo reads its hero pair in preview, before any claim.

@@ -1,4 +1,4 @@
-# @readback/core
+# @readbackhq/core
 
 Pure, browser-safe verification for AI agent purchases on PayPal, from [Readback](https://github.com/drcano/readback).
 
@@ -9,10 +9,10 @@ Pure, browser-safe verification for AI agent purchases on PayPal, from [Readback
 No I/O: functions take PayPal API objects, keys and JWS strings, and return results. The same code runs in Node 22+ and the browser.
 
 ```ts
-import { evaluateCase } from "@readback/core";
+import { evaluateCase } from "@readbackhq/core";
 
 const result = await evaluateCase(bundle); // bundle: dispute, capture, order, payment token, history from PayPal
 console.log(result.classification.label, result.classification.suggestion);
 ```
 
-To build the bundle from a live PayPal account, use [`@readback/verify`](https://www.npmjs.com/package/@readback/verify). Apache-2.0.
+To build the bundle from a live PayPal account, use [`@readbackhq/verify`](https://www.npmjs.com/package/@readbackhq/verify). Apache-2.0.

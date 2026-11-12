@@ -2,7 +2,7 @@
 // AP2 import (SPEC §4.6): an AP2 v0.2 payment mandate chain, checked in this browser with
 // readback-core, next to the same idea expressed natively on PayPal. Anything that can't be
 // checked is shown as "unresolved", never as a pass. MandateCheck is shared with /vi.
-import { AP2_EXAMPLE_CHAIN, type Ap2Result, evaluateAp2Chain, groupFingerprint } from "@readback/core";
+import { AP2_EXAMPLE_CHAIN, type Ap2Result, evaluateAp2Chain, groupFingerprint } from "@readbackhq/core";
 import { useEffect, useState } from "react";
 
 const WORD = { pass: "Pass", fail: "Fail", unresolved: "Unresolved" } as const;

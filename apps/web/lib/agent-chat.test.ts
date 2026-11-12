@@ -1,5 +1,5 @@
 import type Anthropic from "@anthropic-ai/sdk";
-import { formatTerms, type Terms } from "@readback/core";
+import { formatTerms, type Terms } from "@readbackhq/core";
 import { describe, expect, it } from "vitest";
 import { agentCardText, ChatBody, chat } from "./agent-chat";
 import type { AgreementView } from "./agreements";

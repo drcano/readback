@@ -1,6 +1,6 @@
 // Audit finding 2, kept as a regression test: a merchant labels charges to ITS OWN wallet with the
 // shopper's agreement prefix to fake a history. Only PayPal-verified captures may count.
-import { authorizeCharge, buildMandate, customId, evaluateCase, formatTerms, generateAgentKey, PaymentTokenSchema, sha256Hex, signMandate, type Terms } from "@readback/core";
+import { authorizeCharge, buildMandate, customId, evaluateCase, formatTerms, generateAgentKey, PaymentTokenSchema, sha256Hex, signMandate, type Terms } from "@readbackhq/core";
 import { describe, expect, it } from "vitest";
 import { buildCaseBundle } from "./cases.ts";
 import { fakePayPal } from "./fake.ts";

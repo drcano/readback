@@ -1,6 +1,6 @@
 // Plain-language wording for the investigator UI. Display only: code keeps PayPal's real enums
 // and readback-core's codes; these never feed a decision.
-import type { Light } from "@readback/core";
+import type { Light } from "@readbackhq/core";
 
 const REASONS: Record<string, string> = {
   UNAUTHORISED: "Unauthorized",

@@ -1,8 +1,8 @@
 // Audit Oct 25 regression suite (independent review; see docs/decisions/0006-audit-oct25.md).
 // Probe: ECDSA signatures are malleable ((r, s) and (r, n−s) both verify). Readback identifies a
 // mandate by sha256(JWS string), so one genuine agent signature yields TWO distinct "mandates".
-import { authorizeCharge, evaluateCase, verifyMandate, requestIds, customId } from "@readback/core";
-import { heroCase } from "@readback/core/fixtures";
+import { authorizeCharge, evaluateCase, verifyMandate, requestIds, customId } from "@readbackhq/core";
+import { heroCase } from "@readbackhq/core/fixtures";
 import { base64url } from "jose";
 import { describe, expect, it } from "vitest";
 

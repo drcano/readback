@@ -1,6 +1,6 @@
 // Audit findings 7 and 8: the case is built from the purchase unit that owns the disputed capture,
 // and the public bundle carries hashed addresses, not street addresses.
-import { evaluateCase, formatTerms, type Terms } from "@readback/core";
+import { evaluateCase, formatTerms, type Terms } from "@readbackhq/core";
 import { describe, expect, it } from "vitest";
 import { buildCaseBundle } from "./cases.ts";
 import { paypalClient } from "./paypal-client.ts";

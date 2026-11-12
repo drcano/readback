@@ -1,8 +1,8 @@
 // Browser-side case loading, shared by the case view and the verdict pairs. Fixture IDs build the
 // case in the browser; anything else comes from /api/cases (live PayPal data), and every caller
 // re-runs the checks itself with readback-core.
-import type { CaseBundle, CaseResult } from "@readback/core";
-import { fixtureCases } from "@readback/core/fixtures";
+import type { CaseBundle, CaseResult } from "@readbackhq/core";
+import { fixtureCases } from "@readbackhq/core/fixtures";
 import type { CaseRecord, CaseStreamEvent } from "./case-stream";
 
 export type Loaded = { bundle: CaseBundle; server: CaseResult | null; fixture: boolean };

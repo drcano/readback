@@ -8,7 +8,7 @@ import {
   parseCents,
   PaymentTokenSchema,
   verifyMandate,
-} from "@readback/core";
+} from "@readbackhq/core";
 import { z } from "zod";
 import { CATALOG, MERCHANT_NAME } from "./catalog";
 import type { PayPalClient } from "./paypal/client";

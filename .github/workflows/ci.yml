@@ -14,7 +14,7 @@ jobs:
       - run: pnpm typecheck
       # Unit tests, the 10,000-mutation tamper fuzz, and the 54 labeled evals.
       - run: pnpm test
-      - run: pnpm --filter @readback/core exec playwright install --with-deps chromium
+      - run: pnpm --filter @readbackhq/core exec playwright install --with-deps chromium
       - run: pnpm test:browser
       # Real Next.js server against an HTTP fake of PayPal, driven in Chromium.
       - run: pnpm --filter @readback/web build

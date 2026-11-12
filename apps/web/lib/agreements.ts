@@ -13,7 +13,7 @@ import {
   sha256Hex,
   type Terms,
   verifyActionProof,
-} from "@readback/core";
+} from "@readbackhq/core";
 import { z } from "zod";
 import { findHistory } from "./cases";
 import { CATALOG, MERCHANT_NAME } from "./catalog";

@@ -1,7 +1,7 @@
 // "Be a dishonest merchant" (SPEC §5.7, THREAT-MODEL T32). Demo-only and fenced: it charges a
 // judge's OWN demo agreement through the merchant's credentials with no mandate, no custom_id and
 // a non-canonical invoice, so the case view can show the red Agent light on the judge's own key.
-import { formatCents, parseTerms, PaymentTokenSchema, type Failure, verifyActionProof } from "@readback/core";
+import { formatCents, parseTerms, PaymentTokenSchema, type Failure, verifyActionProof } from "@readbackhq/core";
 import { z } from "zod";
 import { CATALOG } from "./catalog";
 import type { PayPalClient } from "./paypal/client";

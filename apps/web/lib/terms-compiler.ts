@@ -3,7 +3,7 @@
 // readback card shown to Maya is generated from the validated fields, not from Claude's text.
 import Anthropic from "@anthropic-ai/sdk";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
-import { dateToEpochSec, parseCents } from "@readback/core";
+import { dateToEpochSec, parseCents } from "@readbackhq/core";
 import { z } from "zod";
 import type { Draft } from "./agreements";
 import { CATALOG, MERCHANT_NAME } from "./catalog";

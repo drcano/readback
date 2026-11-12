@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// npx @readback/verify <disputeId|captureId>
+// npx @readbackhq/verify <disputeId|captureId>
 // Needs PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET for the merchant's account (sandbox by default;
 // set PAYPAL_API_BASE to change). Prints the eleven checks and the classification. Writes nothing.
 import { paypalClient } from "./paypal-client.ts";

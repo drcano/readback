@@ -13,10 +13,10 @@ import {
   buildMandate,
   signMandate,
   type Terms,
-} from "@readback/core";
-import { heroCase, type HeroCase } from "@readback/core/fixtures";
-import { buildCaseBundle, findHistory, paypalClient } from "@readback/verify";
-import { fakePayPal } from "@readback/verify/fake";
+} from "@readbackhq/core";
+import { heroCase, type HeroCase } from "@readbackhq/core/fixtures";
+import { buildCaseBundle, findHistory, paypalClient } from "@readbackhq/verify";
+import { fakePayPal } from "@readbackhq/verify/fake";
 import { base64url } from "jose";
 import { beforeAll, describe, expect, it } from "vitest";
 import { checkout } from "../../apps/web/lib/checkout.ts";

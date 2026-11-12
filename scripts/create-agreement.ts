@@ -4,7 +4,7 @@
 //
 //   pnpm agreement:create <fingerprint> [periodDays=1] [end=2027-03-31]
 //   (get the fingerprint with: pnpm --filter @readback/agent pubkey)
-import { buildSetupTokenRequest, groupFingerprint, PaymentTokenSchema, parseTerms, type Terms } from "@readback/core";
+import { buildSetupTokenRequest, groupFingerprint, PaymentTokenSchema, parseTerms, type Terms } from "@readbackhq/core";
 import { paypal } from "./spike/paypal.ts";
 
 const [fingerprint, periodArg = "1", end = "2027-03-31"] = process.argv.slice(2);

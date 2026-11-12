@@ -3,7 +3,7 @@
 //  - SELLER_FAVOR rows: the "inquiry first" message, Maya's own approval read back to her.
 //  - BUYER_FAVOR rows: a courteous refund note.
 //  - no suggestion: no draft; flag for review.
-import { type CaseBundle, type CaseResult, formatCents } from "@readback/core";
+import { type CaseBundle, type CaseResult, formatCents } from "@readbackhq/core";
 import { CATALOG } from "./catalog";
 import { cadence } from "./readback-card";
 

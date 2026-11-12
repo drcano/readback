@@ -24,7 +24,7 @@ flowchart LR
   G -- "create order with vault_id, invoice_id" --> O
   I -- "read" --> D & O & T
   W -. "look again" .-> I
-  C["@readback/verify CLI<br/>same checks, merchant API credentials"] -- "read" --> D & O & T
+  C["@readbackhq/verify CLI<br/>same checks, merchant API credentials"] -- "read" --> D & O & T
 ```
 
 - **Claude never decides.** It drafts terms (validated, then confirmed by Maya), writes a cited brief (validated), and maps a queue question to a named filter. Allow/deny and every suggestion come from `readback-core`.
