@@ -123,7 +123,7 @@ The investigator queue is built on AG Grid: custom cell renderers for the claim,
 - **Merchants** get evidence that wins the disputes they should win, with a 10-line integration (below) and nothing new to store.
 - **PayPal** gets the record its own review currently lacks, on rails it already runs. [docs/PROPOSAL-agent-terms.md](docs/PROPOSAL-agent-terms.md) sketches the one API change (an `agent_terms` object on Vault payment tokens) that would move these checks inside PayPal.
 
-Developer surfaces: `@readbackhq/core` (the checks) and `@readbackhq/verify` (re-derive any case from PayPal with the merchant's API credentials), both packaged for npm but not yet published (run the CLI from the repo: `node packages/verify-cli/src/cli.ts <disputeId>`). And a prepared change to PayPal's Agent Toolkit, adding `verify_agent_purchase` and `provide_dispute_evidence` and fixing two `accept_dispute_claim` bugs reproduced with failing tests first: the patches and description are in [docs/toolkit-pr](docs/toolkit-pr/README.md). It hasn't been opened as a pull request yet.
+Developer surfaces: `@readbackhq/core` (the checks) and `@readbackhq/verify` (re-derive any case from PayPal with the merchant's API credentials), both on npm since Nov 12, 2026, published just after the submission deadline (`npx @readbackhq/verify <disputeId>`). And a prepared change to PayPal's Agent Toolkit, adding `verify_agent_purchase` and `provide_dispute_evidence` and fixing two `accept_dispute_claim` bugs reproduced with failing tests first: the patches and description are in [docs/toolkit-pr](docs/toolkit-pr/README.md). It was opened as [paypal/agent-toolkit#128](https://github.com/paypal/agent-toolkit/pull/128) on Nov 12, 2026, also just after the deadline; two earlier open PRs there (#109, #118) cover the same two bug fixes.
 
 ## Innovation
 
@@ -162,7 +162,7 @@ const res = await fetch(`${PAYPAL}/v2/checkout/orders`, {
 });
 ```
 
-`jws` is the agent's signed request, and `getToken` is your existing `GET /v3/vault/payment-tokens/{id}`. When a dispute arrives, `node packages/verify-cli/src/cli.ts <disputeId>` (`npx @readbackhq/verify` once it's on npm; or `buildCaseBundle` + `evaluateCase`) rebuilds the case from PayPal alone:
+`jws` is the agent's signed request, and `getToken` is your existing `GET /v3/vault/payment-tokens/{id}`. When a dispute arrives, `npx @readbackhq/verify <disputeId>` (or `buildCaseBundle` + `evaluateCase`) rebuilds the case from PayPal alone:
 
 ```bash
 pnpm --filter existing-paypal-merchant start
