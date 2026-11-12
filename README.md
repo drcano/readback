@@ -17,6 +17,14 @@ Agent purchase mandates and dispute evidence, built entirely on PayPal's own rec
 
 **Try it live: <https://readback-web-7cmb.onrender.com>** (PayPal sandbox, up through Dec 15, 2026). The home page shows both verdicts on two real sandbox charges, read from PayPal as you load it and re-checked in your browser; no sign-in needed. Or run it locally in a few minutes ([Run it](#run-it)): both verdicts, the investigator, the evals and the AP2 check work without any credentials, on labeled fixture data. <!-- TODO(submission): the YouTube video link goes here. -->
 
+**Judging it in two minutes, no sign-in:**
+
+1. **[Open the live demo](https://readback-web-7cmb.onrender.com).** "Same claim, two verdicts" shows two real sandbox charges on one shopper's agreement, read from PayPal as the page loads: one her agent signed (uphold the charge), one the store made itself (refund the buyer).
+2. **Open either case.** Readback rebuilds it record by record from PayPal's APIs, then re-checks the signature and all eleven checks in your browser. Press **Explain this case in plain English** for Claude's brief, where every sentence cites a check or a PayPal record.
+3. **[Try to break it](https://readback-web-7cmb.onrender.com/judge).** Run all eight attacks and see which layer stops each one: her agent, the store's gate, PayPal, or the investigator.
+
+Then: [ask the dispute queue a question](https://readback-web-7cmb.onrender.com/investigator) (AG Grid, with Claude picking the filter), [have Claude draft a shopper's terms](https://readback-web-7cmb.onrender.com/shopper), and see [the change we ask PayPal to make](https://readback-web-7cmb.onrender.com/proposal).
+
 ---
 
 ## The problem
