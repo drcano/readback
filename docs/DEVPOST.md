@@ -59,7 +59,7 @@ Readback is the dispute layer the agent-payment standards leave out. Google's AP
   - webhook signature verification.
 
   Every POST carries a deterministic `PayPal-Request-Id`, so retries are no-ops.
-- **AI (Anthropic Claude, through the TypeScript SDK).** Claude works in four places. In each, it proposes and code decides:
+- **AI (Anthropic Claude Sonnet 5.5, `claude-sonnet-5-5`, through the TypeScript SDK).** Claude works in four places in the product, and a fifth in the tests, where it plays the shopper's assistant against attack pages. In each, it proposes and code decides:
   - **Drafting terms:** structured output, then checked against a fixed grammar; anything off is refused, never quietly fixed.
   - **Shopping:** Claude calls the agent's tools. Only what fits her terms gets signed.
   - **Explaining a case:** a plain-English brief where every sentence must cite a check or a PayPal record. Rules validate it, and a rules-only brief replaces it if it fails.

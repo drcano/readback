@@ -58,7 +58,7 @@ export function VerdictCard({ side, checked, placeholder }: { side: Side; checke
       <article className="verdict-card" data-rec="pending">
         <p className="mono muted">{side.tag}</p>
         <h3>{side.title}</h3>
-        <p className="muted">{checked instanceof Error ? checked.message : placeholder ?? "Checking it in your browser…"}</p>
+        <p className="muted">{checked instanceof Error ? checked.message : placeholder ?? "Reading it from PayPal…"}</p>
       </article>
     );
   }

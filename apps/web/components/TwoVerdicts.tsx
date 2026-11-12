@@ -22,6 +22,7 @@ export function TwoVerdicts({ heroId, twistId }: { heroId?: string | undefined; 
   const { cases, ms } = failed ? fallback : live;
   const shownIds = failed ? FIXTURES : ids;
   const fixture = cases.some((c) => c && !(c instanceof Error) && c.fixture);
+  const done = cases.length > 0 && cases.every((c) => c !== null); // never claim a re-check before it has run
 
   return (
     <section className="card pair verdicts" aria-labelledby="verdicts-h">
@@ -33,7 +34,7 @@ export function TwoVerdicts({ heroId, twistId }: { heroId?: string | undefined; 
         {SIDES.map((s, i) => <VerdictCard key={s.tag} side={{ ...s, id: shownIds[i]! }} checked={cases[i] ?? null} />)}
       </div>
       <p className="muted small">
-        Both cases were just {checkedIn(ms)}: signatures, terms and all eleven checks.{" "}
+        {done ? `Both cases were just ${checkedIn(ms)}: signatures, terms and all eleven checks.` : "Reading both charges from PayPal, then re-checking them in your browser."}{" "}
         {fixture ? "Fixture data, labeled; the live versions run against the PayPal sandbox." : "Two real charges on her sandbox agreement, read from PayPal just now as if she disputed each one."} The rules
         are the same for both sides: a signed request inside her approved terms protects the seller; a charge her agent never asked for protects the buyer.
       </p>
