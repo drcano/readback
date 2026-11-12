@@ -16,7 +16,7 @@ On screen throughout: a role chip (Shopper / Agent / PayPal / Investigator), cap
 
 **Shot:** `docs/video/cards.html`, full screen (Space plays each beat). A dispute card types itself out: *"$64.99. 'I didn't buy this. My AI did.'"* (5 seconds). Then three captions appear under it, one per press, timed to the voiceover: **Maya** · **the store** · **PayPal's investigator**. Cut to the hosted home page, `https://readback-web-7cmb.onrender.com`, on its headline.
 
-**VO:** Maya lets an AI agent reorder her dog's food. Then a charge appears, and she tells PayPal: "I didn't buy this. My AI did." Today, nobody can check what her agent was allowed to buy: not Maya, not the store, not PayPal. Readback puts that record on PayPal itself.
+**VO:** Maya lets an AI agent reorder her dog's food. Then a charge appears, and she tells PayPal: "I didn't buy this. My AI did." Today, nobody can check what her agent was allowed to buy: not Maya, not the store, not PayPal. PayPal's own 10-K puts its protection-program losses at one and a half billion dollars last year, up 22 percent, before agents start shopping. Readback puts the missing record on PayPal itself.
 
 > **Why this opening (Nov 12):** the Presentation criterion asks whether the pitch says what problem is solved, who it's for and why it matters. This names all three in the first 20 seconds, with a person, before any screen of ours. The line about AP2 and Verifiable Intent leaving disputes out is in the Devpost description, not here.
 

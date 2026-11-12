@@ -117,6 +117,8 @@ The investigator queue is built on AG Grid: custom cell renderers for the claim,
 
 ## Potential impact
 
+**The money.** PayPal's FY2025 Form 10-K reports $1,487M in realized losses and charge-offs on its protection programs, up 22% from $1,218M in 2024, about 8.3 basis points of $1.79T in volume. That figure covers every protection program, not only unauthorized claims, and it's the base agent purchases will add to: PayPal reviews a "my AI bought that" claim as an unauthorized payment, with no record of what the shopper delegated. ([WHY-PAYPAL.md §4](docs/WHY-PAYPAL.md#4-the-money), sources F1–F2)
+
 - **Shoppers** can let an agent spend within limits they approved on PayPal, and a merchant can't charge in their agent's name without a signature by the key bound at setup. An honest setup is the precondition (T21).
 - **Merchants** get evidence that wins the disputes they should win, with a 10-line integration (below) and nothing new to store.
 - **PayPal** gets the record its own review currently lacks, on rails it already runs. [docs/PROPOSAL-agent-terms.md](docs/PROPOSAL-agent-terms.md) sketches the one API change (an `agent_terms` object on Vault payment tokens) that would move these checks inside PayPal.

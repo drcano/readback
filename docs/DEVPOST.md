@@ -14,6 +14,8 @@ The safe way to let your AI shop with PayPal. Every purchase your agent makes, o
 
 AI agents are starting to spend people's money. Sooner or later a shopper will look at a charge and say: "I didn't buy this. My AI did." Today PayPal reviews that as an ordinary transaction. Nothing in the review records what the shopper actually let her agent buy, so nobody can say whether the agent stayed inside what she allowed.
 
+The cost is already large before agents arrive. PayPal's FY2025 Form 10-K reports $1.49 billion in realized losses and charge-offs on its protection programs, up 22% in a year (that covers every protection program, not only unauthorized claims).
+
 Pilots solve the same problem with a readback: they repeat every instruction before acting, and the exchange is recorded. Readback does that for AI agents that pay with PayPal.
 
 ## What it does
