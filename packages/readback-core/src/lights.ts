@@ -8,6 +8,13 @@ export type Light = { group: CheckGroup; state: LightState; summary: string };
 export const LIGHT_GROUPS: CheckGroup[] = ["Consent", "Agent", "Terms", "Delivery"];
 const PRIORITY = ["3", "1", "2a", "4", "5", "6", "7", "8", "9", "2b", "10", "11"];
 
+// What a provisional pass means for each light: say what was shown, then what still waits on
+// Transaction Search (which can lag up to 3 hours). The checks and the classification don't change.
+const PROVISIONAL: Partial<Record<CheckGroup, string>> = {
+  Agent: "Signed by the approved agent key. Confirming the request wasn't reused waits on PayPal's history (charge under 3 hours old).",
+  Terms: "Within the approved limits. Confirming it's the first charge this period waits on PayPal's history (charge under 3 hours old).",
+};
+
 // fail: any check in the group failed. caution: all passed, but one relied on merchant-written
 // terms or on history that may still be lagging. pass: everything else.
 export function lights(checks: CheckResult[]): Light[] {
@@ -17,7 +24,7 @@ export function lights(checks: CheckResult[]): Light[] {
     const failed = own.filter((c) => !c.pass).sort((a, b) => PRIORITY.indexOf(a.id) - PRIORITY.indexOf(b.id));
     if (failed.length > 0) return { group, state: "fail", summary: failed[0]!.failures[0]!.message };
     if (own.some((c) => c.secondary)) return { group, state: "caution", summary: "Passed using the merchant's copy of the terms." };
-    if (own.some((c) => c.provisional)) return { group, state: "caution", summary: "Passed, but history may still be catching up (under 3 hours)." };
+    if (own.some((c) => c.provisional)) return { group, state: "caution", summary: PROVISIONAL[group] ?? "Passed. PayPal's history for a charge under 3 hours old may still be catching up." };
     return { group, state: "pass", summary: `All ${own.length} ${group.toLowerCase()} checks passed.` };
   });
 }
