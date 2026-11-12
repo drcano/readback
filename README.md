@@ -15,7 +15,7 @@ Agent purchase mandates and dispute evidence, built entirely on PayPal's own rec
 | **Storage** | **Zero.** No database, no files, no caches of customer data. PayPal is the only system of record |
 | **Accessibility** | axe-core: **0** WCAG 2.1 AA violations on 9 pages, light and dark |
 
-**Try it live: <https://readback-web-7cmb.onrender.com>** (PayPal sandbox, up through Dec 15, 2026). The home page shows both verdicts on two real sandbox charges, read from PayPal as you load it and re-checked in your browser; no sign-in needed. Or run it locally in a few minutes ([Run it](#run-it)): both verdicts, the investigator, the evals and the AP2 check work without any credentials, on labeled fixture data. <!-- TODO(submission): the YouTube video link goes here. -->
+**Try it live: <https://readback-web-7cmb.onrender.com>** (PayPal sandbox, up through Dec 15, 2026). The home page shows both verdicts on two real sandbox charges, read from PayPal as you load it and re-checked in your browser; no sign-in needed. Or run it locally in a few minutes ([Run it](#run-it)): both verdicts, the investigator, the evals and the AP2 check work without any credentials, on labeled fixture data. **[Watch the demo video](https://youtu.be/eWXRl05vADE).**
 
 **Judging it in two minutes, no sign-in:**
 
@@ -144,8 +144,7 @@ Readback isn't the first to record what a user authorized; AP2, Mastercard Verif
 
 ## Presentation
 
-<!-- TODO(submission): YouTube link (under 3:00). -->
-Video: *"Same claim, two verdicts"*, under three minutes ([script](docs/VIDEO-SCRIPT.md)).
+Video: [*"Same claim, two verdicts"*](https://youtu.be/eWXRl05vADE) ([recording script](docs/video/SCRIPT.md)).
 
 ---
 
