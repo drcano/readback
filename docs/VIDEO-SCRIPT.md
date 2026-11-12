@@ -14,7 +14,7 @@ On screen throughout: a role chip (Shopper / Agent / PayPal / Investigator), cap
 
 ## 0:00–0:20 · The problem, and who has it · chip: PayPal
 
-**Shot:** a dispute notification card, typed out: *"$64.99. 'I didn't buy this. My AI did.'"* (5 seconds). Then three captions appear under it, one per beat of the voiceover: **Maya** · **the store** · **PayPal's investigator**, each with a question mark. Cut to the hosted home page, `https://readback-web-7cmb.onrender.com`, on its headline.
+**Shot:** `docs/video/cards.html`, full screen (Space plays each beat). A dispute card types itself out: *"$64.99. 'I didn't buy this. My AI did.'"* (5 seconds). Then three captions appear under it, one per press, timed to the voiceover: **Maya** · **the store** · **PayPal's investigator**. Cut to the hosted home page, `https://readback-web-7cmb.onrender.com`, on its headline.
 
 **VO:** Maya lets an AI agent reorder her dog's food. Then a charge appears, and she tells PayPal: "I didn't buy this. My AI did." Today, nobody can check what her agent was allowed to buy: not Maya, not the store, not PayPal. Readback puts that record on PayPal itself.
 
@@ -56,7 +56,7 @@ On screen throughout: a role chip (Shopper / Agent / PayPal / Investigator), cap
 
 ## 2:50–3:00 · Close
 
-**Shot:** logo card.
+**Shot:** the closing card in `docs/video/cards.html` (press 2).
 
 **VO:** Readback. The safe way to let your AI shop with PayPal.
 
