@@ -99,7 +99,7 @@ One product, three roles, one design system: the shopper delegates, the agent bu
 |---|---|
 | ![Shopper: the readback card](docs/assets/shopper.png) | ![Case view: refund the buyer, her agent never asked](docs/assets/case-twist.png) |
 
-The investigator queue (AG Grid) shows each dispute's evidence at a glance. The case view rebuilds each case live: every PayPal record appears as it's read (the dispute, the charge, the order with the signed request, her approved terms, the earlier charges). Then it walks the evidence chain, each step tied to one of those records and re-checked in the browser. Readback stores nothing, and the page shows it.
+The investigator queue is built on AG Grid: custom cell renderers for the claim, the evidence strip and the recommendation, a theme fed by the product's own design tokens, and "Ask the queue", where Claude picks a named filter and the grid applies it. It shows each dispute's evidence at a glance. The case view rebuilds each case live: every PayPal record appears as it's read (the dispute, the charge, the order with the signed request, her approved terms, the earlier charges). Then it walks the evidence chain, each step tied to one of those records and re-checked in the browser. Readback stores nothing, and the page shows it.
 
 ![Investigator queue](docs/assets/queue.png)
 

@@ -75,6 +75,17 @@ Readback is the dispute layer the agent-payment standards leave out. Google's AP
   - vitest and fast-check for the tests;
   - the MCP TypeScript SDK for the agent runtime.
 
+### Sponsor tools
+
+- **AG Grid** is the investigator's queue (`/investigator`), the screen where "same claim, two verdicts" is read at a glance:
+  - four custom React cell renderers: the claim in the buyer's words, the evidence strip (Consent, Agent, Terms, Delivery, each a word and a symbol as well as a color), the recommendation, and the respond-by date;
+  - a theme built with `themeQuartz.withParams` from the same design tokens as the rest of the product, in light and dark;
+  - rows fetched live from PayPal on every load, with nothing cached;
+  - quick filter across every column's displayed text, plus a number filter on the amount;
+  - **"Ask the queue":** Claude picks one of nine named filters from a plain-English question, and the grid applies it deterministically;
+  - rows open with a click or with Enter, and axe-core reports zero violations on the page.
+- **Render** hosts the demo as two stateless services from one `render.yaml` Blueprint, each with a health check and its own secrets: the merchant's app holds PayPal credentials and no agent key; the agent runtime holds the agent key and no PayPal credentials. No disk and no database.
+
 ## Challenges we ran into
 
 - **PayPal doesn't say which saved wallet paid an order.** A vault charge echoes no vault ID, so Readback links a charge to an agreement only through its labels together with PayPal's payer match. Labels can count against the merchant, never for it.
