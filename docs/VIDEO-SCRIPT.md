@@ -1,6 +1,6 @@
 # Video script: "Same claim, two verdicts" (draft)
 
-Status: **draft, revised Oct 27** for the Devpost organizers' guidance. Built from SPEC §11. The story is Dante's; this only turns it into lines and shots. Lock by **Nov 4**, record **Nov 8–9**, under 3:00.
+Status: **draft, revised Oct 27** for the Devpost organizers' guidance; opening rewritten Nov 12 for the Presentation criterion. Built from SPEC §11. The story is Dante's; this only turns it into lines and shots. Lock by **Nov 4**, record **Nov 8–9**, under 3:00.
 
 **Devpost's guidance (Oct 27), and how this script follows it:**
 - **Show the core flow working, and how it uses PayPal and AI.** Claude appears in three working moments, each captioned with what it does and what it can't do: it drafts her terms, it shops through her agent, and it explains the case. PayPal's own pages and records carry every other beat.
@@ -12,25 +12,27 @@ On screen throughout: a role chip (Shopper / Agent / PayPal / Investigator), cap
 
 ---
 
-## 0:00–0:10 · Cold open · chip: PayPal
+## 0:00–0:20 · The problem, and who has it · chip: PayPal
 
-**Shot:** a dispute notification card, typed out: *"$64.99. 'I didn't buy this. My AI did.'"*
+**Shot:** a dispute notification card, typed out: *"$64.99. 'I didn't buy this. My AI did.'"* (5 seconds). Then three captions appear under it, one per beat of the voiceover: **Maya** · **the store** · **PayPal's investigator**, each with a question mark. Cut to the hosted home page, `https://readback-web-7cmb.onrender.com`, on its headline.
 
-**VO:** Every AI shopping agent is going to hear this. Today, PayPal reviews the transaction. Nobody can check what the agent was actually allowed to do. The new agent-payment standards define the proof, then leave the dispute out. Readback is that missing piece, on PayPal today.
+**VO:** Maya lets an AI agent reorder her dog's food. Then a charge appears, and she tells PayPal: "I didn't buy this. My AI did." Today, nobody can check what her agent was allowed to buy: not Maya, not the store, not PayPal. Readback puts that record on PayPal itself.
 
-## 0:10–0:32 · Delegate · chip: Shopper
+> **Why this opening (Nov 12):** the Presentation criterion asks whether the pitch says what problem is solved, who it's for and why it matters. This names all three in the first 20 seconds, with a person, before any screen of ours. The line about AP2 and Verifiable Intent leaving disputes out is in the Devpost description, not here.
+
+## 0:20–0:40 · Delegate · chip: Shopper
 
 **Shot:** `/shopper`. Maya types the story mandate. Caption: **"Claude drafts the terms · code checks every one."** The readback card fills in: one bag a month, up to $65, until March 31, by her agent only. Her agent shows its fingerprint `GAX4 1xq- rZuP w9cM` in its own agent card (the shopper page never shows it, by design: THREAT-MODEL T21). Cut to PayPal's sandbox approval page showing the same sixteen characters. She clicks Agree.
 
 **VO:** Maya says it once. Claude turns her words into exact terms, and her agent reads them back with its own key fingerprint. PayPal shows her the same fingerprint before she approves. Those terms now live inside PayPal. Nobody can edit them, not the store, and not us.
 
-## 0:32–0:55 · Buy · chip: Agent
+## 0:40–1:00 · Buy · chip: Agent
 
 **Shot:** judge mode's **"Ask Claude to shop"** (no third-party assistant UI; the tab is the agent): "Biscuit's low." Claude's tool call runs; caption: **"Claude can't pay. It can only ask her agent to sign."** Cut to the order in the PayPal sandbox: the signed request in the item, the terms copy, `invoice_id RB-…-P0NN`. Then her own PayPal receipt (Activity → the payment): under the item, the long signature string, captioned **"Her agent's signature, on PayPal's own receipt."** (It shows raw because the item description is the only order field that holds it; the proposal asks PayPal to render it as "Signed by your agent GAX4 1xq- rZuP w9cM".) Ask again: *"Already ordered this period (refused by PayPal)."* Four-second flash: the injected "premium bundle" page, refused. Then `my_agent_card`: dates, amounts, receipts.
 
 **VO:** She tells Claude the dog food is low. Claude can't pay: it can only ask her agent, and her agent signs one exact order inside her terms. The store charges it under her agreement. Ask twice, and PayPal itself says no. A poisoned product page can't talk it into more: the agent won't sign it, and the store won't charge it.
 
-## 0:55–1:55 · Investigator · chip: Investigator
+## 1:00–1:55 · Investigator · chip: Investigator
 
 **Shot:** home page, "Same claim, two verdicts", then "Open the case" on Charge A: her signed charge on her real sandbox agreement, read as if she disputed it ("If she disputed this charge…"). The live rebuild: the dispute-free case pulls each PayPal record as it arrives (charge, order with the signed request, her approved terms, earlier charges). Consent, Agent, Terms and Delivery go green, each captioned with the PayPal object behind it. "Re-checked in your browser · matches." Recommendation: uphold the charge. Then **"Explain this case in plain English"**: Claude's brief appears, each sentence with its check and PayPal-record chips, footed "Written by Claude, validated by rules."
 
@@ -64,7 +66,7 @@ On screen throughout: a role chip (Shopper / Agent / PayPal / Investigator), cap
 
 | Needs | Status (Oct 27) |
 |---|---|
-| Hosted site on Render | Blocked: GitHub account suspended, so Render has no repo |
+| Hosted site on Render | Done Nov 12: `https://readback-web-7cmb.onrender.com`, 26 of 26 smoke checks |
 | Hero pair | Done Oct 27, in preview: her signed charge (`HERO_CASE_ID`, use the latest seed charge) and the twist `8T065472KN058961S` (`TWIST_CASE_ID`). Never file a claim on Maya's agreement |
 | A real dispute to show | `PP-R-YOK-10194719` (test agreement, unauthorized, agreement deleted) and the refund case `PP-R-CFY-10194687` |
 | AG Studio queue | Trial starts Nov 1; until then it's AG Grid Community |
