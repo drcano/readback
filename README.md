@@ -15,7 +15,7 @@ Agent purchase mandates and dispute evidence, built entirely on PayPal's own rec
 | **Storage** | **Zero.** No database, no files, no caches of customer data. PayPal is the only system of record |
 | **Accessibility** | axe-core: **0** WCAG 2.1 AA violations on 9 pages, light and dark |
 
-**Try it:** run it locally in a few minutes ([Run it](#run-it)). Both verdicts, the investigator, the evals and the AP2 check work without any credentials, on labeled fixture data; approving and buying use the PayPal sandbox. <!-- TODO(submission): hosted URL and the YouTube video link go here. -->
+**Try it live: <https://readback-web-7cmb.onrender.com>** (PayPal sandbox, up through Dec 15, 2026). The home page shows both verdicts on two real sandbox charges, read from PayPal as you load it and re-checked in your browser; no sign-in needed. Or run it locally in a few minutes ([Run it](#run-it)): both verdicts, the investigator, the evals and the AP2 check work without any credentials, on labeled fixture data. <!-- TODO(submission): the YouTube video link goes here. -->
 
 ---
 
@@ -184,7 +184,7 @@ pnpm run doctor                       # checks the configuration (plain `pnpm do
 pnpm dev                              # web on :3000, agent runtime on :3001
 ```
 
-**Deploying:** [docs/DEPLOY.md](docs/DEPLOY.md) (GitLab and Render, one page), then `pnpm smoke <web-url> --agent <agent-url>` checks the deployment the way a judge meets it, without changing anything at PayPal.
+**Deploying:** [docs/DEPLOY.md](docs/DEPLOY.md) (a public git host and Render, one page), then `pnpm smoke <web-url> --agent <agent-url>` checks the deployment the way a judge meets it, without changing anything at PayPal.
 
 Tests: `pnpm test` · browser: `pnpm test:browser` · evals: `pnpm eval` · end to end: `pnpm --filter @readback/web build && pnpm --filter @readback/web test:e2e` · Claude harness: `pnpm --filter @readback/agent harness` (needs `ANTHROPIC_API_KEY`).
 

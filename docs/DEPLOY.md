@@ -28,7 +28,7 @@ One page, in order, about an hour. Every step here uses Dante's accounts and sec
 | readback-web | `HERO_CASE_ID`, `TWIST_CASE_ID` | The hero's latest signed charge and its twist charge (capture IDs from `pnpm seed:charge` and `pnpm twist:charge`). Never file a claim on the hero agreement. |
 | readback-agent | `AGENT_PRIVATE_KEY` | From `apps/agent/.env`: the key that signed P001 onward. Any other key, and every tool refuses (T21). |
 | readback-agent | `HERO_MCP_SECRET`, `JUDGE_MCP_SECRET` | From `apps/agent/.env` |
-| readback-agent | `MERCHANT_URL` | `https://readback-web.onrender.com` |
+| readback-agent | `MERCHANT_URL` | `https://readback-web-7cmb.onrender.com` |
 | readback-agent | `HERO_AGREEMENT_ID`, `JUDGE_AGREEMENT_ID` | Same as on readback-web |
 
 - [ ] Never put `AGENT_PRIVATE_KEY` or the MCP secrets on readback-web.
@@ -38,7 +38,7 @@ One page, in order, about an hour. Every step here uses Dante's accounts and sec
 
 ## 3. PayPal webhooks (sandbox app)
 - [ ] Open developer.paypal.com → Apps & Credentials → Sandbox → the Readback app → Webhooks → **Add**.
-  - URL: `https://readback-web.onrender.com/api/webhooks/paypal`
+  - URL: `https://readback-web-7cmb.onrender.com/api/webhooks/paypal`
   - Events: `CUSTOMER.DISPUTE.CREATED`, `CUSTOMER.DISPUTE.UPDATED`, `CUSTOMER.DISPUTE.RESOLVED`, `VAULT.PAYMENT-TOKEN.DELETED`
 - [ ] Copy the webhook ID into `PAYPAL_WEBHOOK_ID` on readback-web, and redeploy.
 - [ ] Spike step 5's buyer-side cancel can now be checked, because the webhook has a public URL.
@@ -58,7 +58,7 @@ One page, in order, about an hour. Every step here uses Dante's accounts and sec
 ## 5. Smoke check
 - [ ] Run:
   ```bash
-  pnpm smoke https://readback-web.onrender.com --agent https://readback-agent.onrender.com
+  pnpm smoke https://readback-web-7cmb.onrender.com --agent https://readback-agent.onrender.com
   ```
   Everything should PASS. It's read-only: nothing changes at PayPal.
 - [ ] Once the judge agreement exists, run it again with `--charge`. That signs a reorder on the judge path: at most one sandbox charge a day, and the second attempt must come back as PayPal's duplicate refusal.
