@@ -1,7 +1,7 @@
 <!doctype html>
 <!-- Title cards for the demo video (docs/VIDEO-SCRIPT.md): the opening (0:00–0:20) and the close
      (2:50–3:00). Not part of the product. Open this file in a browser, go full screen, and record.
-     Space or → plays the next beat; R restarts; 1 jumps to the opening, 2 to the close. -->
+     The opening plays by itself. Click or Space brings the next beat early; R restarts; 2 jumps to the close. -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -11,7 +11,7 @@
 <style>
   :root { --ground: #0a1424; --surface: #111d33; --rule: #23324d; --ink: #f2f5fa; --muted: #9fb0c8; --accent: #6aa9ff; --refund: #ffb38a; }
   * { box-sizing: border-box; }
-  html, body { height: 100%; margin: 0; background: var(--ground); color: var(--ink); font-family: "Plus Jakarta Sans", system-ui, sans-serif; cursor: none; }
+  html, body { height: 100%; margin: 0; background: var(--ground); color: var(--ink); font-family: "Plus Jakarta Sans", system-ui, sans-serif; }
   main { height: 100%; display: grid; place-items: center; padding: 6vmin; }
   section { display: none; width: min(1100px, 100%); }
   section.on { display: block; }
@@ -70,26 +70,35 @@
     el.classList.remove("caret");
   }
 
-  // Beat 1 types the card (about 5 s). Beats 2–4 bring in one caption each, to follow the voiceover.
+  // The opening plays by itself on load: the card types out (about 5 s), then one caption every
+  // 4 s to follow the voiceover. A click or Space brings the next beat in early; after the last
+  // caption, a click or Space shows the closing card.
   let beat = 0;
   const captions = () => [...document.querySelectorAll(".who div")];
   function reset() { run++; beat = 0; $("amount").textContent = ""; $("claim").textContent = ""; captions().forEach((d) => d.classList.remove("in")); }
-  function show(id) { reset(); for (const s of document.querySelectorAll("section")) s.classList.toggle("on", s.id === id); }
+  function show(id) { reset(); for (const s of document.querySelectorAll("section")) s.classList.toggle("on", s.id === id); if (id === "open") play(); }
 
-  async function next() {
+  async function play() {
+    const mine = ++run;
+    beat = 1;
+    await sleep(600);
+    await type($("amount"), "$64.99", 90, mine); await sleep(350);
+    await type($("claim"), "\u201cI didn't buy this. My AI did.\u201d", 75, mine);
+    for (let i = 0; i < 3; i++) { await sleep(4000); if (mine !== run) return; captions()[i].classList.add("in"); beat = i + 2; }
+  }
+
+  function next() {
     if (!$("open").classList.contains("on")) return show("open");
-    beat++;
-    if (beat === 1) { const mine = ++run; await type($("amount"), "$64.99", 90, mine); await sleep(350); await type($("claim"), "“I didn't buy this. My AI did.”", 75, mine); }
-    else if (beat <= 4) captions()[beat - 2].classList.add("in");
-    else show("close");
+    const hidden = captions().find((d) => !d.classList.contains("in"));
+    if (hidden) { hidden.classList.add("in"); beat++; } else show("close");
   }
 
   addEventListener("keydown", (e) => {
     if (e.key === " " || e.key === "ArrowRight") { e.preventDefault(); next(); }
-    else if (e.key === "r" || e.key === "R") show("open");
-    else if (e.key === "1") show("open");
+    else if (e.key === "r" || e.key === "R" || e.key === "1") show("open");
     else if (e.key === "2") show("close");
   });
+  addEventListener("click", next);
   show("open");
 </script>
 </body>
