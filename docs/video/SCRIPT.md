@@ -9,7 +9,7 @@ Open these tabs in one Chrome window, in this order:
 1. The cards: run `open -a "Google Chrome" docs/video/cards.html` from the repo
 2. `https://readback-web-7cmb.onrender.com/shopper`
 3. `https://readback-web-7cmb.onrender.com/` (reload it so "Try it yourself" is fresh)
-4. `https://readback-web-7cmb.onrender.com/judge` (optional, only if time allows)
+4. `https://readback-web-7cmb.onrender.com/investigator`
 
 Allow pop-ups for the site. Hide the bookmarks bar. Close anything with another company's logo.
 
@@ -64,11 +64,11 @@ Stop: the stop button in the menu bar.
 >
 > Claude explains why in plain English, citing a PayPal record for every sentence. But Claude doesn't decide. Her agent's signature and fixed rules do.
 
-## 7. Optional, only if you're under 2:20 (tab 4, judge)
+## 7. The investigator's queue (tab 4, investigator)
 
-**Show:** press **Run all 8 attacks**.
+**Show:** the queue of disputes with the evidence strip on every row. Type **which cases should the store lose?** into "Ask the queue" and press Enter. The grid filters.
 
-> Try to break it. Every attack stops at her agent, the store's gate, or PayPal.
+> This is the investigator's queue, live from PayPal: every dispute with its evidence at a glance. Ask it a question, and Claude picks the filter. The checks behind every row are the same eleven, and anyone can re-run them.
 
 ## 8. Close (tab 1, cards)
 
@@ -80,6 +80,6 @@ Stop: the stop button in the menu bar.
 
 ## After the take
 
-1. Check it's under 3:00. If it's over, re-record without section 7.
+1. Check it's under 3:00. If it's over, re-record with a shorter section 2.
 2. Upload at `youtube.com/upload`: visibility **Public**, "not made for kids", title "Readback: the safe way to let your AI shop with PayPal".
 3. Copy the link as soon as YouTube shows it and paste it into the Devpost form and to Claude.
