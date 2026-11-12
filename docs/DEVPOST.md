@@ -2,7 +2,7 @@
 
 Ready to paste into Devpost's fields. Following the organizers' guidance (Oct 27): the video shows the core flow, PayPal and AI working. This text covers what the video doesn't, and the testing instructions give judges everything they need to explore alone. The README holds the technical walkthrough and setup.
 
-**Before pasting, fill the placeholders on Devpost only, never in this repo:** `<HOSTED_URL>`, `<VIDEO_URL>`, `<REPO_URL>`, `<JUDGE_BUYER_EMAIL>`, `<JUDGE_BUYER_PASSWORD>`, `<JUDGE_MCP_URL>`. Re-read the numbers against `evals/results/latest.json` and `pnpm test` on submission day.
+**Before pasting, fill the placeholders on Devpost only, never in this repo:** `<VIDEO_URL>`, `<JUDGE_BUYER_EMAIL>`, `<JUDGE_BUYER_PASSWORD>`. Re-read the numbers against `evals/results/latest.json` and `pnpm test` on submission day.
 
 ---
 
@@ -119,13 +119,13 @@ The hard part of agent payments isn't the payment. It's proving later what the p
 
 **Everything runs against the PayPal sandbox. No real money moves.**
 
-- **Hosted demo:** `<HOSTED_URL>`. It's up through Dec 15, 2026.
+- **Hosted demo:** https://readback-web-7cmb.onrender.com. It's up through Dec 15, 2026.
 - **Video:** `<VIDEO_URL>`.
-- **Code:** `<REPO_URL>` (Apache-2.0). The README covers the architecture and running it locally in a few minutes.
+- **Code:** https://github.com/drcano/readback (Apache-2.0). The README covers the architecture and running it locally in a few minutes.
 
 ### 1. The main result, in two minutes (no sign-in)
 
-1. Open `<HOSTED_URL>`. "Same claim, two verdicts" shows two real charges on the demo shopper's sandbox agreement, read from PayPal just now as if she disputed each one:
+1. Open https://readback-web-7cmb.onrender.com. "Same claim, two verdicts" shows two real charges on the demo shopper's sandbox agreement, read from PayPal just now as if she disputed each one:
    - **Charge A:** her agent signed it, inside her terms, so the recommendation is to uphold the charge.
    - **Charge B:** the store charged her wallet itself, so the recommendation is to refund the buyer.
 2. Open either case. Readback rebuilds it record by record from PayPal and re-checks it in your browser ("Re-checked in your browser · matches").
@@ -154,10 +154,6 @@ In the **Try it yourself** section on the home page, your browser tab becomes th
 | `/shopper` | Type what your agent may buy; Claude drafts the terms, and the readback card shows exactly what would be approved |
 | `/ap2`, `/vi` | AP2's and Verifiable Intent's own example mandates, checked in your browser. Change one character and check again |
 | `/proposal` | The change we propose to PayPal, as a labeled concept of its approval page |
-
-### 4. Optional: connect an MCP client to the agent runtime
-
-`<JUDGE_MCP_URL>` is a streamable-HTTP MCP server scoped to one demo agreement. It offers `my_agent_card`, `browse_catalog` and `request_reorder`, with no revoke. It works with MCP Inspector or any MCP client. It charges at most once a day, and PayPal refuses the rest.
 
 ### Good to know
 
